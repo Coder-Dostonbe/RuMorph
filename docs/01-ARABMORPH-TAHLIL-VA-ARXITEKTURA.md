@@ -2,6 +2,8 @@
 
 *Sana: 2026-11-19. Holat: tasdiq kutilmoqda. Bu hujjatda kod yo'q, faqat tahlil va reja.*
 
+*Yangilanish (2026-11-19): **B variant** tanlandi. Engine va backend Python'da, interfeys Vue 3 + TypeScript'da. Python qurilmada Pyodide orqali, serverda Cloudflare Python Workers orqali ishlaydi. Qarang: `DECISIONS.md`.*
+
 Tahlil qilingan manba: `Desktop/arabmorph-ai`, oxirgi commit `eafa0bf`, desktop ilova v0.5.1, engine v0.3.0.
 ArabMorph'ga hech narsa yozilmadi. Testlar uning nusxasida ishga tushirildi.
 
@@ -74,9 +76,13 @@ Testlar: **365 ta engine testi o'tdi** (Python 3.12). Har bir qoida kamida bitta
 > **ArabMorph'ning Python sidecar usuli Android'da ishlamaydi.**
 
 Tauri sidecar (tashqi `.exe` ni ishga tushirish) Android'da qo'llab-quvvatlanmaydi. Tauri Android'ga o'tgan
-loyihalar Python sidecar'ga bog'liq funksiyalarni mobil versiyada yashirishga majbur bo'lmoqda. Shuning uchun RuMorph
-engine'i Python'da emas, **TypeScript'da** yoziladi (5-bo'limga qarang). ArabMorph'dan engine'ning **dizayni va tamoyillari**
-olinadi, Python kodi to'g'ridan-to'g'ri ko'chirilmaydi.
+loyihalar Python sidecar'ga bog'liq funksiyalarni mobil versiyada yashirishga majbur bo'lmoqda.
+
+**Tanlangan yechim (B variant):** engine Python'da qoladi, lekin alohida `.exe` sifatida emas, **Pyodide** orqali ishlaydi.
+Pyodide Python'ni WebAssembly'ga o'girib, ilovaning webview'i ichida ishlatadi. Shunda bitta Python kodi Windows'da,
+Android'da va serverda (Cloudflare Python Workers ham Pyodide asosida) ishlaydi. ArabMorph engine'i faqat standart
+kutubxonadan foydalanadi, Pyodide uchun bu ideal holat. Uning tuzilmasi, natija turlari va pytest testlari uslubi
+to'g'ridan-to'g'ri ko'chiriladi (5-bo'limga qarang).
 
 ---
 
@@ -86,13 +92,13 @@ Bular tilga bog'liq emas. Ozgina o'zgartirish bilan olinadi:
 
 | ArabMorph | RuMorph'da | Izoh |
 | --------- | ---------- | ---- |
-| Natija turlari (`GenerationResult`, `GeneratedForm`, `Status`, `Source`) | `packages/engine/src/types.ts` | Xuddi shu tuzilma. Grammatik belgilar ruschaga almashadi. |
-| Pipeline: parse → validate → interpret → assemble | Engine yadrosi | Bosqichlar o'sha. |
-| Qoidalar registri (`rules.py`) | `rules.ts` + keyin PostgreSQL `grammar_rules` | Izohlar uz / ru / en. `review_status` saqlanadi. |
-| Lug'at interfeysi va bir nechta manbadan yuklash | `lexicon.ts` | Seed + paketlar + foydalanuvchi lug'ati. |
+| Natija turlari (`GenerationResult`, `GeneratedForm`, `Status`, `Source`) | `core/src/tilsim_core/engine/types.py` | Xuddi shu dataclass'lar. Grammatik belgilar ruschaga almashadi. |
+| Pipeline: parse → validate → interpret → assemble (`pipeline.py`) | Engine yadrosi | Bosqichlar o'sha, kod tuzilmasi ham o'sha. |
+| Qoidalar registri (`rules.py`) | `rules.py` + keyin PostgreSQL `grammar_rules` | Izohlar uz / ru / en. `review_status` saqlanadi. |
+| Lug'at interfeysi va bir nechta manbadan yuklash | `lexicon.py` | Seed + paketlar + foydalanuvchi lug'ati. |
 | Foydalanuvchi lug'ati va AI takliflari uchun ko'rib chiqish navbati | Shaxsiy lug'at + admin panel | AI taklifi avval navbatga tushadi, tasdiqlangandan keyin lug'atga o'tadi. |
 | AI natijasini engine bilan qayta tekshirish (`verify.py`) | AI Gateway javobini tekshirish | AI yaratgan mashqlar engine'dan o'tadi. Mos kelmasa belgilanadi. |
-| Corpus testlari + "har bir qoida testlangan" testi + arxitektura testi | `packages/engine/tests` | Vitest'da. |
+| Corpus testlari + "har bir qoida testlangan" testi + arxitektura testi | `core/tests` | pytest, xuddi ArabMorph'dagidek. |
 | `store.rs` (atomik yozish, backup) | Rust shell | Eksport va backup fayllar uchun. Asosiy ma'lumot SQLite'ga o'tadi. |
 | `log.rs` (rotatsiya) | Rust shell | O'zgarishsiz. |
 | Mavzu tizimi (CSS o'zgaruvchilar, kunduz / tun / avto) | `apps/client/src/theme` | Ranglar Tilsim palitrasiga almashadi. |
@@ -119,7 +125,7 @@ Bular tilga bog'liq emas. Ozgina o'zgartirish bilan olinadi:
 | `function_words.py` | Predloglar, bog'lovchilar, yuklamalar. |
 | `analyze.py` | Teskari tahlil o'sha usulda: har bir variant qayta generatsiya bilan tasdiqlanadi. Ruschada omonimiya ko'p (`стали` = `стать` fe'li yoki `сталь` oti), shuning uchun bir nechta tahlil ehtimollik bilan qaytariladi. |
 | `vocab.py` (arab / o'zbek ajratish) | Rus / o'zbek ajratish. O'zbek kirillchasi ham bor, shuning uchun bu murakkabroq: `ў қ ғ ҳ` harflari o'zbekcha ekanini ko'rsatadi, ularsiz matn noaniq deb belgilanadi. |
-| `importers.py` (Python) | TypeScript'ga ko'chiriladi (`.docx` / `.xlsx` = zip + XML). Bitta kichik zip kutubxonasi kerak bo'ladi (`fflate`). |
+| `importers.py` (Python) | Deyarli o'zgarishsiz ko'chadi (`.docx` / `.xlsx` = zip + XML, standart kutubxona). Pyodide'da ishlaydi. |
 | JSON fayllarda saqlash | SQLite'ga o'tadi. |
 | Claude ilovadan, o'qituvchi kaliti bilan | Claude faqat serverdagi AI Gateway orqali. Ilovada kalit yo'q. |
 | Windows Credential Manager (`keyring`) | Faqat Windows'da ishlaydi. Android uchun boshqa yechim kerak (8-bo'lim). |
@@ -156,18 +162,19 @@ Bular tilga bog'liq emas. Ozgina o'zgartirish bilan olinadi:
 │ Vue 3 + TS + Pinia + Router                                               │
 │   modullar: dashboard, dictionary, reading, grammar, tests, spell,        │
 │             knowledge, calendar, flashcards, speech, admin (faqat Win)    │
-│   @tilsim/engine  ← offline grammatika (TS, webview ichida)               │
-│   @tilsim/srs, @tilsim/gamification ← sof funksiyalar                     │
+│   Pyodide (Web Worker) → tilsim_core (Python):                           │
+│      engine, srs, gamification, importers — sof funksiyalar              │
+│      TS ↔ Python: JSON so'rov / javob (ArabMorph sidecar protokoli kabi) │
 │   data qatlami: repository'lar → SQLite (tauri-plugin-sql)                │
 │   sync: outbox + pull cursor                                              │
 │ Rust shell: SQLite, fayllar, log, platform pluginlar (mikrofon, TTS)      │
 └──────────────────────────────┬────────────────────────────────────────────┘
                                │ HTTPS, Bearer token
 ┌──────────────────────────────▼────────────────────────────────────────────┐
-│ Cloudflare Worker (apps/api)                                               │
+│ Cloudflare Python Worker (apps/api)                                        │
 │   /v1/auth   /v1/sync   /v1/packages   /v1/materials   /v1/ai   /v1/admin │
 │   AI Gateway modul → provider: Claude | n8n | boshqa | local              │
-│   @tilsim/engine ← server tomonda ham (AI natijasini tekshirish uchun)    │
+│   tilsim_core ← server tomonda ham (AI natijasini tekshirish uchun)        │
 └───────┬───────────────────────┬──────────────────────────┬────────────────┘
         │ Hyperdrive            │ R2 binding               │ HTTPS
    PostgreSQL (Neon)       R2: paketlar, audio,       Claude API / n8n
@@ -176,14 +183,17 @@ Bular tilga bog'liq emas. Ozgina o'zgartirish bilan olinadi:
 
 ### 5.2. Asosiy arxitektura qarorlari
 
-1. **Engine TypeScript'da, nol bog'liqlik bilan** (`packages/engine`). Sabablari:
-   - Android'da Python sidecar ishlamaydi;
-   - bitta kod uch joyda ishlaydi: Windows webview, Android webview va Cloudflare Worker;
+1. **Domen logikasi Python'da, bitta paketda** (`core/`, `tilsim_core`): grammar engine, spaced repetition, gamification qoidalari, fayl importi. Hammasi sof funksiyalar, faqat standart kutubxona.
+   - **Qurilmada** Pyodide orqali, alohida Web Worker ichida ishlaydi, shuning uchun interfeys qotib qolmaydi. Pyodide fayllari ilova bilan birga keladi, internet kerak emas.
+   - **Serverda** o'sha paket Cloudflare Python Worker'da ishlaydi.
    - ArabMorph'dagi "engine hech qanday framework'ni import qilmaydi" qoidasi test bilan saqlanadi.
+   - **Chegara:** Python ma'lumotni o'zi saqlamaydi va tarmoqqa chiqmaydi. Kerakli ma'lumotni TypeScript qatlami beradi va natijani qaytarib oladi.
 
-   Muqobil variant Rust edi (Tauri yadrosida ishlaydi). Lekin Rust Worker'da qo'shimcha WASM qurilishini talab qiladi va o'zgartirish qiyinroq. Frontend baribir TypeScript.
+   **Interfeys va ma'lumot qatlami TypeScript'da** (Vue 3, prompt talabi): ekranlar, SQLite, sinxronizatsiya, API klienti.
 
-2. **Monorepo, npm workspaces.** Yangi vosita qo'shilmaydi (ArabMorph ham npm ishlatadi).
+   **1-bosqich boshidagi sinov (spike):** Pyodide'ning telefoningizda ishga tushish vaqti va Python Worker'ning bepul tarifdagi 10 ms CPU cheklovi ichida ishlashi o'lchanadi. Natija yomon bo'lsa, engine TypeScript'ga o'tkaziladi (A variant). Bu qaror siz bilan birga qabul qilinadi.
+
+2. **Monorepo.** JavaScript qismi uchun npm workspaces, Python qismi uchun `uv` va `pyproject.toml`. ArabMorph ham npm va `pyproject.toml` ishlatadi.
 
 3. **Offline-first.** Ilova har doim lokal SQLite bilan ishlaydi. Server faqat sinxronizatsiya, kontent paketlari va AI uchun kerak. UI hech qachon to'g'ridan-to'g'ri serverga bog'liq bo'lmaydi.
 
@@ -191,7 +201,7 @@ Bular tilga bog'liq emas. Ozgina o'zgartirish bilan olinadi:
 
 5. **Lug'atda yo'q so'zlar** qo'shimchasiga qarab taxmin qilinadi (`source: heuristic`, past ishonch, `ambiguous`). Hech qachon `ok` bo'lmaydi.
 
-6. **Worker framework: Hono.** Kichik, Workers uchun yaratilgan, routing va middleware beradi. **DB drayveri:** `postgres` (postgres.js), Hyperdrive bilan ishlaydi. **Validatsiya:** `zod`, sxemalar `packages/shared` da va frontend bilan umumiy.
+6. **Backend: Cloudflare Python Worker.** Framework 1-bosqichdagi sinovdan keyin tanlanadi: FastAPI (ASGI orqali qo'llab-quvvatlanadi) yoki CPU cheklovi uchun yengilroq router. **DB drayveri:** Hyperdrive orqali `asyncpg`. **Validatsiya:** pydantic modellari. Ulardan JSON Schema chiqariladi va TypeScript tiplari shundan avtomatik yaratiladi, shuning uchun ikki tomondagi API tiplari bir-biridan ajralib ketmaydi.
 
 7. **Admin panel** client ilova ichidagi alohida bo'lim. Faqat Windows'da va `admin` roli bo'lsa ko'rinadi. Keyinroq alohida loyihaga chiqarish oson bo'lishi uchun o'z papkasida va o'z API yo'llarida (`/v1/admin/*`) turadi.
 
@@ -208,26 +218,33 @@ RuMorph/
 │   │   │   │   ├── spell/  knowledge/  calendar/  flashcards/  speech/
 │   │   │   │   └── admin/         # faqat Windows + admin roli
 │   │   │   ├── data/              # SQLite repository'lar, migratsiyalar, sync
-│   │   │   ├── api/               # backend klienti (tiplangan)
+│   │   │   ├── api/               # backend klienti (tiplar JSON Schema'dan yaratiladi)
+│   │   │   ├── core/              # Pyodide yuklovchi, Web Worker, tilsim_core chaqiruvlari
 │   │   │   ├── ui/                # umumiy komponentlar, dizayn tizimi, theme
 │   │   │   └── i18n/              # uz / ru / en
 │   │   └── src-tauri/             # Rust shell + Android loyiha (gen/android)
-│   └── api/                       # Cloudflare Worker (Hono)
-│       └── src/
+│   └── api/                       # Cloudflare Python Worker
+│       ├── pyproject.toml
+│       └── src/tilsim_api/
 │           ├── routes/            # auth, sync, packages, materials, ai, admin
 │           ├── ai/                # AI Gateway: router, provider'lar, promptlar
 │           ├── db/                # so'rovlar (SQL qatlami alohida)
+│           ├── schemas/           # pydantic modellari → JSON Schema → TS tiplar
 │           └── lib/               # auth, rate limit, log, xatolar
-├── packages/
-│   ├── engine/                    # @tilsim/engine — rus morfologiyasi (bog'liqliksiz)
-│   ├── shared/                    # API tiplari, zod sxemalar, sync protokoli
-│   ├── srs/                       # spaced repetition algoritmi
-│   └── gamification/              # XP, daraja, streak, yutuq qoidalari
+├── core/                          # tilsim_core — Python domen logikasi (faqat stdlib)
+│   ├── pyproject.toml
+│   ├── src/tilsim_core/
+│   │   ├── engine/                # rus morfologiyasi (ArabMorph tuzilmasi asosida)
+│   │   ├── srs/                   # spaced repetition algoritmi
+│   │   ├── gamification/          # XP, daraja, streak, yutuq qoidalari
+│   │   ├── importers/             # .docx / .xlsx / .txt / .csv
+│   │   └── bridge.py              # TS ↔ Python JSON so'rovlar (Pyodide uchun)
+│   └── tests/                     # pytest + corpus
 ├── db/
 │   ├── postgres/migrations/       # 0001_init.sql, ...
 │   └── sqlite/migrations/
 ├── content/                       # kontent manbalari → paket build
-├── tools/                         # lug'at import, paket yig'ish, checksum
+├── tools/                         # Python: lug'at import, paket yig'ish, checksum
 ├── brand/                         # logo
 └── docs/
 ```
@@ -325,9 +342,9 @@ Cloudflare'ning ham "AI Gateway" degan mahsuloti bor (AI so'rovlarini log va kes
 
 | Imkoniyat | Windows (WebView2) | Android (WebView) | Yechim |
 | --------- | ------------------ | ----------------- | ------ |
-| Grammar engine | TS, webview'da | TS, webview'da | Bir xil kod. |
+| Grammar engine | Python, Pyodide orqali webview'da | Python, Pyodide orqali webview'da | Bir xil kod. Telefonda ishga tushish vaqti 1-bosqichda o'lchanadi. |
 | SQLite | `tauri-plugin-sql` | `tauri-plugin-sql` (Android rasman qo'llab-quvvatlanadi) | Bir xil. Android'da SQLite kutubxonaga birga qo'shib qurilishi kerak. |
-| Python sidecar | Ishlaydi | **Ishlamaydi** | Ishlatilmaydi. Engine TS'da. |
+| Python sidecar (`.exe`) | Ishlaydi | **Ishlamaydi** | Ishlatilmaydi. O'rniga Pyodide. |
 | Mikrofon (yozib olish) | `getUserMedia` | Manifestda `RECORD_AUDIO` va WebView ruxsati kerak | 1-bosqichda Android'da sinab ko'riladi. Ishlamasa, kichik native plugin yoziladi. |
 | Nutqni matnga (STT) | Web Speech API WebView2'da ishonchli emas | Android WebView'da **yo'q** | Online: server orqali STT provayderi. Offline: keyinroq qurilmadagi model (Vosk yoki whisper.cpp). 4-bosqichda tanlanadi. |
 | Matnni nutqqa (TTS) | `speechSynthesis` ishlaydi (Windows'da rus ovozi o'rnatilgan bo'lishi kerak) | Android WebView'da `speechSynthesis` **yo'q** | Android: Android TextToSpeech asosida kichik Kotlin plugin. Lug'at so'zlari uchun tayyor audio paketlari (R2) eng sifatli va offline ishlaydi. |
@@ -351,8 +368,8 @@ Prompt'dagi 9 bosqich saqlanadi. Ikkita kichik o'zgarish taklif qilaman:
 
 | # | Bosqich | Natija | Tugash mezoni |
 | - | ------- | ------ | ------------- |
-| 1 | Architecture & Foundation | Monorepo, Vue + Tauri skeleti (sidebar / bottom nav, theme, i18n), Worker skeleti (Hono, `/health`), PostgreSQL migratsiya `0001`, Hyperdrive ulanishi, SQLite + migratsiyalar, auth (ro'yxatdan o'tish, kirish, refresh, logout), CI. | Windows'da ilova ishga tushadi, Android'da APK ochiladi, login ishlaydi, testlar o'tadi. |
-| 2 | Rus grammar engine | Tiplar, normalizatsiya, otlar (rod, son, 6 kelishik), sifatlar, fe'llar (hozirgi, o'tgan, kelasi zamon, vid), olmoshlar, sonlar, predlog → kelishik, teskari tahlil, istisnolar bazasi, seed lug'at. | Har bir qoida corpus testi bilan qoplangan. Noto'g'ri `ok` yo'q. |
+| 1 | Architecture & Foundation | Avval sinov: Pyodide telefonda va Python Worker bepul tarifda. Keyin monorepo, Vue + Tauri skeleti (sidebar / bottom nav, theme, i18n), Pyodide ko'prigi, Python Worker skeleti (`/health`), PostgreSQL migratsiya `0001`, Hyperdrive ulanishi, SQLite + migratsiyalar, auth (ro'yxatdan o'tish, kirish, refresh, logout), CI. | Windows'da ilova ishga tushadi, Android'da APK ochiladi, login ishlaydi, testlar o'tadi. |
+| 2 | Rus grammar engine (Python) | Tiplar, normalizatsiya, otlar (rod, son, 6 kelishik), sifatlar, fe'llar (hozirgi, o'tgan, kelasi zamon, vid), olmoshlar, sonlar, predlog → kelishik, teskari tahlil, istisnolar bazasi, seed lug'at. | Har bir qoida corpus testi bilan qoplangan. Noto'g'ri `ok` yo'q. |
 | 3 | Learning Modules | Dictionary, Grammar, Daily Reading, Tests & Games, Spell Checker (lokal), Learning Calendar, Flashcards (SRS), Dashboard. | Har bir modul real ma'lumot bilan ishlaydi. |
 | 4 | Speech System | Yozib olish, STT, matnni solishtirish (tushib qolgan va noto'g'ri o'qilgan so'zlar), TTS, sekinlashtirilgan audio. | Windows va Android'da ishlaydi. Cheklovlar ochiq ko'rsatiladi. |
 | 5 | AI Integration | AI Gateway, Claude provider, grammatika tushuntirish, matn tahlili, Knowledge Base (yuklash, RAG, manba ko'rsatish). | Provider almashtirish faqat sozlama orqali. Xarajat limiti ishlaydi. |
@@ -378,14 +395,16 @@ Prompt'dagi 9 bosqich saqlanadi. Ikkita kichik o'zgarish taklif qilaman:
 | 9 | **Sinxronizatsiya konfliktlari.** | Ma'lumot yo'qolishi. | Faqat qo'shiladigan jurnallar, `version`, server kursori. Sinovlar bilan. |
 | 10 | **Android build tooling** (Android Studio, NDK, JDK) kompyuterda bor-yo'qligi noma'lum. | 1-bosqichni sekinlashtirishi mumkin. | 1-bosqich boshida tekshiriladi va o'rnatish yo'riqnomasi beriladi. |
 | 11 | **Hajm.** Loyiha juda katta, ishlab chiquvchi bitta. | Hech qachon tugamaydigan loyiha xavfi. | MVP intizomi. Har bir bosqich alohida ishlaydigan holatda tugaydi. |
-| 12 | **Engine Python'dan TypeScript'ga o'tadi.** | ArabMorph'ning Python kodi to'g'ridan-to'g'ri ishlatilmaydi. Siz Python'ni yaxshi bilasiz, TS'ni kamroq. | Arxitektura va tamoyillar ko'chiriladi. Kod tushuntirishlar bilan yoziladi. Lug'at importi kabi vositalar (`tools/`) Python'da qolishi mumkin. |
-| 13 | **Git push.** Bu sessiya repoga HTTPS orqali push qiladi. Kompyuterdagi nusxa SSH (`git@github.com`) orqali ishlaydi. | — | Ikkalasi bir repo. Push'dan keyin Desktop'dagi nusxa ham yangilanadi. |
+| 12 | **Pyodide qurilmada.** Runtime bir necha MB. Birinchi ishga tushish telefonda sekinroq. | Ilova hajmi kattaroq, ochilishda kutish. | Pyodide alohida Web Worker'da, fonda yuklanadi. Interfeys darhol ochiladi, engine tayyor bo'lguncha "yuklanmoqda" holati ko'rsatiladi. 1-bosqichda o'lchanadi. |
+| 13 | **Python Worker va 10 ms CPU.** Python Worker'ning ishga tushishi bepul tarif cheklovidan oshishi mumkin. | Bepul tarif yetmasligi. | 1-bosqichda o'lchanadi. Yetmasa, $5 lik tarif yoki backend TypeScript'da. |
+| 14 | **Ikki til (TS + Python) va ular orasidagi ko'prik.** | Tiplar ajralib ketishi, debugging qiyinlashishi. | Tiplar pydantic → JSON Schema → TS yo'li bilan avtomatik yaratiladi. Ko'prik protokoli ArabMorph sidecar'idagi kabi: so'rov va javob JSON, har bir operatsiya tekshiriladi. |
+| 15 | **Git push.** Bu sessiya repoga HTTPS orqali push qiladi. Kompyuterdagi nusxa SSH (`git@github.com`) orqali ishlaydi. | — | Ikkalasi bir repo. Push'dan keyin Desktop'dagi nusxa ham yangilanadi. |
 
 ---
 
 ## Tasdiqlash uchun savollar
 
-1. **Engine TypeScript'da** bo'lishiga rozimisiz (Python sidecar Android'da ishlamaydi)?
+1. ~~Engine tili~~ — **hal qilindi:** B variant (engine va backend Python'da, interfeys TypeScript'da).
 2. **PostgreSQL hosting: Neon** (bepul, pgvector bor, Job Agent'da allaqachon ishlatgansiz)? Yoki Railway / Supabase?
 3. **Lug'at manbalari:** OpenCorpora (morfologiya) va Wiktionary (urg'u, paradigmalar). Ikkalasi ham CC BY-SA. Tasdiqlaysizmi?
 4. **Roadmap o'zgarishlari:** Android tekshiruvini 1-bosqichga olish va Dashboard'ni XP / streak'siz boshlash ma'qulmi?

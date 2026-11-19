@@ -17,6 +17,13 @@ Asosiy topshiriq: [`docs/MASTER_PROMPT.md`](docs/MASTER_PROMPT.md). Unga qo'shim
 - Secrets hech qachon commit qilinmaydi: `.env`, API kalitlar, Tauri updater private key, Android keystore, sertifikatlar.
 - Kompyuterdagi ishchi nusxa: `Desktop/RuMorph`. Push'dan keyin u ham yangilanadi.
 
+## Arxitektura qisqacha
+
+- Domen logikasi (grammar engine, SRS, gamification, importlar) Python'da: `core/` (`tilsim_core`), faqat standart kutubxona. Qurilmada Pyodide, serverda Cloudflare Python Workers.
+- Backend: Cloudflare Python Worker (`apps/api`).
+- Interfeys va ma'lumot qatlami (SQLite, sync, API klienti): Vue 3 + TypeScript (`apps/client`).
+- Batafsil: `docs/01-ARABMORPH-TAHLIL-VA-ARXITEKTURA.md`, 5-bo'lim.
+
 ## Bosqichlar
 
 - Ish `docs/01-ARABMORPH-TAHLIL-VA-ARXITEKTURA.md` dagi roadmap bo'yicha, bosqichma-bosqich boradi.
