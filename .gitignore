@@ -1,0 +1,46 @@
+# --- Node / Vite ---
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+
+# --- Tauri / Rust ---
+target/
+apps/client/src-tauri/gen/
+
+# --- Cloudflare Workers ---
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# --- Python (tools) ---
+.venv/
+__pycache__/
+*.pyc
+
+# --- Secrets: never commit ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+secrets/
+credentials*.json
+
+# --- Build artefacts / data dumps ---
+*.sqlite
+*.sqlite3
+*.db
+content/build/
+
+# --- OS / editor ---
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

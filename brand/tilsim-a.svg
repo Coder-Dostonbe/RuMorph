@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <title>Tilsim</title>
+  <rect width="1024" height="1024" rx="224" fill="#1A1F4E"/>
+  <g transform="translate(512 512)">
+    <rect x="-255" y="-255" width="510" height="510" fill="#22A6A1"/>
+    <rect x="-255" y="-255" width="510" height="510" transform="rotate(45)" fill="#22A6A1"/>
+  </g>
+  
+  <g transform="translate(18 0)" fill="none" stroke="#1A1F4E" stroke-width="56" stroke-linejoin="round">
+    <path d="M598 362 V662"/>
+    <path d="M598 390 H482 C422 390 390 427 390 470 C390 513 422 550 482 550 H598"/>
+    <path d="M512 550 L398 662" stroke-linecap="butt"/>
+  </g>
+</svg>
