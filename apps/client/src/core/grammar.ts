@@ -228,6 +228,29 @@ export interface PreparedText {
   unknown: number;
 }
 
+export interface DayActivity {
+  day: string;
+  reviews: number;
+  reviews_right: number;
+  readings: number;
+  reading_minutes: number;
+  tests: number;
+  test_answers: number;
+  test_right: number;
+  words_added: number;
+  due: number;
+}
+
+export interface Summary {
+  today: string;
+  words: { total: number; known: number; learning: number };
+  cards: { total: number; new: number; learning: number; mature: number; due_now: number };
+  today_done: Omit<DayActivity, "day">;
+  week: { reviews: number; review_accuracy: number | null; test_accuracy: number | null; reading_minutes: number; active_days: number };
+  month_active_days: number;
+  last_14_days: DayActivity[];
+}
+
 export const POS_FILTERS = ["NOUN", "ADJF", "VERB", "ADVB", "NPRO", "NUMR", "PREP", "CONJ", "PRCL", "PRED", "INTJ"] as const;
 export type PosFilter = (typeof POS_FILTERS)[number];
 
@@ -288,6 +311,10 @@ export const grammar = {
     core.call<Question[]>("exercises", { kind, count, seed, max_rank: maxRank, vocabulary }),
   spellcheck: (text: string, lang: Locale) => core.call<SpellResult>("spellcheck", { text, lang }),
   reading: (text: string) => core.call<PreparedText>("reading", { text }),
+  stats: (records: object, now: string, offset: number) =>
+    core.call<Summary>("stats", { records, now, offset_minutes: offset }),
+  calendar: (records: object, year: number, month: number, offset: number) =>
+    core.call<DayActivity[]>("calendar", { records, year, month, offset_minutes: offset }),
   words: (ids: string[], lang: Locale) => core.call<Record<string, WordInfo>>("words", { ids, lang }),
   srsReview: (card: CardState, grade: 0 | 1 | 2 | 3, now: string) =>
     core.call<{ card: CardState }>("srs_review", { card, grade, now }),

@@ -5,7 +5,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { CoreError } from "../core/client";
 import { grammar, type ExerciseKind, type Question } from "../core/grammar";
 import { testResults, type TestResultRow } from "../data/userData";
-import { format, useI18n } from "../i18n";
+import { dateLocale, format, useI18n } from "../i18n";
 import { useCore } from "../stores/core";
 import { useGrammar } from "../stores/grammar";
 import { useVocabulary } from "../stores/vocabulary";
@@ -239,7 +239,7 @@ watch(() => core.status, () => (failure.value = ""));
                 <template v-if="h.kind === 'game_quick'">{{ format(m.tests.score, { n: h.correct }) }}</template>
                 <template v-else>{{ h.correct }} / {{ h.total }}</template>
               </td>
-              <td class="muted small">{{ new Date(h.taken_at).toLocaleString() }}</td>
+              <td class="muted small">{{ new Date(h.taken_at).toLocaleString(dateLocale()) }}</td>
             </tr>
           </tbody>
         </table>

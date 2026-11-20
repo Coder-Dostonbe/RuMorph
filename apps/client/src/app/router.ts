@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from "vue-router";
 import AboutView from "../views/AboutView.vue";
 import AccountView from "../views/AccountView.vue";
 import AnalyzeView from "../views/AnalyzeView.vue";
+import CalendarView from "../views/CalendarView.vue";
 import DictionaryView from "../views/DictionaryView.vue";
 import FlashcardsView from "../views/FlashcardsView.vue";
 import GrammarView from "../views/GrammarView.vue";
@@ -24,6 +25,7 @@ export const router = createRouter({
     { path: "/tests", name: "tests", component: TestsView },
     { path: "/grammar", name: "grammar", component: GrammarView },
     { path: "/spell", name: "spell", component: SpellView },
+    { path: "/calendar", name: "calendar", component: CalendarView },
     { path: "/analyze", name: "analyze", component: AnalyzeView },
     { path: "/more", name: "more", component: MoreView },
     { path: "/account", name: "account", component: AccountView },

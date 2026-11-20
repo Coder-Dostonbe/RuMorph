@@ -28,3 +28,8 @@ export function format(template: string, values: Record<string, string | number>
 }
 
 export type { Messages };
+
+/** BCP 47 tag for dates and numbers in the interface language. */
+export function dateLocale(): string {
+  return { uz: "uz-Latn-UZ", ru: "ru-RU", en: "en-GB" }[locale.value];
+}

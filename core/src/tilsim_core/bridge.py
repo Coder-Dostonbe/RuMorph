@@ -318,6 +318,55 @@ def _op_reading(args: dict[str, Any]) -> dict[str, Any]:
     return prepare(_string(args, "text", limit=MAX_TEXT))
 
 
+_RECORD_FIELDS = {
+    "reviews": ("reviewed_at", "grade"), "readings": ("read_at",), "tests": ("taken_at", "total", "correct"),
+    "words": ("created_at",), "cards": ("due_at", "interval_days"),
+}
+
+
+def _records(args: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
+    records = args.get("records")
+    if not isinstance(records, dict) or set(records) - set(_RECORD_FIELDS):
+        raise BridgeError("invalid_args", f"'records' must be an object with {', '.join(_RECORD_FIELDS)}")
+    for name, rows in records.items():
+        if not (isinstance(rows, list) and len(rows) <= 200000
+                and all(isinstance(r, dict) and all(f in r for f in _RECORD_FIELDS[name]) for r in rows)):
+            raise BridgeError("invalid_args", f"'records.{name}' must be a list of rows with {_RECORD_FIELDS[name]}")
+    return records
+
+
+def _offset(args: dict[str, Any]) -> int:
+    offset = args.get("offset_minutes", 0)
+    if not (isinstance(offset, int) and -840 <= offset <= 840):
+        raise BridgeError("invalid_args", "'offset_minutes' must be between -840 and 840")
+    return offset
+
+
+def _op_stats(args: dict[str, Any]) -> dict[str, Any]:
+    """Dashboard numbers from the learner's own records (tilsim_core/stats.py)."""
+    from .stats import summary
+
+    _only(args, "records", "now", "offset_minutes")
+    try:
+        return summary(_records(args), _now(args), _offset(args))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise BridgeError("invalid_args", f"bad record: {exc}") from None
+
+
+def _op_calendar(args: dict[str, Any]) -> list[dict[str, Any]]:
+    """Every day of a month with what was done and how many cards fall due."""
+    from .stats import month
+
+    _only(args, "records", "year", "month", "offset_minutes")
+    year, number = args.get("year"), args.get("month")
+    if not (isinstance(year, int) and 2000 <= year <= 2200 and isinstance(number, int) and 1 <= number <= 12):
+        raise BridgeError("invalid_args", "'year' must be 2000–2200 and 'month' 1–12")
+    try:
+        return month(_records(args), year, number, _offset(args))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise BridgeError("invalid_args", f"bad record: {exc}") from None
+
+
 def _op_grammemes(args: dict[str, Any]) -> dict[str, Any]:
     """Names of every grammeme code in one language, for table headers and labels."""
     from .engine.grammemes import CATEGORIES, GRAMMEMES
@@ -404,6 +453,8 @@ OPS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "rules": _op_rules,
     "grammemes": _op_grammemes,
     "search": _op_search,
+    "stats": _op_stats,
+    "calendar": _op_calendar,
     "reading": _op_reading,
     "spellcheck": _op_spellcheck,
     "exercises": _op_exercises,

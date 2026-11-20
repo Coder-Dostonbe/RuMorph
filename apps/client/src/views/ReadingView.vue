@@ -7,7 +7,7 @@ import { useRoute, useRouter } from "vue-router";
 import { CoreError } from "../core/client";
 import { grammar, type PreparedText, type ReadingToken } from "../core/grammar";
 import { readings, readingTexts, type ReadingRow, type ReadingTextRow } from "../data/userData";
-import { format, useI18n } from "../i18n";
+import { dateLocale, format, useI18n } from "../i18n";
 import { useCore } from "../stores/core";
 import { useVocabulary } from "../stores/vocabulary";
 import VocabEditor from "../ui/VocabEditor.vue";
@@ -171,7 +171,7 @@ async function finish(): Promise<void> {
             <div>
               <strong>{{ t.title }}</strong>
               <span class="muted small">
-                {{ lastRead.get(t.id) ? format(m.reading.lastRead, { date: new Date(lastRead.get(t.id)!).toLocaleDateString() }) : m.reading.neverRead }}
+                {{ lastRead.get(t.id) ? format(m.reading.lastRead, { date: new Date(lastRead.get(t.id)!).toLocaleDateString(dateLocale()) }) : m.reading.neverRead }}
                 <template v-if="t.source"> · {{ t.source }}</template>
               </span>
             </div>
