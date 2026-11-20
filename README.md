@@ -7,6 +7,17 @@ O'zbek tilida so'zlashuvchilar uchun rus tilini o'rganish platformasi. Windows v
 - **Repozitoriy:** `git@github.com:Coder-Dostonbe/RuMorph.git`
 - **Foydalanish:** shaxsiy sinov uchun. Ommaga chiqarilmaydi.
 
+## Yuklab olish
+
+| Platforma | Fayl |
+| --------- | ---- |
+| Android | [**Tilsim-android-test.apk**](https://github.com/Coder-Dostonbe/RuMorph/releases/download/dev/Tilsim-android-test.apk) |
+| Windows | [**Tilsim-windows-setup.exe**](https://github.com/Coder-Dostonbe/RuMorph/releases/download/dev/Tilsim-windows-setup.exe) |
+
+Havolalar har doim `main` branch'ning testlardan o'tgan oxirgi build'iga olib boradi.
+Bu sinov versiyalari: Windows o'rnatuvchisi imzolanmagan (SmartScreen chiqsa: **More info → Run anyway**),
+Android'da "noma'lum manbadan o'rnatish"ga ruxsat berish kerak.
+
 ## Holat
 
 | Bosqich | Holat |
