@@ -97,7 +97,8 @@ def _op_lexeme(args: dict[str, Any]) -> dict[str, Any]:
 
     _only(args, "id", "lang")
     lang = _lang(args)
-    lexeme = default_lexicon().lexemes.get(_string(args, "id"))
+    lexicon = default_lexicon()
+    lexeme = lexicon.lexemes.get(_string(args, "id"))
     if lexeme is None:
         raise BridgeError("not_found", "no lexeme with this id")
     profile = classify(lexeme)
@@ -108,7 +109,7 @@ def _op_lexeme(args: dict[str, Any]) -> dict[str, Any]:
         "description": lexeme.lemma_tag.describe(lang),
         "source": lexeme.source,
         "profile": profile.to_dict() if profile else None,
-        "table": paradigm_table(lexeme),
+        "table": paradigm_table(lexeme, lexicon),
     }
 
 

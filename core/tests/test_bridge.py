@@ -117,6 +117,14 @@ def test_lexeme_op_for_a_pronoun_and_an_adjective():
     assert "adj.comparative_suppletive" in {f["rule"] for f in adjective["profile"]["findings"]}
 
 
+def test_lexeme_op_for_a_verb():
+    reading = next(r for r in ok("analyze", word="пишу")["readings"])
+    result = ok("lexeme", id=reading["lexeme"], lang="en")
+    assert result["lemma"] == "писать" and result["pos"] == "INFN" and result["table"]["kind"] == "verb"
+    assert result["profile"]["category"] == "verb.conj.1"
+    assert result["table"]["future_compound"][0]["cells"][0][0]["form"] == "буду писать"
+
+
 def test_lexeme_op_without_a_profile():
     reading = ok("analyze", word="очень")["readings"][0]
     assert ok("lexeme", id=reading["lexeme"])["profile"] is None

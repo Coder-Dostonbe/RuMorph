@@ -226,13 +226,76 @@ def test_distorted_forms_are_rare(lexicon):
     assert result.readings and all("lexicon.rare_form" in r.to_dict()["rules"] for r in result.readings)
 
 
+def _forms(cells):
+    return [c["form"] for c in cells]
+
+
+def test_imperfective_verb_table(lexicon):
+    t = paradigm_table(_only(lexicon, "писать", "INFN"), lexicon)
+    assert t["kind"] == "verb" and t["aspect"] == "impf" and t["transitivity"] == "tran"
+    (present,) = t["nonpast"]
+    assert present["tense"] == "pres"
+    rows = {r["key"]: [_forms(c) for c in r["cells"]] for r in present["rows"]}
+    assert rows == {"1per": [["пишу"], ["пишем"]], "2per": [["пишешь"], ["пишете"]], "3per": [["пишет"], ["пишут"]]}
+    future = {r["key"]: [_forms(c) for c in r["cells"]] for r in t["future_compound"]}
+    assert future["1per"] == [["буду писать"], ["будем писать"]]
+    assert all(c["constructed"] and c["rule"] == "verb.future_compound" and "index" not in c
+               for r in t["future_compound"] for cell in r["cells"] for c in cell)
+    assert [_forms(c) for c in t["past"]["cells"]] == [["писал"], ["писала"], ["писало"], ["писали"]]
+    assert [_forms(c) for c in t["imperative"][0]["cells"]] == [["пиши"], ["пишите"]]
+    participles = {p["key"]: _forms(p["lemma"]) for p in t["participles"]}
+    assert participles["pres.actv"] == ["пишущий"] and participles["past.pssv"] == ["писанный"]
+
+
+def test_perfective_verb_has_a_simple_future_and_no_compound_one(lexicon):
+    t = paradigm_table(_only(lexicon, "сделать", "INFN"), lexicon)
+    assert t["aspect"] == "perf" and [n["tense"] for n in t["nonpast"]] == ["futr"]
+    assert t["future_compound"] is None
+    assert {r["key"] for r in t["imperative"]} == {"excl", "incl"}
+
+
+def test_byt_has_present_and_future_and_no_compound_future(lexicon):
+    t = paradigm_table(_only(lexicon, "быть", "INFN"), lexicon)
+    assert [n["tense"] for n in t["nonpast"]] == ["pres", "futr"] and t["future_compound"] is None
+
+
+def test_two_aspect_verb_keeps_every_form(lexicon):
+    t = paradigm_table(_only(lexicon, "бежать", "INFN"), lexicon)
+    assert t["aspect"] == "both" and [n["tense"] for n in t["nonpast"]] == ["pres", "futr"]
+    assert t["infinitive"][0]["form"] == "бежать" and t["infinitive"][0]["also"]
+
+
+def test_compound_future_needs_the_lexicon(lexicon):
+    # Without a lexicon to take быть from, the compound future is left out rather than made up.
+    assert paradigm_table(_only(lexicon, "писать", "INFN"))["future_compound"] is None
+
+
+def _indices(node):
+    """Every form index anywhere in a table (cells are dicts with "index")."""
+    if isinstance(node, dict):
+        found = ({node["index"], *node.get("also", ())} if "index" in node else set())
+        return found.union(*(_indices(v) for v in node.values()))
+    if isinstance(node, list):
+        return set().union(*(_indices(v) for v in node))
+    return set()
+
+
 def test_every_form_appears_in_some_table(lexicon):
     for lexeme in lexicon.lexemes.values():
-        t = paradigm_table(lexeme)
-        shown = {c["index"] for row in t.get("rows", []) for cells in row["cells"] for c in cells}
-        for extra in ("short",):
-            for cells in t.get(extra) or []:
-                shown |= {c["index"] for c in cells}
-        shown |= {c["index"] for c in (t.get("comparative") or [])}
-        shown |= {c["index"] for c in t["extra"]}
-        assert shown == {f.index for f in lexeme.forms}, lexeme.lemma
+        t = paradigm_table(lexeme, lexicon)
+        assert _indices(t) == {f.index for f in lexeme.forms}, lexeme.lemma
+
+
+def test_no_form_appears_twice_in_a_table(lexicon):
+    def cells(node):
+        if isinstance(node, dict):
+            yield from ([node["index"], *node.get("also", ())] if "index" in node else [])
+            for v in node.values():
+                yield from cells(v)
+        elif isinstance(node, list):
+            for v in node:
+                yield from cells(v)
+    for lexeme in lexicon.lexemes.values():
+        t = paradigm_table(lexeme, lexicon)
+        seen = list(cells({k: v for k, v in t.items() if k != "extra"}))
+        assert not set(seen) & {e["index"] for e in t["extra"]}, lexeme.lemma

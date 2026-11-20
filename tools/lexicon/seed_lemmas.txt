@@ -1,6 +1,7 @@
 # Boshlang'ich (A1–A2) lug'at uchun lemmalar ro'yxati — qo'lda tuzilgan.
-# Har qatorda: lemma [so'z turkumi]. Turkum ko'rsatilmasa, shu lemmaning OpenCorpora'dagi
+# Har qatorda: lemma [so'z turkumi [grammemalar]]. Turkum ko'rsatilmasa, shu lemmaning OpenCorpora'dagi
 # barcha leksemalari olinadi (masalan "есть": yemoq va bo'lmoq).
+# Grammemalar (vergul bilan) omonimlardan birini tanlaydi: lemma tegida hammasi bo'lishi shart.
 # Turkumlar: NOUN ADJF VERB NPRO NUMR ADVB PREP CONJ PRCL PRED INTJ
 # Ro'yxatga qiyin holatlar ataylab kiritilgan: qochuvchi unli, noodatiy turlanish,
 # suppletiv shakllar, faqat ko'plikda / birlikda ishlatiladigan otlar, turlanmaydigan otlar.
@@ -166,7 +167,8 @@
 сделать VERB
 читать VERB
 прочитать VERB
-писать VERB
+# писать (yozmoq) o'timli; o'timsiz omonimi пи́сать (bolalar so'zi) boshlang'ich lug'atga kirmaydi.
+писать VERB tran
 написать VERB
 говорить VERB
 сказать VERB

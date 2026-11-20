@@ -134,8 +134,8 @@ GRAMMEMES: dict[str, Grammeme] = {g.code: g for g in [
 RARE_USAGE = frozenset({"Infr", "Slng", "Arch", "Erro", "Dist"})
 
 # Forms left out when the engine needs "the" form of a cell to explain a rule: rare usage,
-# spelling variants (-ою, -ею, …) and literary variants (краше). They stay in every table.
-NOT_MAIN = RARE_USAGE | frozenset({"Litr", "V-be", "V-bi", "V-ey", "V-oy", "V-ej", "V-sh", "V-ie", "V-en"})
+# spelling variants (-ою, -ею, …), literary variants (краше) and abbreviations (е for есть). They stay in every table.
+NOT_MAIN = RARE_USAGE | frozenset({"Litr", "Abbr", "V-be", "V-bi", "V-ey", "V-oy", "V-ej", "V-sh", "V-ie", "V-en"})
 
 
 def grammeme(code: str) -> Grammeme | None:

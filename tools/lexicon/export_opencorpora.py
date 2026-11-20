@@ -34,20 +34,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SEED = Path(__file__).with_name("seed_lemmas.txt")
 OUT = ROOT / "core" / "src" / "tilsim_core" / "data" / "ru_core.json"
-PACKAGE_VERSION = "0.1.0"
+PACKAGE_VERSION = "0.2.0"
 
 
-def read_seed(path: Path) -> list[tuple[str, str | None]]:
-    seen: set[tuple[str, str | None]] = set()
-    items: list[tuple[str, str | None]] = []
+def read_seed(path: Path) -> list[tuple[str, str | None, frozenset[str]]]:
+    """Lines: lemma [POS [grammeme,grammeme…]]. The grammemes, if given, must all be in the
+    lemma's tag; they pick one of several homonyms (писать VERB tran: to write, not пи́сать)."""
+    seen: set[tuple[str, str | None, frozenset[str]]] = set()
+    items: list[tuple[str, str | None, frozenset[str]]] = []
     for line in path.read_text(encoding="utf-8").splitlines():
         line = line.split("#", 1)[0].strip()
         if not line:
             continue
         parts = line.split()
-        item = (parts[0], parts[1] if len(parts) > 1 else None)
-        if len(parts) > 2:
+        if len(parts) > 3:
             raise SystemExit(f"bad seed line: {line!r}")
+        item = (parts[0], parts[1] if len(parts) > 1 else None,
+                frozenset(parts[2].split(",")) if len(parts) > 2 else frozenset())
         if item not in seen:
             seen.add(item)
             items.append(item)
@@ -66,7 +69,7 @@ def export(check: bool = False) -> dict:
     lexemes: dict[tuple[str, int], str] = {}   # (stem, paradigm) -> lemma, for stable sorting
     missing: list[str] = []
 
-    for lemma, pos in read_seed(SEED):
+    for lemma, pos, required in read_seed(SEED):
         found = False
         for parse in morph.parse(lemma):
             analyzer, word, para_id, idx = parse.methods_stack[0]
@@ -75,6 +78,8 @@ def export(check: bool = False) -> dict:
             # Verbs are listed by their infinitive (INFN); participles and gerunds share the lexeme.
             lemma_pos = parse.normalized.tag.POS
             if pos is not None and lemma_pos != pos and not (pos == "VERB" and lemma_pos == "INFN"):
+                continue
+            if required and not required <= set(parse.normalized.tag.grammemes):
                 continue
             stem = dictionary.build_stem(dictionary.paradigms[para_id], idx, word)
             rows = []
@@ -85,7 +90,7 @@ def export(check: bool = False) -> dict:
             lexemes[(stem, paradigm_index)] = lemma
             found = True
         if not found:
-            missing.append(f"{lemma} {pos or ''}".strip())
+            missing.append(" ".join([lemma, pos or "", ",".join(sorted(required))]).strip())
 
     if missing:
         print(f"not found in OpenCorpora ({len(missing)}): {', '.join(missing)}", file=sys.stderr)

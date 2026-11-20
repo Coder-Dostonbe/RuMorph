@@ -34,7 +34,7 @@ class Finding:
 
 @dataclass
 class Profile:
-    kind: str                              # "noun" | "adjective" | "pronoun"
+    kind: str                              # "noun" | "adjective" | "pronoun" | "verb"
     category: str | None                   # rule id of the class, None if the engine cannot tell
     findings: list[Finding] = field(default_factory=list)
 
@@ -273,6 +273,106 @@ def classify_pronoun(lexeme: Lexeme) -> Profile:
     return profile
 
 
+# --- Verbs ----------------------------------------------------------------------------------
+
+# Closed lists from school grammar. Prefixed verbs follow their base (увидеть like видеть).
+IRREGULAR_VERBS = frozenset({"быть", "есть", "дать", "поесть", "съесть", "надоесть", "создать", "продать",
+                             "передать", "отдать", "задать", "сдать", "издать", "раздать", "подать"})
+MIXED_BASES = ("хотеть", "бежать")                     # разноспрягаемые (and чтить)
+CONJ2_EXCEPTIONS = ("гнать", "держать", "дышать", "слышать", "видеть", "смотреть", "обидеть", "терпеть",
+                    "вертеть", "ненавидеть", "зависеть")   # -ать/-еть verbs of the 2nd conjugation
+CONJ1_EXCEPTIONS = ("брить", "стелить")                # -ить verbs of the 1st conjugation
+# Verbs of motion: one direction, now (идти) / back and forth, habitually (ходить).
+MOTION_PAIRS = (("идти", "ходить"), ("ехать", "ездить"), ("бежать", "бегать"), ("нести", "носить"),
+                ("вести", "водить"), ("везти", "возить"), ("лететь", "летать"), ("плыть", "плавать"),
+                ("ползти", "ползать"), ("лезть", "лазить"), ("брести", "бродить"), ("гнать", "гонять"),
+                ("катить", "катать"), ("тащить", "таскать"))
+MOTION = {**{a: ("verb.motion_unidirectional", b) for a, b in MOTION_PAIRS},
+          **{b: ("verb.motion_multidirectional", a) for a, b in MOTION_PAIRS}}
+
+
+def _unreflexive(text: str) -> str:
+    return text[:-2] if text.endswith(("ся", "сь")) else text
+
+
+def _based_on(lemma: str, bases: tuple[str, ...]) -> bool:
+    return any(lemma == b or lemma.endswith(b) for b in bases)
+
+
+def _conjugation(lemma: str, second_sg: str | None, third_pl: str | None) -> str | None:
+    if lemma in IRREGULAR_VERBS:
+        return "verb.conj.irregular"
+    if _based_on(lemma, MIXED_BASES) or lemma == "чтить":
+        return "verb.conj.mixed"
+    if not second_sg or not third_pl:
+        return None
+    second_sg, third_pl = _unreflexive(second_sg), _unreflexive(third_pl)
+    by_2sg = "1" if second_sg.endswith(("ешь", "ёшь")) else "2" if second_sg.endswith("ишь") else None
+    by_3pl = "1" if third_pl.endswith(("ут", "ют")) else "2" if third_pl.endswith(("ат", "ят")) else None
+    # Both endings must agree; a verb that mixes them is not guessed.
+    return f"verb.conj.{by_2sg}" if by_2sg and by_2sg == by_3pl else None
+
+
+def classify_verb(lexeme: Lexeme) -> Profile:
+    lemma = lexeme.lemma
+    aspects = {a for f in lexeme.forms for a in ("impf", "perf") if a in f.tag}
+    tense = "pres" if "impf" in aspects else "futr"
+
+    def nonpast(person: str, number: str) -> str | None:
+        return _text(lexeme, "VERB", "indc", tense, person, number)
+
+    first_sg, second_sg, third_sg = nonpast("1per", "sing"), nonpast("2per", "sing"), nonpast("3per", "sing")
+    third_pl = nonpast("3per", "plur")
+    profile = Profile("verb", _conjugation(lemma, second_sg, third_pl))
+    add = profile.findings.append
+
+    # Aspect: what the forms without a tense word mean.
+    if len(aspects) == 2:
+        add(Finding("verb.aspect_both", lemma))
+    elif aspects == {"impf"} and first_sg:
+        add(Finding("verb.aspect_impf", f"{lemma} → {first_sg}"))
+    elif aspects == {"perf"} and first_sg:
+        add(Finding("verb.aspect_perf", f"{lemma} → {first_sg}"))
+
+    if lemma.endswith(("ся", "сь")) and first_sg and second_sg:
+        add(Finding("verb.reflexive", f"{lemma} → {first_sg}, {second_sg}"))
+
+    conj = profile.category
+    if conj == "verb.conj.2" and _based_on(lemma, CONJ2_EXCEPTIONS) and second_sg and third_pl:
+        add(Finding("verb.conj_exception", f"{lemma} → {second_sg}, {third_pl}"))
+    if conj == "verb.conj.1" and _based_on(lemma, CONJ1_EXCEPTIONS) and second_sg and third_pl:
+        add(Finding("verb.conj_exception", f"{lemma} → {second_sg}, {third_pl}"))
+
+    if conj in ("verb.conj.1", "verb.conj.2") and first_sg and second_sg and third_pl:
+        stem_1sg = _unreflexive(first_sg)[:-1]                       # пиш-у, люб-лю → любл
+        stem_2sg = _unreflexive(second_sg)[:-3]                      # пиш-ешь, люб-ишь
+        stem_3pl = _unreflexive(third_pl)[:-2]                       # мог-ут
+        infinitive = _unreflexive(lemma)
+        inf_stem = infinitive[:-2] if infinitive.endswith(("ть", "ти", "чь")) else infinitive
+        if conj == "verb.conj.2" and stem_1sg != stem_2sg:
+            add(Finding("verb.alternation_1sg", f"{lemma} → {first_sg}, {second_sg}"))
+        elif conj == "verb.conj.1" and stem_1sg != stem_2sg and stem_1sg == stem_3pl:
+            add(Finding("verb.alternation_g_k", f"{lemma} → {first_sg}, {second_sg}, {third_pl}"))
+        elif conj == "verb.conj.1" and _fold(stem_2sg) != _fold(inf_stem):
+            add(Finding("verb.present_stem", f"{lemma} → {first_sg}, {second_sg}"))
+        if conj == "verb.conj.1" and _unreflexive(second_sg).endswith("ёшь") and third_sg:
+            add(Finding("verb.stressed_yo", f"{lemma} → {second_sg}, {third_sg}"))
+
+    past_m = _text(lexeme, "VERB", "indc", "past", "masc", "sing")
+    past_f = _text(lexeme, "VERB", "indc", "past", "femn", "sing")
+    if past_m and past_f:
+        infinitive = _unreflexive(lemma)
+        expected = infinitive[:-2] + "л"
+        if _unreflexive(past_m) != expected:
+            rule = "verb.past_no_l" if not _unreflexive(past_m).endswith("л") else "verb.past_stem"
+            add(Finding(rule, f"{lemma} → {past_m}, {past_f}"))
+
+    if lemma in MOTION:
+        rule, partner = MOTION[lemma]
+        add(Finding(rule, f"{lemma} — {partner}"))
+    return profile
+
+
 def classify(lexeme: Lexeme) -> Profile | None:
     """The profile for any lexeme the engine can classify; None for other parts of speech."""
     if lexeme.pos == "NOUN":
@@ -281,4 +381,6 @@ def classify(lexeme: Lexeme) -> Profile | None:
         return classify_pronoun(lexeme)
     if lexeme.pos in ("ADJF", "ADJS"):
         return classify_adjective(lexeme)
+    if lexeme.pos == "INFN":
+        return classify_verb(lexeme)
     return None

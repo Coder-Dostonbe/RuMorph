@@ -12,7 +12,7 @@ in the app, in the Python Worker and in tests alike.
 """
 
 from .analyze import AMBIGUOUS, ERROR, OK, Analysis, Reading, analyze
-from .classify import Profile, classify, classify_adjective, classify_noun, classify_pronoun
+from .classify import Profile, classify, classify_adjective, classify_noun, classify_pronoun, classify_verb
 from .lexicon import Lexeme, Lexicon, default_lexicon
 from .normalize import normalize_word
 from .rules import RULES, Rule
@@ -21,6 +21,7 @@ from .tag import Tag
 
 __all__ = [
     "AMBIGUOUS", "ERROR", "OK", "RULES", "Analysis", "Lexeme", "Lexicon", "Profile", "Reading", "Rule",
-    "Tag", "analyze", "classify", "classify_adjective", "classify_noun", "classify_pronoun", "default_lexicon",
+    "Tag", "analyze", "classify", "classify_adjective", "classify_noun", "classify_pronoun", "classify_verb",
+    "default_lexicon",
     "normalize_word", "paradigm_table",
 ]

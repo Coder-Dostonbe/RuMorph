@@ -1,0 +1,420 @@
+{
+ "description": "Hand-checked verb classifications. Each entry lists every finding the engine must report for the lemma; nothing else may be reported. Conjugation by the personal endings (I: -ешь/-ут, II: -ишь/-ат); exceptions, aspect and verbs of motion follow school grammar.",
+ "entries": [
+  {
+   "lemma": "читать",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "читать → читаю"
+    }
+   ]
+  },
+  {
+   "lemma": "делать",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "делать → делаю"
+    }
+   ]
+  },
+  {
+   "lemma": "сделать",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_perf",
+     "detail": "сделать → сделаю"
+    }
+   ]
+  },
+  {
+   "lemma": "писать",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "писать → пишу"
+    },
+    {
+     "rule": "verb.present_stem",
+     "detail": "писать → пишу, пишешь"
+    }
+   ]
+  },
+  {
+   "lemma": "давать",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "давать → даю"
+    },
+    {
+     "rule": "verb.present_stem",
+     "detail": "давать → даю, даёшь"
+    },
+    {
+     "rule": "verb.stressed_yo",
+     "detail": "давать → даёшь, даёт"
+    }
+   ]
+  },
+  {
+   "lemma": "жить",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "жить → живу"
+    },
+    {
+     "rule": "verb.present_stem",
+     "detail": "жить → живу, живёшь"
+    },
+    {
+     "rule": "verb.stressed_yo",
+     "detail": "жить → живёшь, живёт"
+    }
+   ]
+  },
+  {
+   "lemma": "мочь",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "мочь → могу"
+    },
+    {
+     "rule": "verb.alternation_g_k",
+     "detail": "мочь → могу, можешь, могут"
+    },
+    {
+     "rule": "verb.past_no_l",
+     "detail": "мочь → мог, могла"
+    }
+   ]
+  },
+  {
+   "lemma": "нести",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "нести → несу"
+    },
+    {
+     "rule": "verb.stressed_yo",
+     "detail": "нести → несёшь, несёт"
+    },
+    {
+     "rule": "verb.past_no_l",
+     "detail": "нести → нёс, несла"
+    },
+    {
+     "rule": "verb.motion_unidirectional",
+     "detail": "нести — носить"
+    }
+   ]
+  },
+  {
+   "lemma": "идти",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "идти → иду"
+    },
+    {
+     "rule": "verb.stressed_yo",
+     "detail": "идти → идёшь, идёт"
+    },
+    {
+     "rule": "verb.past_stem",
+     "detail": "идти → шёл, шла"
+    },
+    {
+     "rule": "verb.motion_unidirectional",
+     "detail": "идти — ходить"
+    }
+   ]
+  },
+  {
+   "lemma": "пойти",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_perf",
+     "detail": "пойти → пойду"
+    },
+    {
+     "rule": "verb.present_stem",
+     "detail": "пойти → пойду, пойдёшь"
+    },
+    {
+     "rule": "verb.stressed_yo",
+     "detail": "пойти → пойдёшь, пойдёт"
+    },
+    {
+     "rule": "verb.past_stem",
+     "detail": "пойти → пошёл, пошла"
+    }
+   ]
+  },
+  {
+   "lemma": "ехать",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "ехать → еду"
+    },
+    {
+     "rule": "verb.present_stem",
+     "detail": "ехать → еду, едешь"
+    },
+    {
+     "rule": "verb.motion_unidirectional",
+     "detail": "ехать — ездить"
+    }
+   ]
+  },
+  {
+   "lemma": "открыть",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_perf",
+     "detail": "открыть → открою"
+    },
+    {
+     "rule": "verb.present_stem",
+     "detail": "открыть → открою, откроешь"
+    }
+   ]
+  },
+  {
+   "lemma": "одеваться",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "одеваться → одеваюсь"
+    },
+    {
+     "rule": "verb.reflexive",
+     "detail": "одеваться → одеваюсь, одеваешься"
+    }
+   ]
+  },
+  {
+   "lemma": "говорить",
+   "category": "verb.conj.2",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "говорить → говорю"
+    }
+   ]
+  },
+  {
+   "lemma": "учиться",
+   "category": "verb.conj.2",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "учиться → учусь"
+    },
+    {
+     "rule": "verb.reflexive",
+     "detail": "учиться → учусь, учишься"
+    }
+   ]
+  },
+  {
+   "lemma": "любить",
+   "category": "verb.conj.2",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "любить → люблю"
+    },
+    {
+     "rule": "verb.alternation_1sg",
+     "detail": "любить → люблю, любишь"
+    }
+   ]
+  },
+  {
+   "lemma": "ответить",
+   "category": "verb.conj.2",
+   "findings": [
+    {
+     "rule": "verb.aspect_perf",
+     "detail": "ответить → отвечу"
+    },
+    {
+     "rule": "verb.alternation_1sg",
+     "detail": "ответить → отвечу, ответишь"
+    }
+   ]
+  },
+  {
+   "lemma": "ходить",
+   "category": "verb.conj.2",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "ходить → хожу"
+    },
+    {
+     "rule": "verb.alternation_1sg",
+     "detail": "ходить → хожу, ходишь"
+    },
+    {
+     "rule": "verb.motion_multidirectional",
+     "detail": "ходить — идти"
+    }
+   ]
+  },
+  {
+   "lemma": "ездить",
+   "category": "verb.conj.2",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "ездить → езжу"
+    },
+    {
+     "rule": "verb.alternation_1sg",
+     "detail": "ездить → езжу, ездишь"
+    },
+    {
+     "rule": "verb.motion_multidirectional",
+     "detail": "ездить — ехать"
+    }
+   ]
+  },
+  {
+   "lemma": "видеть",
+   "category": "verb.conj.2",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "видеть → вижу"
+    },
+    {
+     "rule": "verb.conj_exception",
+     "detail": "видеть → видишь, видят"
+    },
+    {
+     "rule": "verb.alternation_1sg",
+     "detail": "видеть → вижу, видишь"
+    }
+   ]
+  },
+  {
+   "lemma": "слышать",
+   "category": "verb.conj.2",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "слышать → слышу"
+    },
+    {
+     "rule": "verb.conj_exception",
+     "detail": "слышать → слышишь, слышат"
+    }
+   ]
+  },
+  {
+   "lemma": "смотреть",
+   "category": "verb.conj.2",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "смотреть → смотрю"
+    },
+    {
+     "rule": "verb.conj_exception",
+     "detail": "смотреть → смотришь, смотрят"
+    }
+   ]
+  },
+  {
+   "lemma": "нравиться",
+   "category": "verb.conj.2",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "нравиться → нравлюсь"
+    },
+    {
+     "rule": "verb.reflexive",
+     "detail": "нравиться → нравлюсь, нравишься"
+    },
+    {
+     "rule": "verb.alternation_1sg",
+     "detail": "нравиться → нравлюсь, нравишься"
+    }
+   ]
+  },
+  {
+   "lemma": "хотеть",
+   "category": "verb.conj.mixed",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "хотеть → хочу"
+    }
+   ]
+  },
+  {
+   "lemma": "бежать",
+   "category": "verb.conj.mixed",
+   "findings": [
+    {
+     "rule": "verb.aspect_both",
+     "detail": "бежать"
+    },
+    {
+     "rule": "verb.motion_unidirectional",
+     "detail": "бежать — бегать"
+    }
+   ]
+  },
+  {
+   "lemma": "есть",
+   "category": "verb.conj.irregular",
+   "findings": [
+    {
+     "rule": "verb.aspect_impf",
+     "detail": "есть → ем"
+    },
+    {
+     "rule": "verb.past_stem",
+     "detail": "есть → ел, ела"
+    }
+   ]
+  },
+  {
+   "lemma": "дать",
+   "category": "verb.conj.irregular",
+   "findings": [
+    {
+     "rule": "verb.aspect_perf",
+     "detail": "дать → дам"
+    }
+   ]
+  },
+  {
+   "lemma": "быть",
+   "category": "verb.conj.irregular",
+   "findings": []
+  }
+ ]
+}

@@ -20,11 +20,12 @@ CORPORA = {
     "nouns": "noun",
     "adjectives": "adjective",
     "pronouns": "pronoun",
+    "verbs": "verb",
 }
 ENTRIES = [(name, entry) for name in CORPORA
            for entry in json.loads((CORPUS_DIR / f"{name}.json").read_text(encoding="utf-8"))["entries"]]
-# Rules that are not about classification; tested in test_engine.py.
-COVERED_ELSEWHERE = {"lexicon.form", "lexicon.rare_form"}
+# Rules that are not about classification; tested in test_engine.py (the compound future is a table cell).
+COVERED_ELSEWHERE = {"lexicon.form", "lexicon.rare_form", "verb.future_compound"}
 
 
 def profiles(lemma, kind):
@@ -70,3 +71,9 @@ def test_every_pronoun_and_adjective_in_the_lexicon_gets_a_profile():
         profile = classify(lexeme)
         if lexeme.pos in ("NPRO", "ADJF", "ADJS") and lexeme.lemma not in pending:
             assert profile is not None and profile.category is not None, lexeme.lemma
+
+
+def test_every_verb_in_the_lexicon_gets_a_conjugation():
+    for lexeme in default_lexicon().lexemes.values():
+        if lexeme.pos == "INFN":
+            assert classify(lexeme).category is not None, lexeme.lemma
