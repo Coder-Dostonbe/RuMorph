@@ -23,7 +23,7 @@ Android'da "noma'lum manbadan o'rnatish"ga ruxsat berish kerak.
 | Bosqich | Holat |
 | ------- | ----- |
 | 0 — ArabMorph tahlili, arxitektura, roadmap | Tasdiqlangan |
-| 1 — Architecture & Foundation | **Kod tayyor, CI yashil.** Telefonda va Cloudflare'da o'lchov kutilmoqda ([hisobot](docs/PHASE-1.md)) |
+| 1 — Architecture & Foundation | **Tayyor.** Telefonda Python ~1.7 s da ishga tushadi; Cloudflare CPU o'lchovi deploy'dan keyin ([hisobot](docs/PHASE-1.md)) |
 | 2–9 | Boshlanmagan |
 
 ## Tuzilma

@@ -17,3 +17,4 @@
 | 2026-11-20 | Logo: **B variant** (`brand/tilsim-b.svg`). Kichik o'lchamlar (16–32 px) uchun soddalashtirilgan versiya 8-bosqichda kerak bo'lishi mumkin. | Doston |
 | 2026-11-20 | 1-bosqich (kod) boshlandi. | Doston |
 | 2026-11-20 | Parol xeshlash: PBKDF2-SHA256, 100 000 iteratsiya, Worker'da Web Crypto orqali. Sabab: Pyodide'da `hashlib.pbkdf2_hmac` yo'q, Cloudflare Web Crypto 100 000 dan ko'p iteratsiyani qabul qilmaydi. | Claude (texnik cheklov) |
+| 2026-11-20 | **B variant tasdiqlandi.** Telefonda Pyodide noldan 8–10 s edi; xotira snapshot'i qo'shilgach keyingi ochilishlar ~1.7 s (Python 1.38 s + snapshot o'qish 0.31 s). Birinchi ochilish (snapshot yaratish) ~14 s, faqat o'rnatish yoki grammatika moduli yangilanganda. | Doston |

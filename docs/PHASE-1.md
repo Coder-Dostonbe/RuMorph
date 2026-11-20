@@ -1,6 +1,6 @@
 # 1-bosqich hisoboti — Architecture & Foundation
 
-*Sana: 2026-11-20. Holat: kod tayyor, CI yashil. Ikkita o'lchov sizning qurilmangiz va hisobingizda kutilmoqda.*
+*Sana: 2026-11-20. Holat: kod tayyor, CI yashil, telefon o'lchovi o'tdi. Cloudflare CPU o'lchovi deploy'dan keyin.*
 
 ## Nima qilindi
 
@@ -35,6 +35,17 @@
 | Pyodide ishga tushishi | Chrome (headless), shu server | ~1.8 s |
 | tilsim_core chaqiruvi (ishga tushgandan keyin) | Node | 0.02 ms |
 | PBKDF2 100 000 iteratsiya, Web Crypto | Node (Pyodide ichidan) | ~15 ms |
+
+## Telefondagi o'lchov va snapshot
+
+| Holat | Natija (Doston telefoni) |
+| ----- | ------------------------ |
+| Pyodide noldan (snapshot'siz) | 9.7 s, qayta ochilganda 8 s |
+| Birinchi ochilish (snapshot yaratiladi) | ~14 s, bir marta |
+| Keyingi ochilishlar (snapshot'dan) | **~1.7 s** (snapshot o'qish 0.31 s + Python 1.38 s, shundan kompilyatsiya 0.28 s) |
+
+Vaqtning asosiy qismi WebAssembly kompilyatsiyasiga emas, Python'ning o'zini ishga tushirishiga ketardi. Shuning uchun
+tilsim_core import qilingan holat IndexedDB'ga snapshot sifatida saqlanadi. Natija bo'yicha B variant tasdiqlandi.
 
 ## Topilgan va tuzatilgan muammo
 
