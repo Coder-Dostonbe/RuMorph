@@ -23,7 +23,7 @@ jobs:
       - name: lexicon matches its OpenCorpora export
         run: >
           uv run --python 3.14 --no-project
-          --with pymorphy3==2.0.6 --with pymorphy3-dicts-ru==2.4.417150.4580142
+          --with pymorphy3==2.0.6 --with pymorphy3-dicts-ru==2.4.417150.4580142 --with wordfreq==3.1.1
           python tools/lexicon/export_opencorpora.py --check
 
   api:

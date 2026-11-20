@@ -109,6 +109,7 @@ def _op_lexeme(args: dict[str, Any]) -> dict[str, Any]:
         # What holds for the whole word (part of speech, gender, aspect …), not the lemma form's case.
         "description": Tag(",".join(lexeme.lemma_tag.lexical)).describe(lang),
         "source": lexeme.source,
+        "frequency": lexeme.freq,
         "profile": profile.to_dict() if profile else None,
         "table": _describe_extra(paradigm_table(lexeme, lexicon), lang),
     }

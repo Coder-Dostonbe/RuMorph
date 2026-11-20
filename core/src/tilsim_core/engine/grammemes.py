@@ -111,6 +111,12 @@ GRAMMEMES: dict[str, Grammeme] = {g.code: g for g in [
     _G("Prdx", "subtype", "kesim bo'la oladi", "может быть сказуемым", "predicative-like"),
     _G("Af-p", "subtype", "predlogdan keyingi shakl (него)", "форма после предлога", "form after preposition"),
     _G("Vpre", "subtype", "unli qo'shilgan predlog (со, во)", "вариант предлога с гласной", "preposition with added vowel"),
+    _G("Prnt", "subtype", "kirish so'z", "вводное слово", "parenthetical word"),
+    _G("Ques", "subtype", "so'roq so'zi", "вопросительное", "interrogative"),
+    _G("Coll", "subtype", "jamlovchi", "собирательное", "collective"),
+    _G("Impe", "subtype", "shaxssiz", "безличный", "impersonal"),
+    _G("Impx", "subtype", "shaxssiz ham ishlatiladi", "возможно безличное употребление", "can be impersonal"),
+    _G("Inmx", "subtype", "jonli yoki jonsiz bo'lib keladi", "одуш. или неодуш.", "animate or inanimate"),
     _G("Fimp", "subtype", "tugallanmagan fe'lning shakli", "форма несовершенного вида", "imperfective form"),
     # --- Usage notes
     _G("Infr", "usage", "so'zlashuvda, kam ishlatiladi", "разговорное", "informal"),
@@ -118,6 +124,8 @@ GRAMMEMES: dict[str, Grammeme] = {g.code: g for g in [
     _G("Arch", "usage", "eskirgan", "устаревшее", "archaic"),
     _G("Litr", "usage", "adabiy", "литературный вариант", "literary"),
     _G("Erro", "usage", "noto'g'ri yozilish", "опечатка", "misspelling"),
+    _G("Hypo", "usage", "faraziy shakl, ishlatilmaydi (побежу)", "гипотетическая форма, не употребляется",
+       "hypothetical form, not used"),
     _G("Dist", "usage", "buzilgan shakl (ети, чо)", "искажённая форма", "distorted form"),
     # --- Spelling variants
     _G("V-be", "variant", "variant shakl (-ье)", "вариант на -ье", "variant (-ье)"),
@@ -131,7 +139,7 @@ GRAMMEMES: dict[str, Grammeme] = {g.code: g for g in [
 ]}
 
 # Usage notes that make a form worth flagging to a learner.
-RARE_USAGE = frozenset({"Infr", "Slng", "Arch", "Erro", "Dist"})
+RARE_USAGE = frozenset({"Infr", "Slng", "Arch", "Erro", "Dist", "Hypo"})
 
 # Forms left out when the engine needs "the" form of a cell to explain a rule: rare usage,
 # spelling variants (-ою, -ею, …), literary variants (краше) and abbreviations (е for есть). They stay in every table.

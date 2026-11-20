@@ -116,6 +116,7 @@ describe("start-up from a memory snapshot", () => {
   it("a start from the snapshot works and is much faster", async () => {
     const fresh = await startCore(b);
     const restored = await startCore(b, { snapshot });
+    expect(restored.timings.snapshotError ?? "").toBe("");
     expect(restored.timings.mode).toBe("snapshot");
     console.log(`from snapshot ${restored.timings.totalMs.toFixed(0)} ms (fresh ${fresh.timings.totalMs.toFixed(0)} ms)`);
     expect(restored.timings.totalMs).toBeLessThan(fresh.timings.totalMs / 2);

@@ -351,6 +351,11 @@
      "detail": "молоко"
     }
    ]
+  },
+  {
+   "lemma": "полгода",
+   "category": "noun.pol_compound",
+   "findings": []
   }
  ]
 }

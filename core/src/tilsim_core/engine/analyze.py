@@ -42,6 +42,7 @@ class Reading:
             "source": "lexicon",
             "rules": ["lexicon.form"] + (["lexicon.rare_form"] if RARE_USAGE & tag.grammemes else []),
             "confidence": 1.0,
+            "frequency": self.lexeme.freq,
             "notes": [n.text(lang) for n in self.notes],
         }
 
@@ -129,7 +130,9 @@ def analyze(text: str, lexicon: Lexicon | None = None) -> Analysis:
         result.suggestions = suggest(normalized.key, lexicon)
         return result
 
-    # Common words first, rare and variant forms last; otherwise keep the lexicon order.
-    result.readings.sort(key=lambda r: bool(RARE_USAGE & r.form.tag.grammemes))
+    # Usual forms before rare ones; among them, the more frequent word first (стали: стать before
+    # сталь). Frequency only orders the readings: every one is still a valid reading, so none is
+    # dropped and the status stays "ambiguous".
+    result.readings.sort(key=lambda r: (bool(RARE_USAGE & r.form.tag.grammemes), -(r.lexeme.freq or 0.0)))
     result.status = OK if len(result.readings) == 1 else AMBIGUOUS
     return result

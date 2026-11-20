@@ -118,6 +118,12 @@ def test_lexeme_op_for_a_pronoun_and_an_adjective():
     assert "adj.comparative_suppletive" in {f["rule"] for f in adjective["profile"]["findings"]}
 
 
+def test_lexeme_ids_are_stable_names():
+    reading = ok("analyze", word="книгой")["readings"][0]
+    assert reading["lexeme"] == "книга|NOUN,inan,femn"
+    assert reading["frequency"] > 4.5                       # wordfreq Zipf
+
+
 def test_lexeme_op_for_a_verb():
     reading = next(r for r in ok("analyze", word="пишу")["readings"])
     result = ok("lexeme", id=reading["lexeme"], lang="en")
@@ -177,8 +183,8 @@ def test_lexicon_info_and_warmup():
      ("rules", {"ids": "x"}, "invalid_args"), ("warmup", {"x": 1}, "invalid_args"),
      ("phrase", {"word": "книги"}, "invalid_args"), ("phrase", {"preposition": "в" * 21, "word": "a"}, "invalid_args"),
      ("inflect", {"id": "nope", "grammemes": ["gent"]}, "not_found"),
-     ("inflect", {"id": "ru-core:0", "grammemes": ["nope"]}, "invalid_args"),
-     ("inflect", {"id": "ru-core:0", "grammemes": []}, "invalid_args")],
+     ("inflect", {"id": "книга|NOUN,inan,femn", "grammemes": ["nope"]}, "invalid_args"),
+     ("inflect", {"id": "книга|NOUN,inan,femn", "grammemes": []}, "invalid_args")],
 )
 def test_grammar_ops_validate_their_arguments(op, args, code):
     reply = call({"id": 1, "op": op, "args": args})

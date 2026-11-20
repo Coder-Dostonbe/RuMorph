@@ -81,9 +81,19 @@ def test_invalid_package_is_refused():
 
 def test_packages_merge_without_id_clashes(lexicon):
     data = {"package": "user", "tags": ["NOUN,inan,masc sing,nomn"], "paradigms": [[["", "", 0]]],
-            "lexemes": [["тест", 0]]}
+            "lexemes": [["тест", 0], ["тест", 0]]}
     merged = Lexicon.from_package(json.loads(json.dumps(data)))
-    assert merged.lookup("тест")[0][0].id == "user:0"
+    ids = sorted(lx.id for lx, _ in merged.lookup("тест"))
+    assert ids == ["тест|NOUN,inan,masc", "тест|NOUN,inan,masc|2"]
+    assert all(lx.source == "user" and lx.freq is None for lx, _ in merged.lookup("тест"))
+
+
+def test_frequency_orders_the_readings_of_a_homonym(lexicon):
+    # три: the numeral and the imperative of тереть ("rub"); both stay, the frequent numeral first.
+    result = analyze("три", lexicon)
+    lemmas = list(dict.fromkeys(r.lexeme.lemma for r in result.readings))
+    assert result.status == AMBIGUOUS and lemmas == ["три", "тереть"]
+    assert result.readings[0].lexeme.freq > result.readings[-1].lexeme.freq
 
 
 # --- analysis -------------------------------------------------------------------------------------
@@ -291,7 +301,7 @@ def test_analysis_and_inflection_agree_for_every_form(lexicon):
 
     for lexeme in lexicon.lexemes.values():
         for form in lexeme.forms:
-            assert (lexeme.id, form.index) in lexicon.index[lookup_key(form.text)], form.text
+            assert (lexeme, form.index) in lexicon.entries(lookup_key(form.text)), form.text
             assert form.text in {f.text for f in lexeme.find(*form.tag.grammemes)}, form.text
 
 

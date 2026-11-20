@@ -92,6 +92,24 @@ async function measuringCompile<T>(run: () => Promise<T>): Promise<{ value: T; c
   }
 }
 
+type ModuleFactory = (settings: object) => Promise<{ growMemory?: (bytes: number) => unknown }>;
+
+/** Pyodide restores a snapshot by copying it into the WebAssembly memory, but the memory starts
+ *  at the size compiled into pyodide.asm.wasm (30 MiB) and is not grown first, so a snapshot of a
+ *  larger heap fails with "offset is out of bounds". This wraps Pyodide's own module factory and
+ *  grows the memory to the snapshot's size (Module.growMemory, which also refreshes the heap
+ *  views) after the module is created and before the snapshot is copied in. */
+async function snapshotModuleFactory(indexURL: string | undefined, bytes: number): Promise<ModuleFactory> {
+  const url = indexURL ? `${indexURL}pyodide.asm.mjs` : "pyodide/pyodide.asm.mjs";
+  const factory = ((await import(/* @vite-ignore */ url)) as { default: ModuleFactory }).default;
+  return async (settings) => {
+    const module = await factory(settings);
+    if (typeof module.growMemory !== "function") throw new Error("this Pyodide build has no growMemory");
+    module.growMemory(bytes);
+    return module;
+  };
+}
+
 export async function startCore(
   bundle: CoreBundle,
   options: {
@@ -115,7 +133,12 @@ export async function startCore(
   if (options.snapshot) {
     try {
       const { value: pyodide, compileMs } = await measuringCompile(() =>
-        loadPyodide({ ...common, _loadSnapshot: options.snapshot! }),
+        (async () =>
+          loadPyodide({
+            ...common,
+            _loadSnapshot: options.snapshot!,
+            createPyodideModule: await snapshotModuleFactory(options.indexURL, options.snapshot!.byteLength),
+          } as unknown as Parameters<typeof loadPyodide>[0]))(),
       );
       const t1 = performance.now();
       // The snapshot already holds tilsim_core imported; the files are written again so

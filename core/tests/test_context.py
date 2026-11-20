@@ -54,9 +54,12 @@ def test_pronoun_after_a_preposition_needs_n():
     result = run("к", "ему")
     assert result.status == ERROR and [e.code for e in result.errors] == ["needs_n_form"]
     assert result.suggestions == ["к нему"]
-    # его / её / их are also possessives, which never take н-: say so.
+    # его / её / их are also possessives, which never take н- (у его брата): not "ok" on its own,
+    # the possessive reading is shown and both notes say which is which.
     result = run("у", "его")
-    assert [e.code for e in result.errors] == ["needs_n_form", "possessive_without_n"]
+    assert result.status == AMBIGUOUS and result.errors == []
+    assert [n.code for n in result.notes] == ["needs_n_form", "possessive_without_n"]
+    assert {r.reading.lexeme.pos for r in result.readings} == {"ADJF"}
     assert result.suggestions == ["у него"]
     assert run("у", "него").status in (OK, AMBIGUOUS)        # он / оно
 

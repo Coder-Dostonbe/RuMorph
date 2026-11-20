@@ -1,0 +1,4 @@
+# OpenCorpora'dagi xato shakllarga tuzatishlar. Eksport har bir tuzatishni qo'llaydi;
+# ro'yxatdagi xato shakl lug'atda topilmasa, eksport to'xtaydi (tuzatish eskirgan bo'ladi).
+# Format: lemma | shaklning OpenCorpora tegi | xato shakl | to'g'ri shakl | izoh
+хватать | VERB,impf,intr,Impe neut,sing,past,indc | хватило | хватало | хватило — хватить (perf) fe'lining shakli

@@ -5,7 +5,12 @@ stem plus a paradigm; each paradigm row gives a prefix, a suffix and a tag, and
 the word form is prefix + stem + suffix. Row 0 is the lemma.
 
 Forms are indexed by their lookup key (lower case, ё folded to е), so analysis
-is a dictionary lookup. Several packages can be merged (the core list now; the
+is a dictionary lookup.
+
+A lexeme's id is built from its lemma and the grammemes that hold for the
+whole word ("книга|NOUN,inan,femn"), not from its position in the file, so the
+user's cards and notes keep pointing at the same word when the lexicon grows.
+Two lexemes that would get the same id are told apart by "|2", "|3", …. Several packages can be merged (the core list now; the
 full dictionary and the user's own words later).
 """
 
@@ -29,10 +34,11 @@ class WordForm:
 
 @dataclass(frozen=True)
 class Lexeme:
-    id: str             # "<package>:<n>", stable within a package version
+    id: str             # "<lemma>|<lexical grammemes>", stable across lexicon versions
     stem: str
     rows: tuple[tuple[str, str, Tag], ...]   # (prefix, suffix, tag)
     source: str
+    freq: float | None = None   # Zipf frequency (wordfreq), None when unknown
 
     @cached_property
     def forms(self) -> tuple[WordForm, ...]:
@@ -75,11 +81,18 @@ class LexiconError(Exception):
     pass
 
 
+_ROWS = 1024        # more than any paradigm has forms (verbs with all participles: ~250)
+
+
 class Lexicon:
     def __init__(self) -> None:
         self.lexemes: dict[str, Lexeme] = {}
         self.packages: list[dict] = []
-        self._index: dict[str, list[tuple[str, int]]] | None = None
+        self._order: list[Lexeme] = []
+        # lookup key → packed entries (lexeme number * _ROWS + form index): one int when the key
+        # has one reading, a tuple when it has several. Packed this way the index of a few
+        # thousand lexemes stays small, which keeps the app's memory snapshot small.
+        self._index: dict[str, int | tuple[int, ...]] | None = None
 
     @classmethod
     def from_package(cls, data: dict) -> Lexicon:
@@ -92,32 +105,59 @@ class Lexicon:
             name = str(data["package"])
             tags = [Tag(t) for t in data["tags"]]
             paradigms = [tuple((str(p), str(s), tags[t]) for p, s, t in rows) for rows in data["paradigms"]]
-            for n, (stem, paradigm) in enumerate(data["lexemes"]):
-                lexeme_id = f"{name}:{n}"
-                if lexeme_id in self.lexemes:
-                    raise LexiconError(f"duplicate lexeme id {lexeme_id}")
+            freqs = data.get("freq") or [None] * len(data["lexemes"])
+            if len(freqs) != len(data["lexemes"]):
+                raise LexiconError("'freq' and 'lexemes' differ in length")
+            for (stem, paradigm), freq in zip(data["lexemes"], freqs):
                 rows = paradigms[paradigm]
                 if not rows:
-                    raise LexiconError(f"empty paradigm for {lexeme_id}")
-                self.lexemes[lexeme_id] = Lexeme(lexeme_id, str(stem), rows, name)
+                    raise LexiconError(f"empty paradigm for {stem!r}")
+                prefix, suffix, tag = rows[0]
+                base = f"{prefix}{stem}{suffix}|{','.join(tag.lexical)}"
+                lexeme_id, n = base, 1
+                while lexeme_id in self.lexemes:
+                    n += 1
+                    lexeme_id = f"{base}|{n}"
+                if len(rows) >= _ROWS:
+                    raise LexiconError(f"paradigm of {lexeme_id} has more than {_ROWS - 1} forms")
+                lexeme = Lexeme(lexeme_id, str(stem), rows, name, float(freq) if freq is not None else None)
+                self.lexemes[lexeme_id] = lexeme
+                self._order.append(lexeme)
         except (KeyError, IndexError, TypeError, ValueError) as exc:
             raise LexiconError(f"invalid lexicon package: {exc!r}") from exc
         self.packages.append({k: data.get(k) for k in ("package", "version", "description", "source")})
         self._index = None
 
     @property
-    def index(self) -> dict[str, list[tuple[str, int]]]:
-        """lookup key → [(lexeme id, form index)], built on first use."""
+    def index(self) -> dict[str, int | tuple[int, ...]]:
+        """lookup key → packed entries, built on first use without creating the word forms."""
         if self._index is None:
-            index: dict[str, list[tuple[str, int]]] = {}
-            for lexeme in self.lexemes.values():
-                for form in lexeme.forms:
-                    index.setdefault(lookup_key(form.text), []).append((lexeme.id, form.index))
+            index: dict[str, int | tuple[int, ...]] = {}
+            for number, lexeme in enumerate(self._order):
+                stem = lexeme.stem
+                for i, (prefix, suffix, _tag) in enumerate(lexeme.rows):
+                    key = lookup_key(prefix + stem + suffix)
+                    entry = number * _ROWS + i
+                    found = index.get(key)
+                    if found is None:
+                        index[key] = entry
+                    elif isinstance(found, int):
+                        index[key] = (found, entry)
+                    else:
+                        index[key] = found + (entry,)
             self._index = index
         return self._index
 
+    def entries(self, key: str) -> list[tuple[Lexeme, int]]:
+        """(lexeme, form index) for every form with this lookup key."""
+        found = self.index.get(key)
+        if found is None:
+            return []
+        packed = (found,) if isinstance(found, int) else found
+        return [(self._order[e // _ROWS], e % _ROWS) for e in packed]
+
     def lookup(self, key: str) -> list[tuple[Lexeme, WordForm]]:
-        return [(self.lexemes[lid], self.lexemes[lid].forms[i]) for lid, i in self.index.get(key, ())]
+        return [(lexeme, lexeme.forms[i]) for lexeme, i in self.entries(key)]
 
     def by_lemma(self, lemma: str) -> list[Lexeme]:
         key = lookup_key(lemma)

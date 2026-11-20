@@ -150,6 +150,36 @@
      "detail": "двести столов, двести книг"
     }
    ]
+  },
+  {
+   "lemma": "двое",
+   "category": "num.collective",
+   "findings": [
+    {
+     "rule": "num.governs_gen_pl",
+     "detail": "двое детей, двое друзей"
+    }
+   ]
+  },
+  {
+   "lemma": "несколько",
+   "category": "num.indefinite",
+   "findings": [
+    {
+     "rule": "num.governs_gen_pl",
+     "detail": "несколько столов, несколько книг"
+    }
+   ]
+  },
+  {
+   "lemma": "полтора",
+   "category": "num.one_and_half",
+   "findings": [
+    {
+     "rule": "num.governs_gen_sg",
+     "detail": "полтора стола, полторы книги"
+    }
+   ]
   }
  ]
 }

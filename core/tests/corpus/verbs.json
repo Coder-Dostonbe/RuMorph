@@ -415,6 +415,36 @@
    "lemma": "быть",
    "category": "verb.conj.irregular",
    "findings": []
+  },
+  {
+   "lemma": "хотеться",
+   "category": "verb.conj.mixed",
+   "findings": [
+    {
+     "rule": "verb.impersonal",
+     "detail": "хочется, хотелось"
+    }
+   ]
+  },
+  {
+   "lemma": "хватать",
+   "category": "verb.conj.1",
+   "findings": [
+    {
+     "rule": "verb.impersonal",
+     "detail": "хватает, хватало"
+    }
+   ]
+  },
+  {
+   "lemma": "выдать",
+   "category": "verb.conj.irregular",
+   "findings": [
+    {
+     "rule": "verb.aspect_perf",
+     "detail": "выдать → выдам"
+    }
+   ]
   }
  ]
 }

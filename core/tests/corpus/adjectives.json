@@ -329,6 +329,11 @@
    "lemma": "рад",
    "category": "adj.short_only",
    "findings": []
+  },
+  {
+   "lemma": "супер",
+   "category": "adj.indeclinable",
+   "findings": []
   }
  ]
 }

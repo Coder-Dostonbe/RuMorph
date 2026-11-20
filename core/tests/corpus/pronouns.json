@@ -156,6 +156,60 @@
    "lemma": "сам",
    "category": "pron.definitive",
    "findings": []
+  },
+  {
+   "lemma": "некоторый",
+   "category": "pron.indefinite",
+   "findings": []
+  },
+  {
+   "lemma": "его",
+   "category": "pron.possessive",
+   "findings": [
+    {
+     "rule": "pron.possessive_3per",
+     "detail": "его дом, его книга"
+    }
+   ]
+  },
+  {
+   "lemma": "такой",
+   "category": "pron.demonstrative",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "такой → такие"
+    }
+   ]
+  },
+  {
+   "lemma": "который",
+   "category": "pron.interrogative",
+   "findings": []
+  },
+  {
+   "lemma": "никакой",
+   "category": "pron.negative",
+   "findings": [
+    {
+     "rule": "pron.negative_prep",
+     "detail": "ни к какому, ни с каким"
+    },
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "никакой → никакие"
+    }
+   ]
+  },
+  {
+   "lemma": "нечего",
+   "category": "pron.negative",
+   "findings": [
+    {
+     "rule": "pron.no_nominative",
+     "detail": "нечего, нечему, нечем"
+    }
+   ]
   }
  ]
 }

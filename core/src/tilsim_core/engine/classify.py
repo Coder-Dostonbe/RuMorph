@@ -75,6 +75,8 @@ def _declension(lexeme: Lexeme, lemma: str) -> str | None:
     gender = tag.gender
     if (lemma.endswith("мя") and gender == "neut") or lemma == "путь":
         return "noun.heteroclitic"
+    if lemma.startswith("пол") and any(f.text.startswith("полу") for f in lexeme.find("gent")):
+        return "noun.pol_compound"                     # полгода → полугода, полчаса → получаса
     if lemma[-1] in "ая" and gender in ("femn", "masc", "ms-f", "Ms-f"):
         return "noun.decl.1"
     if lemma.endswith("ь") and gender == "femn":
@@ -90,7 +92,7 @@ def classify_noun(lexeme: Lexeme) -> Profile:
     lemma = lexeme.lemma
     profile = Profile("noun", _declension(lexeme, lemma))
     add = profile.findings.append
-    if profile.category in ("noun.indeclinable", "noun.pluralia_tantum", None):
+    if profile.category in ("noun.indeclinable", "noun.pluralia_tantum", "noun.pol_compound", None):
         return profile
     if "Sgtm" in lexeme.lemma_tag:
         add(Finding("noun.singularia_tantum", lemma))
@@ -166,6 +168,8 @@ SUPPLETIVE_COMPARATIVE = frozenset({"хороший", "плохой", "боль�
 def _adjective_category(lexeme: Lexeme, lemma: str) -> str | None:
     if lexeme.pos == "ADJS":
         return "adj.short_only"
+    if "Fixd" in lexeme.lemma_tag:
+        return "adj.indeclinable"
     if not lemma.endswith(("ый", "ий", "ой")):
         return None
     stem = lemma[:-2]
@@ -188,6 +192,8 @@ def classify_adjective(lexeme: Lexeme) -> Profile:
         return profile
     stem = lemma[:-2]
 
+    if profile.category == "adj.indeclinable":
+        return profile
     if profile.category != "adj.short_only":
         if lemma.endswith("ой"):
             add(Finding("adj.stressed_ending", lemma))
@@ -230,12 +236,14 @@ def classify_adjective(lexeme: Lexeme) -> Profile:
 PRONOUN_CLASSES: dict[str, str] = {
     **dict.fromkeys(("я", "ты", "он", "она", "оно", "мы", "вы", "они"), "pron.personal"),
     "себя": "pron.reflexive",
-    **dict.fromkeys(("кто", "что", "какой", "чей"), "pron.interrogative"),
-    **dict.fromkeys(("никто", "ничто"), "pron.negative"),
-    **dict.fromkeys(("мой", "твой", "наш", "ваш"), "pron.possessive"),
+    **dict.fromkeys(("кто", "что", "какой", "чей", "который", "каковой", "кой"), "pron.interrogative"),
+    **dict.fromkeys(("никто", "ничто", "ничего", "никакой", "нечего"), "pron.negative"),
+    **dict.fromkeys(("некий", "некоторый", "некоторые", "нечто", "многий", "многие", "многое"), "pron.indefinite"),
+    **dict.fromkeys(("мой", "твой", "наш", "ваш", "его", "её", "их"), "pron.possessive"),
     "свой": "pron.reflexive_possessive",
-    **dict.fromkeys(("этот", "тот"), "pron.demonstrative"),
-    **dict.fromkeys(("весь", "каждый", "сам"), "pron.definitive"),
+    **dict.fromkeys(("этот", "тот", "такой", "таковой", "сей", "это", "данный"), "pron.demonstrative"),
+    **dict.fromkeys(("весь", "каждый", "сам", "самый", "всякий", "любой", "другой", "иной", "остальной", "прочий"),
+                    "pron.definitive"),
 }
 _AFTER_PREP = (("gent", "у"), ("datv", "к"), ("ablt", "с"), ("loct", "о"))
 
@@ -251,6 +259,8 @@ def classify_pronoun(lexeme: Lexeme) -> Profile:
     if profile.category is None:
         return profile
 
+    if lexeme.pos == "ADJF" and "Fixd" in lexeme.lemma_tag and profile.category == "pron.possessive":
+        add(Finding("pron.possessive_3per", f"{lemma} дом, {lemma} книга"))
     if lexeme.find("Af-p"):
         pairs = [f"{prep} {form}" for case, prep in _AFTER_PREP
                  if (form := _text(lexeme, case, "Af-p"))]
@@ -303,11 +313,23 @@ def _based_on(lemma: str, bases: tuple[str, ...]) -> bool:
     return any(lemma == b or lemma.endswith(b) for b in bases)
 
 
-def _conjugation(lemma: str, second_sg: str | None, third_pl: str | None) -> str | None:
-    if lemma in IRREGULAR_VERBS:
+def _conjugation(lemma: str, second_sg: str | None, third_pl: str | None, third_sg: str | None = None,
+                 first_sg: str | None = None) -> str | None:
+    base = _unreflexive(lemma)
+    if lemma in IRREGULAR_VERBS or base in IRREGULAR_VERBS:
         return "verb.conj.irregular"
-    if _based_on(lemma, MIXED_BASES) or lemma == "чтить":
+    # Prefixed дать / есть: выдать (выдам, выдадут), удаться (удастся), надоесть (надоем).
+    if base.endswith("дать") and ((first_sg and _unreflexive(first_sg).endswith("дам"))
+                                  or (third_sg and _unreflexive(third_sg).endswith("даст"))):
+        return "verb.conj.irregular"
+    if base.endswith("есть") and first_sg and _unreflexive(first_sg).endswith("ем"):
+        return "verb.conj.irregular"
+    if _based_on(base, MIXED_BASES) or base == "чтить":
         return "verb.conj.mixed"
+    if not second_sg and not third_pl and third_sg:
+        # Impersonal verbs have only the 3rd person singular (хочется, хватает): its ending decides.
+        ending = _unreflexive(third_sg)
+        return "verb.conj.1" if ending.endswith(("ет", "ёт")) else "verb.conj.2" if ending.endswith("ит") else None
     if not second_sg or not third_pl:
         return None
     second_sg, third_pl = _unreflexive(second_sg), _unreflexive(third_pl)
@@ -327,8 +349,14 @@ def classify_verb(lexeme: Lexeme) -> Profile:
 
     first_sg, second_sg, third_sg = nonpast("1per", "sing"), nonpast("2per", "sing"), nonpast("3per", "sing")
     third_pl = nonpast("3per", "plur")
-    profile = Profile("verb", _conjugation(lemma, second_sg, third_pl))
+    impersonal = "Impe" in lexeme.lemma_tag
+    if impersonal and third_sg is None:
+        third_sg = _text(lexeme, "VERB", "indc", tense, "sing", exclude=("1per", "2per"))
+    profile = Profile("verb", _conjugation(lemma, second_sg, third_pl, third_sg, first_sg))
     add = profile.findings.append
+    if impersonal:
+        past_n = _text(lexeme, "VERB", "indc", "past", "neut")
+        add(Finding("verb.impersonal", ", ".join(t for t in (third_sg, past_n) if t)))
 
     # Aspect: what the forms without a tense word mean.
     if len(aspects) == 2:
@@ -383,9 +411,18 @@ NUMERAL_NOUNS = frozenset({"тысяча", "миллион", "миллиард"}
 SOROK_STO = frozenset({"сорок", "девяносто", "сто"})
 
 
-def _numeral_category(lemma: str) -> str | None:
+INDEFINITE_NUMERALS = frozenset({"несколько", "сколько", "столько", "много", "мало", "немного", "немало"})
+
+
+def _numeral_category(lemma: str, lexeme: Lexeme) -> str | None:
     if lemma == "один":
         return "num.one"
+    if "Coll" in lexeme.lemma_tag:
+        return "num.collective"
+    if lemma in INDEFINITE_NUMERALS:
+        return "num.indefinite"
+    if lemma in ("полтора", "полторы"):
+        return "num.one_and_half"
     if lemma in ("два", "три", "четыре"):
         return "num.two_to_four"
     if lemma == "оба":
@@ -403,7 +440,7 @@ def _numeral_category(lemma: str) -> str | None:
 
 def classify_numeral(lexeme: Lexeme) -> Profile:
     lemma = lexeme.lemma
-    profile = Profile("numeral", _numeral_category(lemma))
+    profile = Profile("numeral", _numeral_category(lemma, lexeme))
     add = profile.findings.append
     category = profile.category
     if category is None:
@@ -416,12 +453,14 @@ def classify_numeral(lexeme: Lexeme) -> Profile:
 
     masc = _text(lexeme, "nomn", exclude=("femn", "neut")) or lemma
     femn = _text(lexeme, "femn", "nomn") or masc
-    if category in ("num.two_to_four", "num.both"):
+    if category in ("num.two_to_four", "num.both", "num.one_and_half"):
         add(Finding("num.governs_gen_sg", f"{masc} стола, {femn} книги"))
         inan, anim = _text(lexeme, "accs", "inan"), _text(lexeme, "accs", "anim")
         if inan and anim and inan != anim:
             # Animate: the numeral takes the genitive and so does the noun, in the plural (двух братьев).
             add(Finding("num.accs_animate", f"{inan} стола, {anim} братьев"))
+    elif category == "num.collective":
+        add(Finding("num.governs_gen_pl", f"{lemma} детей, {lemma} друзей"))
     else:
         add(Finding("num.governs_gen_pl", f"{lemma} столов, {lemma} книг"))
 

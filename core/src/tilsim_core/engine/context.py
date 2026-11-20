@@ -45,6 +45,7 @@ class PhraseAnalysis:
     status: str
     readings: list[GovernedReading] = field(default_factory=list)
     errors: list[Message] = field(default_factory=list)
+    notes: list[Message] = field(default_factory=list)
     suggestions: list[str] = field(default_factory=list)
     governs: tuple[Government, ...] = ()
 
@@ -55,7 +56,7 @@ class PhraseAnalysis:
             "status": self.status,
             "governs": [g.to_dict(lang) for g in self.governs],
             "readings": [r.to_dict(lang) for r in self.readings],
-            "warnings": [w.text(lang) for w in self.word.warnings],
+            "warnings": [w.text(lang) for w in self.word.warnings] + [n.text(lang) for n in self.notes],
             "errors": [e.to_dict(lang) for e in self.errors],
             "suggestions": self.suggestions,
         }
@@ -107,6 +108,16 @@ def analyze_after(preposition: str, word: str, lexicon: Lexicon | None = None) -
             continue
         result.readings.append(GovernedReading(reading, government))
 
+    if result.readings and needs_n:
+        # у его: not the pronoun (that is у него), but right as the possessive "his" before a noun
+        # (у его брата). Both are said, and the result is not "ok" on its own.
+        fixed = _n_forms(needs_n)
+        result.notes.append(Message("needs_n_form", {"prep": result.preposition, "fixed": ", ".join(fixed)}))
+        result.notes.append(Message("possessive_without_n", {"word": target.word}))
+        result.suggestions = [f"{result.preposition} {f}" for f in fixed]
+        result.status = AMBIGUOUS
+        return result
+
     if result.readings:
         # A set-phrase construction (по колено) is shown only when no ordinary one fits:
         # по улице is the dative, not also "после улицы".
@@ -116,9 +127,7 @@ def analyze_after(preposition: str, word: str, lexicon: Lexicon | None = None) -
         return result
 
     if needs_n:
-        # The н- form in the same case as the typed one: у его → у него, к ему → к нему.
-        fixed = list(dict.fromkeys(f.text for r in needs_n
-                                   for f in r.lexeme.find("Af-p", r.form.tag.case, exclude=tuple(NOT_MAIN))))
+        fixed = _n_forms(needs_n)
         result.errors.append(Message("needs_n_form", {"prep": result.preposition, "fixed": ", ".join(fixed)}))
         # его / её / их (genitive) are also the possessives "his, her, their", which never take н-.
         if any(r.form.tag.case == "gent" for r in needs_n):
@@ -130,6 +139,12 @@ def analyze_after(preposition: str, word: str, lexicon: Lexicon | None = None) -
         "prep": result.preposition, "word": target.word, "cases": lambda lang: _case_names(governs, lang)}))
     result.suggestions = _right_forms(with_case, governs, result.preposition)
     return result
+
+
+def _n_forms(readings: list[Reading]) -> list[str]:
+    """The н- form in the same case as the typed one: у его → у него, к ему → к нему."""
+    return list(dict.fromkeys(f.text for r in readings
+                              for f in r.lexeme.find("Af-p", r.form.tag.case, exclude=tuple(NOT_MAIN))))
 
 
 def _right_forms(readings: list[Reading], governs: tuple[Government, ...], prep: str) -> list[str]:
