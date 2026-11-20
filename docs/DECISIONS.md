@@ -16,3 +16,4 @@
 | 2026-11-20 | Roadmap o'zgarishlari qabul qilindi: Android sinov build'i 1-bosqichda; Dashboard 3-bosqichda XP / streak'siz boshlanadi. | Doston |
 | 2026-11-20 | Logo: **B variant** (`brand/tilsim-b.svg`). Kichik o'lchamlar (16–32 px) uchun soddalashtirilgan versiya 8-bosqichda kerak bo'lishi mumkin. | Doston |
 | 2026-11-20 | 1-bosqich (kod) boshlandi. | Doston |
+| 2026-11-20 | Parol xeshlash: PBKDF2-SHA256, 100 000 iteratsiya, Worker'da Web Crypto orqali. Sabab: Pyodide'da `hashlib.pbkdf2_hmac` yo'q, Cloudflare Web Crypto 100 000 dan ko'p iteratsiyani qabul qilmaydi. | Claude (texnik cheklov) |
