@@ -182,6 +182,19 @@ export interface PrepositionInfo {
   governs: Government[];
 }
 
+export type ExerciseKind = "case_form" | "conjugation" | "gender" | "preposition" | "aspect" | "translation";
+
+export interface Question {
+  kind: ExerciseKind;
+  lexeme: string;
+  lemma: string;
+  prompt: { grammemes?: string[]; preposition?: string; case?: string };
+  options: string[];
+  answer: number;
+  rule: string | null;
+  option_kind?: "grammeme";
+}
+
 export const POS_FILTERS = ["NOUN", "ADJF", "VERB", "ADVB", "NPRO", "NUMR", "PREP", "CONJ", "PRCL", "PRED", "INTJ"] as const;
 export type PosFilter = (typeof POS_FILTERS)[number];
 
@@ -237,6 +250,9 @@ export const grammar = {
   ruleExamples: (rule: string, lang: Locale, offset = 0, limit = 24) =>
     core.call<RuleExamples>("rule_examples", { rule, lang, offset, limit }),
   prepositions: (lang: Locale) => core.call<PrepositionInfo[]>("prepositions", { lang }),
+  exercises: (kind: ExerciseKind, count: number, seed: number, maxRank: number,
+    vocabulary: { lexeme_id: string; lemma: string; translation: string }[] = []) =>
+    core.call<Question[]>("exercises", { kind, count, seed, max_rank: maxRank, vocabulary }),
   words: (ids: string[], lang: Locale) => core.call<Record<string, WordInfo>>("words", { ids, lang }),
   srsReview: (card: CardState, grade: 0 | 1 | 2 | 3, now: string) =>
     core.call<{ card: CardState }>("srs_review", { card, grade, now }),

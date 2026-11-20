@@ -282,6 +282,26 @@ def _op_prepositions(args: dict[str, Any]) -> list[dict[str, Any]]:
             for p, governs in sorted(PREPOSITIONS.items())]
 
 
+def _op_exercises(args: dict[str, Any]) -> list[dict[str, Any]]:
+    """Multiple-choice questions of one kind, made from the dictionary (tilsim_core/exercises.py)."""
+    from .exercises import KINDS, generate
+
+    _only(args, "kind", "count", "seed", "max_rank", "vocabulary")
+    kind = args.get("kind")
+    if kind not in KINDS:
+        raise BridgeError("invalid_args", f"'kind' must be one of {', '.join(KINDS)}")
+    count, seed, max_rank = args.get("count", 10), args.get("seed", 0), args.get("max_rank", 1000)
+    if not (isinstance(count, int) and 1 <= count <= 100 and isinstance(seed, int)
+            and isinstance(max_rank, int) and 10 <= max_rank <= 100000):
+        raise BridgeError("invalid_args", "'count' must be 1–100, 'seed' an integer, 'max_rank' 10–100000")
+    vocabulary = args.get("vocabulary", [])
+    if not (isinstance(vocabulary, list) and len(vocabulary) <= 5000 and all(
+            isinstance(v, dict) and all(isinstance(v.get(k), str) for k in ("lexeme_id", "lemma", "translation"))
+            for v in vocabulary)):
+        raise BridgeError("invalid_args", "'vocabulary' must be a list of {lexeme_id, lemma, translation}")
+    return [q.to_dict() for q in generate(kind, count, seed, max_rank=max_rank, vocabulary=vocabulary)]
+
+
 def _op_grammemes(args: dict[str, Any]) -> dict[str, Any]:
     """Names of every grammeme code in one language, for table headers and labels."""
     from .engine.grammemes import CATEGORIES, GRAMMEMES
@@ -368,6 +388,7 @@ OPS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "rules": _op_rules,
     "grammemes": _op_grammemes,
     "search": _op_search,
+    "exercises": _op_exercises,
     "grammar": _op_grammar,
     "rule_examples": _op_rule_examples,
     "prepositions": _op_prepositions,

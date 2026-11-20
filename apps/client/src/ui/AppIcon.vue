@@ -31,6 +31,10 @@ defineProps<{ name: IconName }>();
       <path d="M6.2 14h7.6" />
       <path d="M17 9h4M19 7v4" />
     </template>
+    <template v-else-if="name === 'tests'">
+      <rect x="4" y="3" width="16" height="18" rx="2" />
+      <path d="m8 9 1.5 1.5L12 8M8 15l1.5 1.5L12 14M14.5 9.5H17M14.5 15.5H17" />
+    </template>
     <template v-else-if="name === 'more'">
       <circle cx="5" cy="12" r="1.4" />
       <circle cx="12" cy="12" r="1.4" />
