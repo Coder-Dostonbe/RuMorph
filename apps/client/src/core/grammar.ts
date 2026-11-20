@@ -212,6 +212,22 @@ export interface SpellResult {
   issues: SpellIssue[];
 }
 
+export interface ReadingToken {
+  start: number;
+  end: number;
+  lexemes: string[];
+  known: boolean;
+  rank: number | null;
+}
+
+export interface PreparedText {
+  tokens: ReadingToken[];
+  words: number;
+  distinct_lemmas: number;
+  coverage: Record<"500" | "1000" | "3000", number>;
+  unknown: number;
+}
+
 export const POS_FILTERS = ["NOUN", "ADJF", "VERB", "ADVB", "NPRO", "NUMR", "PREP", "CONJ", "PRCL", "PRED", "INTJ"] as const;
 export type PosFilter = (typeof POS_FILTERS)[number];
 
@@ -271,6 +287,7 @@ export const grammar = {
     vocabulary: { lexeme_id: string; lemma: string; translation: string }[] = []) =>
     core.call<Question[]>("exercises", { kind, count, seed, max_rank: maxRank, vocabulary }),
   spellcheck: (text: string, lang: Locale) => core.call<SpellResult>("spellcheck", { text, lang }),
+  reading: (text: string) => core.call<PreparedText>("reading", { text }),
   words: (ids: string[], lang: Locale) => core.call<Record<string, WordInfo>>("words", { ids, lang }),
   srsReview: (card: CardState, grade: 0 | 1 | 2 | 3, now: string) =>
     core.call<{ card: CardState }>("srs_review", { card, grade, now }),

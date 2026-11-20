@@ -3,7 +3,7 @@
 import type { Messages } from "../i18n";
 
 export type IconName =
-  | "home" | "search" | "book" | "cards" | "grammar" | "tests" | "spell" | "user" | "settings" | "info" | "more";
+  | "home" | "search" | "book" | "cards" | "grammar" | "tests" | "spell" | "reading" | "user" | "settings" | "info" | "more";
 
 export interface NavItem {
   to: string;
@@ -16,6 +16,7 @@ export const NAV: NavItem[] = [
   { to: "/", label: (m) => m.nav.home, icon: "home", primary: true },
   { to: "/dictionary", label: (m) => m.nav.dictionary, icon: "book", primary: true },
   { to: "/cards", label: (m) => m.nav.cards, icon: "cards", primary: true },
+  { to: "/reading", label: (m) => m.nav.reading, icon: "reading" },
   { to: "/tests", label: (m) => m.nav.tests, icon: "tests" },
   { to: "/grammar", label: (m) => m.nav.grammar, icon: "grammar" },
   { to: "/spell", label: (m) => m.nav.spell, icon: "spell" },

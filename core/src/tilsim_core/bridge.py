@@ -310,6 +310,14 @@ def _op_spellcheck(args: dict[str, Any]) -> dict[str, Any]:
     return check(_string(args, "text", limit=MAX_TEXT)).to_dict(_lang(args))
 
 
+def _op_reading(args: dict[str, Any]) -> dict[str, Any]:
+    """A text's words linked to the dictionary, and its measured difficulty (tilsim_core/reading.py)."""
+    from .reading import MAX_TEXT, prepare
+
+    _only(args, "text")
+    return prepare(_string(args, "text", limit=MAX_TEXT))
+
+
 def _op_grammemes(args: dict[str, Any]) -> dict[str, Any]:
     """Names of every grammeme code in one language, for table headers and labels."""
     from .engine.grammemes import CATEGORIES, GRAMMEMES
@@ -396,6 +404,7 @@ OPS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "rules": _op_rules,
     "grammemes": _op_grammemes,
     "search": _op_search,
+    "reading": _op_reading,
     "spellcheck": _op_spellcheck,
     "exercises": _op_exercises,
     "grammar": _op_grammar,
