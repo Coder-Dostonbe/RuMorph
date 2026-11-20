@@ -45,7 +45,7 @@ Ikkala yo'l bir xil xesh beradi, buni test tekshiradi.
 
 ## Sizdan kerak bo'ladigan narsalar (spike)
 
-1. **Android:** telefondan <https://github.com/Coder-Dostonbe/RuMorph/releases/tag/dev> → `Tilsim-android-test.apk` ni o'rnating.
+1. **Android:** telefondan <https://github.com/Coder-Dostonbe/RuMorph/releases/tag/dev> → `Tilsim-android.apk` ni o'rnating.
    **Ilova haqida → Jami** raqamini 2–3 marta ochib yuboring.
 2. **Neon + Cloudflare:** `docs/SETUP.md` 4–5-bo'limlari. Deploy'dan keyin login va refresh'ning
    CPU vaqtini yuboring (6-bo'lim).
@@ -56,7 +56,7 @@ Bu ikki raqam B variant (Pyodide + Python Worker) uzil-kesil tasdiqlanishi uchun
 
 - Android'da refresh token Keystore'da emas, ilovaning yopiq papkasida turadi. Shaxsiy foydalanish uchun yetarli, keyinroq kuchaytiriladi.
 - `user_settings` sinxronizatsiyasi 6-bosqichda.
-- Android APK faqat `arm64` va debug kalit bilan imzolangan (sinov uchun).
+- Android APK imzosi: `ANDROID_KEYSTORE_B64` secret qo'yilmaguncha har build vaqtinchalik kalit bilan imzolanadi (yangi versiyani o'rnatishdan oldin eskisini o'chirish kerak).
 - Admin panel keyingi bosqichlarda (Windows'da, `admin` roli bilan).
 - Pydantic va JSON Schema → TS tiplar hali yo'q. API tiplari (`apps/client/src/api/types.ts`) hozircha qo'lda yozilgan, server tomoni testlar bilan tekshiriladi. Avtomatik yaratish endpointlar ko'paygach (3–5-bosqich) qo'shiladi.
 

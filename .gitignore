@@ -56,3 +56,4 @@ apps/client/src-tauri/target/
 apps/api/python_modules/
 apps/api/.venv-workers/
 apps/api/node_modules/
+dist-android/

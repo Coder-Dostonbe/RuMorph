@@ -11,7 +11,7 @@ O'zbek tilida so'zlashuvchilar uchun rus tilini o'rganish platformasi. Windows v
 
 | Platforma | Fayl |
 | --------- | ---- |
-| Android | [**Tilsim-android-test.apk**](https://github.com/Coder-Dostonbe/RuMorph/releases/download/dev/Tilsim-android-test.apk) |
+| Android | [**Tilsim-android.apk**](https://github.com/Coder-Dostonbe/RuMorph/releases/download/dev/Tilsim-android.apk) |
 | Windows | [**Tilsim-windows-setup.exe**](https://github.com/Coder-Dostonbe/RuMorph/releases/download/dev/Tilsim-windows-setup.exe) |
 
 Havolalar har doim `main` branch'ning testlardan o'tgan oxirgi build'iga olib boradi.
