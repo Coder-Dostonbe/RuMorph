@@ -1,0 +1,161 @@
+{
+ "description": "Hand-checked pronoun classifications. Each entry lists every finding the engine must report for the lemma; nothing else may be reported. Kinds follow school grammar (личные, возвратное, вопросительные, отрицательные, притяжательные, указательные, определительные).",
+ "entries": [
+  {
+   "lemma": "я",
+   "category": "pron.personal",
+   "findings": []
+  },
+  {
+   "lemma": "мы",
+   "category": "pron.personal",
+   "findings": []
+  },
+  {
+   "lemma": "он",
+   "category": "pron.personal",
+   "findings": [
+    {
+     "rule": "pron.n_after_prep",
+     "detail": "у него, к нему, с ним, о нём"
+    },
+    {
+     "rule": "pron.possessive_3per",
+     "detail": "его дом, его книга"
+    }
+   ]
+  },
+  {
+   "lemma": "она",
+   "category": "pron.personal",
+   "findings": [
+    {
+     "rule": "pron.n_after_prep",
+     "detail": "у неё, к ней, с ней, о ней"
+    },
+    {
+     "rule": "pron.possessive_3per",
+     "detail": "её дом, её книга"
+    }
+   ]
+  },
+  {
+   "lemma": "они",
+   "category": "pron.personal",
+   "findings": [
+    {
+     "rule": "pron.n_after_prep",
+     "detail": "у них, к ним, с ними, о них"
+    },
+    {
+     "rule": "pron.possessive_3per",
+     "detail": "их дом, их книга"
+    }
+   ]
+  },
+  {
+   "lemma": "себя",
+   "category": "pron.reflexive",
+   "findings": [
+    {
+     "rule": "pron.no_nominative",
+     "detail": "себя, себе, собой"
+    }
+   ]
+  },
+  {
+   "lemma": "кто",
+   "category": "pron.interrogative",
+   "findings": []
+  },
+  {
+   "lemma": "что",
+   "category": "pron.interrogative",
+   "findings": []
+  },
+  {
+   "lemma": "какой",
+   "category": "pron.interrogative",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "какой → какие"
+    }
+   ]
+  },
+  {
+   "lemma": "чей",
+   "category": "pron.interrogative",
+   "findings": []
+  },
+  {
+   "lemma": "никто",
+   "category": "pron.negative",
+   "findings": [
+    {
+     "rule": "pron.negative_prep",
+     "detail": "ни к кому, ни с кем"
+    }
+   ]
+  },
+  {
+   "lemma": "ничто",
+   "category": "pron.negative",
+   "findings": [
+    {
+     "rule": "pron.negative_prep",
+     "detail": "ни к чему, ни с чем"
+    }
+   ]
+  },
+  {
+   "lemma": "мой",
+   "category": "pron.possessive",
+   "findings": []
+  },
+  {
+   "lemma": "наш",
+   "category": "pron.possessive",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "наш → наши"
+    },
+    {
+     "rule": "spelling.sibilant_o_e",
+     "detail": "наш → нашего"
+    }
+   ]
+  },
+  {
+   "lemma": "свой",
+   "category": "pron.reflexive_possessive",
+   "findings": []
+  },
+  {
+   "lemma": "этот",
+   "category": "pron.demonstrative",
+   "findings": []
+  },
+  {
+   "lemma": "тот",
+   "category": "pron.demonstrative",
+   "findings": []
+  },
+  {
+   "lemma": "весь",
+   "category": "pron.definitive",
+   "findings": []
+  },
+  {
+   "lemma": "каждый",
+   "category": "pron.definitive",
+   "findings": []
+  },
+  {
+   "lemma": "сам",
+   "category": "pron.definitive",
+   "findings": []
+  }
+ ]
+}

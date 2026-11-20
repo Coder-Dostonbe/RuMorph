@@ -1,16 +1,20 @@
-"""Decides which rules explain a lexeme: its declension class and its exceptions.
+"""Decides which rules explain a lexeme: its class (declension, stem type, kind
+of pronoun) and its exceptions.
 
 The lexicon already holds the correct forms. Here they are compared with each
-other (nominative with genitive, singular with plural, …) to find what a learner
-needs to be told: a fleeting vowel, a plural on another stem, a spelling rule.
-Each finding names a rule from rules.py and gives the concrete example from
-this word. A check that cannot decide says nothing rather than guess.
+other (nominative with genitive, singular with plural, full with short form, …)
+to find what a learner needs to be told: a fleeting vowel, a plural on another
+stem, a spelling rule. Each finding names a rule from rules.py and gives the
+concrete example from this word. A check that cannot decide says nothing
+rather than guess; a lexeme the engine has no classification for gets
+category None.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from .grammemes import NOT_MAIN
 from .lexicon import Lexeme
 
 VOWELS = "аеёиоуыэюя"
@@ -29,19 +33,29 @@ class Finding:
 
 
 @dataclass
-class NounProfile:
-    declension: str | None                 # rule id of the declension class, None if unknown
+class Profile:
+    kind: str                              # "noun" | "adjective" | "pronoun"
+    category: str | None                   # rule id of the class, None if the engine cannot tell
     findings: list[Finding] = field(default_factory=list)
 
     def to_dict(self) -> dict:
-        return {"declension": self.declension, "findings": [f.to_dict() for f in self.findings]}
+        return {"kind": self.kind, "category": self.category, "findings": [f.to_dict() for f in self.findings]}
 
 
-def _text(lexeme: Lexeme, *grammemes: str) -> str | None:
-    """The main (non-rare) form with these grammemes."""
-    forms = lexeme.find(*grammemes, exclude=("Infr", "Arch", "Erro", "Slng", "V-be", "V-bi", "V-ey", "V-oy",
-                                            "V-ej", "V-sh", "V-ie", "V-en"))
-    return forms[0].text if forms else None
+def _main(lexeme: Lexeme, *grammemes: str, exclude: tuple[str, ...] = ()) -> list[str]:
+    """Texts of the main forms with these grammemes (no rare or variant forms), without repeats."""
+    forms = lexeme.find(*grammemes, exclude=tuple(NOT_MAIN) + exclude)
+    return list(dict.fromkeys(f.text for f in forms))
+
+
+def _text(lexeme: Lexeme, *grammemes: str, exclude: tuple[str, ...] = ()) -> str | None:
+    """The first main form with these grammemes."""
+    texts = _main(lexeme, *grammemes, exclude=exclude)
+    return texts[0] if texts else None
+
+
+def _fold(text: str) -> str:
+    return text.replace("ё", "е")
 
 
 def _drop_one(longer: str, shorter: str, letters: str) -> bool:
@@ -72,11 +86,11 @@ def _declension(lexeme: Lexeme, lemma: str) -> str | None:
     return None
 
 
-def classify_noun(lexeme: Lexeme) -> NounProfile:
+def classify_noun(lexeme: Lexeme) -> Profile:
     lemma = lexeme.lemma
-    profile = NounProfile(declension=_declension(lexeme, lemma))
+    profile = Profile("noun", _declension(lexeme, lemma))
     add = profile.findings.append
-    if profile.declension in ("noun.indeclinable", "noun.pluralia_tantum", None):
+    if profile.category in ("noun.indeclinable", "noun.pluralia_tantum", None):
         return profile
     if "Sgtm" in lexeme.lemma_tag:
         add(Finding("noun.singularia_tantum", lemma))
@@ -93,14 +107,14 @@ def classify_noun(lexeme: Lexeme) -> NounProfile:
     if suppletive:
         add(Finding("noun.suppletive_plural", f"{nom_sg} → {nom_pl}"))
 
-    if nom_sg and gen_sg and profile.declension != "noun.heteroclitic":
+    if nom_sg and gen_sg and profile.category != "noun.heteroclitic":
         nom_stem = nom_sg[:-1] if nom_sg[-1] in "ьйаяоеё" else nom_sg
         gen_stem = gen_sg[:-1] if gen_sg[-1] in "аяиыу" else gen_sg
         if nom_stem != gen_stem and _drop_one(nom_stem, gen_stem, FLEETING):
             add(Finding("noun.fleeting_vowel", f"{nom_sg} → {gen_sg}"))
         elif len(gen_stem) == len(nom_stem) + 2 and gen_stem.startswith(nom_stem) and gen_stem[-2:] in ("ер", "ен"):
             add(Finding("noun.stem_extension", f"{nom_sg} → {gen_sg}"))
-    if profile.declension == "noun.heteroclitic" and lemma.endswith("мя") and gen_sg:
+    if profile.category == "noun.heteroclitic" and lemma.endswith("мя") and gen_sg:
         add(Finding("noun.stem_extension", f"{nom_sg} → {gen_sg}"))
 
     if nom_sg and gen_pl and nom_sg[-1] in "аяоеё" and gen_pl[-1] not in VOWELS:
@@ -112,10 +126,10 @@ def classify_noun(lexeme: Lexeme) -> NounProfile:
     if nom_pl and not suppletive:
         if nom_pl.endswith("ья") and not (nom_sg and nom_sg.endswith("ье")):
             add(Finding("noun.plural_ya", f"{nom_sg} → {nom_pl}"))
-        elif gender == "masc" and profile.declension == "noun.decl.2" and nom_pl[-1] in "ая":
+        elif gender == "masc" and profile.category == "noun.decl.2" and nom_pl[-1] in "ая":
             add(Finding("noun.plural_a", f"{nom_sg} → {nom_pl}"))
 
-    if gender == "masc" and profile.declension == "noun.decl.2" and nom_sg and gen_pl == nom_sg and not suppletive:
+    if gender == "masc" and profile.category == "noun.decl.2" and nom_sg and gen_pl == nom_sg and not suppletive:
         add(Finding("noun.gen_plural_zero", f"{nom_sg} → (много) {gen_pl}"))
 
     loc2 = _text(lexeme, "sing", "loc2")
@@ -132,10 +146,139 @@ def classify_noun(lexeme: Lexeme) -> NounProfile:
 
     # Spelling rules visible in this word's endings.
     if nom_pl and nom_pl.endswith("и") and len(nom_pl) > 1 and nom_pl[-2] in HUSHING_GKH \
-            and profile.declension in ("noun.decl.1", "noun.decl.2"):
+            and profile.category in ("noun.decl.1", "noun.decl.2"):
         add(Finding("spelling.gkh_i", f"{nom_sg} → {nom_pl}"))
     ablt = _text(lexeme, "sing", "ablt")
     if ablt and len(ablt) > 2 and ablt[-2:] in ("ей", "ем") and ablt[-3] in SIBILANTS_C \
-            and profile.declension in ("noun.decl.1", "noun.decl.2") and not lemma.endswith(("я", "ь", "е")):
+            and profile.category in ("noun.decl.1", "noun.decl.2") and not lemma.endswith(("я", "ь", "е")):
         add(Finding("spelling.sibilant_o_e", f"{nom_sg} → {ablt}"))
     return profile
+
+
+# --- Adjectives -----------------------------------------------------------------------------
+
+# The four adjectives whose comparative comes from another stem. A closed list in Russian.
+SUPPLETIVE_COMPARATIVE = frozenset({"хороший", "плохой", "большой", "маленький"})
+
+
+def _adjective_category(lexeme: Lexeme, lemma: str) -> str | None:
+    if lexeme.pos == "ADJS":
+        return "adj.short_only"
+    if not lemma.endswith(("ый", "ий", "ой")):
+        return None
+    stem = lemma[:-2]
+    gen = _text(lexeme, "ADJF", "masc", "sing", "gent", exclude=("Supr",)) or ""
+    if lemma.endswith("ий") and gen.startswith(stem + "ь"):
+        return "adj.possessive_type"                   # третий → третьего, третья
+    if stem[-1:] in HUSHING_GKH:
+        return "adj.mixed"
+    if lemma.endswith("ий"):
+        return "adj.soft"
+    return "adj.hard"
+
+
+def classify_adjective(lexeme: Lexeme) -> Profile:
+    lemma = lexeme.lemma
+    tag = lexeme.lemma_tag
+    profile = Profile("adjective", _adjective_category(lexeme, lemma))
+    add = profile.findings.append
+    if profile.category is None:
+        return profile
+    stem = lemma[:-2]
+
+    if profile.category != "adj.short_only":
+        if lemma.endswith("ой"):
+            add(Finding("adj.stressed_ending", lemma))
+        nom_pl = _text(lexeme, "ADJF", "plur", "nomn", exclude=("Supr",))
+        if nom_pl and nom_pl.endswith("ие") and stem[-1:] in HUSHING_GKH:
+            add(Finding("spelling.gkh_i", f"{lemma} → {nom_pl}"))
+        gen = _text(lexeme, "ADJF", "masc", "sing", "gent", exclude=("Supr",))
+        if gen and gen.endswith("его") and stem[-1:] in SIBILANTS_C:
+            add(Finding("spelling.sibilant_o_e", f"{lemma} → {gen}"))
+        if "Qual" not in tag and "Anum" not in tag and not lexeme.find("ADJS"):
+            add(Finding("adj.relative", lemma))
+
+    short_m = _text(lexeme, "ADJS", "masc")
+    short_f = _text(lexeme, "ADJS", "femn")
+    if short_m and short_f and profile.category != "adj.short_only":
+        if short_m[:2] != lemma[:2]:
+            add(Finding("adj.short_suppletive", f"{lemma} → {short_m}"))
+        elif _drop_one(_fold(short_m), _fold(short_f[:-1]), FLEETING):
+            add(Finding("adj.short_fleeting", f"{lemma} → {short_m}, {short_f}"))
+
+    comparatives = _main(lexeme, "COMP", exclude=("Cmp2",))
+    if comparatives:
+        if lemma in SUPPLETIVE_COMPARATIVE:
+            add(Finding("adj.comparative_suppletive", f"{lemma} → {comparatives[0]}"))
+        else:
+            in_ee = [c for c in comparatives if c.endswith("ее")]
+            in_e = [c for c in comparatives if not c.endswith(("ее", "ей"))]
+            if in_ee:
+                add(Finding("adj.comparative_ee", f"{lemma} → {in_ee[0]}"))
+            if in_e:
+                add(Finding("adj.comparative_e", f"{lemma} → {in_e[0]}"))
+    return profile
+
+
+# --- Pronouns -------------------------------------------------------------------------------
+
+# Pronouns are a closed class, so their kind is a list, not a guess from endings.
+PRONOUN_CLASSES: dict[str, str] = {
+    **dict.fromkeys(("я", "ты", "он", "она", "оно", "мы", "вы", "они"), "pron.personal"),
+    "себя": "pron.reflexive",
+    **dict.fromkeys(("кто", "что", "какой", "чей"), "pron.interrogative"),
+    **dict.fromkeys(("никто", "ничто"), "pron.negative"),
+    **dict.fromkeys(("мой", "твой", "наш", "ваш"), "pron.possessive"),
+    "свой": "pron.reflexive_possessive",
+    **dict.fromkeys(("этот", "тот"), "pron.demonstrative"),
+    **dict.fromkeys(("весь", "каждый", "сам"), "pron.definitive"),
+}
+_AFTER_PREP = (("gent", "у"), ("datv", "к"), ("ablt", "с"), ("loct", "о"))
+
+
+def is_pronoun(lexeme: Lexeme) -> bool:
+    return lexeme.pos == "NPRO" or (lexeme.pos == "ADJF" and "Apro" in lexeme.lemma_tag)
+
+
+def classify_pronoun(lexeme: Lexeme) -> Profile:
+    lemma = lexeme.lemma
+    profile = Profile("pronoun", PRONOUN_CLASSES.get(lemma))
+    add = profile.findings.append
+    if profile.category is None:
+        return profile
+
+    if lexeme.find("Af-p"):
+        pairs = [f"{prep} {form}" for case, prep in _AFTER_PREP
+                 if (form := _text(lexeme, case, "Af-p"))]
+        add(Finding("pron.n_after_prep", ", ".join(pairs)))
+        gen = _text(lexeme, "gent", exclude=("Af-p",))
+        if gen and "3per" in lexeme.lemma_tag:
+            add(Finding("pron.possessive_3per", f"{gen} дом, {gen} книга"))
+    if not lexeme.find("nomn"):
+        add(Finding("pron.no_nominative", ", ".join(t for c in ("gent", "datv", "ablt") if (t := _text(lexeme, c)))))
+    if profile.category == "pron.negative":
+        datv, ablt = _text(lexeme, "datv"), _text(lexeme, "ablt")
+        if datv and ablt and datv.startswith("ни") and ablt.startswith("ни"):
+            add(Finding("pron.negative_prep", f"ни к {datv[2:]}, ни с {ablt[2:]}"))
+
+    if lexeme.pos == "ADJF":
+        stem = lemma[:-2] if lemma.endswith(("ый", "ий", "ой")) else lemma
+        nom_pl = _text(lexeme, "plur", "nomn") or ""
+        before_i = nom_pl[-3:-2] if nom_pl.endswith("ие") else nom_pl[-2:-1] if nom_pl.endswith("и") else ""
+        if before_i and before_i in HUSHING_GKH:
+            add(Finding("spelling.gkh_i", f"{lemma} → {nom_pl}"))
+        gen = _text(lexeme, "masc", "sing", "gent")
+        if gen and gen.endswith("его") and stem[-1:] in SIBILANTS_C:
+            add(Finding("spelling.sibilant_o_e", f"{lemma} → {gen}"))
+    return profile
+
+
+def classify(lexeme: Lexeme) -> Profile | None:
+    """The profile for any lexeme the engine can classify; None for other parts of speech."""
+    if lexeme.pos == "NOUN":
+        return classify_noun(lexeme)
+    if is_pronoun(lexeme):
+        return classify_pronoun(lexeme)
+    if lexeme.pos in ("ADJF", "ADJS"):
+        return classify_adjective(lexeme)
+    return None

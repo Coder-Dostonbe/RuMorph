@@ -1,0 +1,325 @@
+{
+ "description": "Hand-checked adjective classifications. Each entry lists every finding the engine must report for the lemma; nothing else may be reported. Stem types follow school grammar: hard (новый), soft (синий), mixed — stem in г к х ж ш щ ч (русский, хороший). Adjectives whose dictionary data is incomplete (высокий: no comparative in OpenCorpora; летний: short forms the grammar does not use) are left out on purpose.",
+ "entries": [
+  {
+   "lemma": "новый",
+   "category": "adj.hard",
+   "findings": [
+    {
+     "rule": "adj.comparative_ee",
+     "detail": "новый → новее"
+    }
+   ]
+  },
+  {
+   "lemma": "белый",
+   "category": "adj.hard",
+   "findings": [
+    {
+     "rule": "adj.comparative_ee",
+     "detail": "белый → белее"
+    }
+   ]
+  },
+  {
+   "lemma": "красивый",
+   "category": "adj.hard",
+   "findings": [
+    {
+     "rule": "adj.comparative_ee",
+     "detail": "красивый → красивее"
+    }
+   ]
+  },
+  {
+   "lemma": "молодой",
+   "category": "adj.hard",
+   "findings": [
+    {
+     "rule": "adj.stressed_ending",
+     "detail": "молодой"
+    },
+    {
+     "rule": "adj.comparative_e",
+     "detail": "молодой → моложе"
+    }
+   ]
+  },
+  {
+   "lemma": "второй",
+   "category": "adj.hard",
+   "findings": [
+    {
+     "rule": "adj.stressed_ending",
+     "detail": "второй"
+    }
+   ]
+  },
+  {
+   "lemma": "интересный",
+   "category": "adj.hard",
+   "findings": [
+    {
+     "rule": "adj.short_fleeting",
+     "detail": "интересный → интересен, интересна"
+    },
+    {
+     "rule": "adj.comparative_ee",
+     "detail": "интересный → интереснее"
+    }
+   ]
+  },
+  {
+   "lemma": "трудный",
+   "category": "adj.hard",
+   "findings": [
+    {
+     "rule": "adj.short_fleeting",
+     "detail": "трудный → труден, трудна"
+    },
+    {
+     "rule": "adj.comparative_ee",
+     "detail": "трудный → труднее"
+    }
+   ]
+  },
+  {
+   "lemma": "чёрный",
+   "category": "adj.hard",
+   "findings": [
+    {
+     "rule": "adj.short_fleeting",
+     "detail": "чёрный → чёрен, черна"
+    },
+    {
+     "rule": "adj.comparative_ee",
+     "detail": "чёрный → чернее"
+    }
+   ]
+  },
+  {
+   "lemma": "синий",
+   "category": "adj.soft",
+   "findings": [
+    {
+     "rule": "adj.comparative_ee",
+     "detail": "синий → синее"
+    }
+   ]
+  },
+  {
+   "lemma": "русский",
+   "category": "adj.mixed",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "русский → русские"
+    },
+    {
+     "rule": "adj.relative",
+     "detail": "русский"
+    }
+   ]
+  },
+  {
+   "lemma": "узбекский",
+   "category": "adj.mixed",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "узбекский → узбекские"
+    },
+    {
+     "rule": "adj.relative",
+     "detail": "узбекский"
+    }
+   ]
+  },
+  {
+   "lemma": "хороший",
+   "category": "adj.mixed",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "хороший → хорошие"
+    },
+    {
+     "rule": "spelling.sibilant_o_e",
+     "detail": "хороший → хорошего"
+    },
+    {
+     "rule": "adj.comparative_suppletive",
+     "detail": "хороший → лучше"
+    }
+   ]
+  },
+  {
+   "lemma": "плохой",
+   "category": "adj.mixed",
+   "findings": [
+    {
+     "rule": "adj.stressed_ending",
+     "detail": "плохой"
+    },
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "плохой → плохие"
+    },
+    {
+     "rule": "adj.comparative_suppletive",
+     "detail": "плохой → хуже"
+    }
+   ]
+  },
+  {
+   "lemma": "большой",
+   "category": "adj.mixed",
+   "findings": [
+    {
+     "rule": "adj.stressed_ending",
+     "detail": "большой"
+    },
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "большой → большие"
+    },
+    {
+     "rule": "adj.short_suppletive",
+     "detail": "большой → велик"
+    },
+    {
+     "rule": "adj.comparative_suppletive",
+     "detail": "большой → больше"
+    }
+   ]
+  },
+  {
+   "lemma": "маленький",
+   "category": "adj.mixed",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "маленький → маленькие"
+    },
+    {
+     "rule": "adj.comparative_suppletive",
+     "detail": "маленький → меньше"
+    }
+   ]
+  },
+  {
+   "lemma": "тихий",
+   "category": "adj.mixed",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "тихий → тихие"
+    },
+    {
+     "rule": "adj.comparative_e",
+     "detail": "тихий → тише"
+    }
+   ]
+  },
+  {
+   "lemma": "дорогой",
+   "category": "adj.mixed",
+   "findings": [
+    {
+     "rule": "adj.stressed_ending",
+     "detail": "дорогой"
+    },
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "дорогой → дорогие"
+    },
+    {
+     "rule": "adj.comparative_e",
+     "detail": "дорогой → дороже"
+    }
+   ]
+  },
+  {
+   "lemma": "короткий",
+   "category": "adj.mixed",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "короткий → короткие"
+    },
+    {
+     "rule": "adj.short_fleeting",
+     "detail": "короткий → короток, коротка"
+    },
+    {
+     "rule": "adj.comparative_e",
+     "detail": "короткий → короче"
+    }
+   ]
+  },
+  {
+   "lemma": "лёгкий",
+   "category": "adj.mixed",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "лёгкий → лёгкие"
+    },
+    {
+     "rule": "adj.short_fleeting",
+     "detail": "лёгкий → лёгок, легка"
+    },
+    {
+     "rule": "adj.comparative_e",
+     "detail": "лёгкий → легче"
+    }
+   ]
+  },
+  {
+   "lemma": "горячий",
+   "category": "adj.mixed",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "горячий → горячие"
+    },
+    {
+     "rule": "spelling.sibilant_o_e",
+     "detail": "горячий → горячего"
+    },
+    {
+     "rule": "adj.comparative_ee",
+     "detail": "горячий → горячее"
+    }
+   ]
+  },
+  {
+   "lemma": "свежий",
+   "category": "adj.mixed",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "свежий → свежие"
+    },
+    {
+     "rule": "spelling.sibilant_o_e",
+     "detail": "свежий → свежего"
+    },
+    {
+     "rule": "adj.comparative_ee",
+     "detail": "свежий → свежее"
+    }
+   ]
+  },
+  {
+   "lemma": "третий",
+   "category": "adj.possessive_type",
+   "findings": []
+  },
+  {
+   "lemma": "рад",
+   "category": "adj.short_only",
+   "findings": []
+  }
+ ]
+}

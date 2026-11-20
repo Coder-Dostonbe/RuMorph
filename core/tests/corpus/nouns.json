@@ -3,7 +3,7 @@
  "entries": [
   {
    "lemma": "книга",
-   "declension": "noun.decl.1",
+   "category": "noun.decl.1",
    "findings": [
     {
      "rule": "spelling.gkh_i",
@@ -13,7 +13,7 @@
   },
   {
    "lemma": "земля",
-   "declension": "noun.decl.1",
+   "category": "noun.decl.1",
    "findings": [
     {
      "rule": "noun.inserted_vowel",
@@ -23,7 +23,7 @@
   },
   {
    "lemma": "бабушка",
-   "declension": "noun.decl.1",
+   "category": "noun.decl.1",
    "findings": [
     {
      "rule": "noun.inserted_vowel",
@@ -41,7 +41,7 @@
   },
   {
    "lemma": "улица",
-   "declension": "noun.decl.1",
+   "category": "noun.decl.1",
    "findings": [
     {
      "rule": "spelling.sibilant_o_e",
@@ -51,12 +51,12 @@
   },
   {
    "lemma": "стол",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": []
   },
   {
    "lemma": "день",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.fleeting_vowel",
@@ -70,7 +70,7 @@
   },
   {
    "lemma": "отец",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.fleeting_vowel",
@@ -84,7 +84,7 @@
   },
   {
    "lemma": "ребёнок",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.suppletive_plural",
@@ -102,7 +102,7 @@
   },
   {
    "lemma": "человек",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.suppletive_plural",
@@ -116,7 +116,7 @@
   },
   {
    "lemma": "брат",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.plural_ya",
@@ -130,7 +130,7 @@
   },
   {
    "lemma": "друг",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.plural_ya",
@@ -144,7 +144,7 @@
   },
   {
    "lemma": "стул",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.plural_ya",
@@ -154,7 +154,7 @@
   },
   {
    "lemma": "дом",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.plural_a",
@@ -172,7 +172,7 @@
   },
   {
    "lemma": "лес",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.plural_a",
@@ -190,7 +190,7 @@
   },
   {
    "lemma": "глаз",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.plural_a",
@@ -212,7 +212,7 @@
   },
   {
    "lemma": "чай",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.loc2",
@@ -226,7 +226,7 @@
   },
   {
    "lemma": "окно",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.inserted_vowel",
@@ -236,7 +236,7 @@
   },
   {
    "lemma": "письмо",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.inserted_vowel",
@@ -246,7 +246,7 @@
   },
   {
    "lemma": "сердце",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.inserted_vowel",
@@ -256,12 +256,12 @@
   },
   {
    "lemma": "ночь",
-   "declension": "noun.decl.3",
+   "category": "noun.decl.3",
    "findings": []
   },
   {
    "lemma": "дочь",
-   "declension": "noun.decl.3",
+   "category": "noun.decl.3",
    "findings": [
     {
      "rule": "noun.stem_extension",
@@ -275,7 +275,7 @@
   },
   {
    "lemma": "мать",
-   "declension": "noun.decl.3",
+   "category": "noun.decl.3",
    "findings": [
     {
      "rule": "noun.stem_extension",
@@ -289,12 +289,12 @@
   },
   {
    "lemma": "тетрадь",
-   "declension": "noun.decl.3",
+   "category": "noun.decl.3",
    "findings": []
   },
   {
    "lemma": "время",
-   "declension": "noun.heteroclitic",
+   "category": "noun.heteroclitic",
    "findings": [
     {
      "rule": "noun.stem_extension",
@@ -304,7 +304,7 @@
   },
   {
    "lemma": "имя",
-   "declension": "noun.heteroclitic",
+   "category": "noun.heteroclitic",
    "findings": [
     {
      "rule": "noun.stem_extension",
@@ -314,37 +314,37 @@
   },
   {
    "lemma": "путь",
-   "declension": "noun.heteroclitic",
+   "category": "noun.heteroclitic",
    "findings": []
   },
   {
    "lemma": "кофе",
-   "declension": "noun.indeclinable",
+   "category": "noun.indeclinable",
    "findings": []
   },
   {
    "lemma": "метро",
-   "declension": "noun.indeclinable",
+   "category": "noun.indeclinable",
    "findings": []
   },
   {
    "lemma": "деньги",
-   "declension": "noun.pluralia_tantum",
+   "category": "noun.pluralia_tantum",
    "findings": []
   },
   {
    "lemma": "ножницы",
-   "declension": "noun.pluralia_tantum",
+   "category": "noun.pluralia_tantum",
    "findings": []
   },
   {
    "lemma": "очки",
-   "declension": "noun.pluralia_tantum",
+   "category": "noun.pluralia_tantum",
    "findings": []
   },
   {
    "lemma": "молоко",
-   "declension": "noun.decl.2",
+   "category": "noun.decl.2",
    "findings": [
     {
      "rule": "noun.singularia_tantum",

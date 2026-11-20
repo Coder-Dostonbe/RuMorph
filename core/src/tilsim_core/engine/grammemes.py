@@ -109,7 +109,6 @@ GRAMMEMES: dict[str, Grammeme] = {g.code: g for g in [
     _G("Subx", "subtype", "ot o'rnida keladi", "субстантивируемое", "substantive-like"),
     _G("Adjx", "subtype", "sifat o'rnida keladi", "адъективируемое", "adjective-like"),
     _G("Prdx", "subtype", "kesim bo'la oladi", "может быть сказуемым", "predicative-like"),
-    _G("Dist", "subtype", "taqsim", "дистрибутивное", "distributive"),
     _G("Af-p", "subtype", "predlogdan keyingi shakl (него)", "форма после предлога", "form after preposition"),
     _G("Vpre", "subtype", "unli qo'shilgan predlog (со, во)", "вариант предлога с гласной", "preposition with added vowel"),
     _G("Fimp", "subtype", "tugallanmagan fe'lning shakli", "форма несовершенного вида", "imperfective form"),
@@ -119,6 +118,7 @@ GRAMMEMES: dict[str, Grammeme] = {g.code: g for g in [
     _G("Arch", "usage", "eskirgan", "устаревшее", "archaic"),
     _G("Litr", "usage", "adabiy", "литературный вариант", "literary"),
     _G("Erro", "usage", "noto'g'ri yozilish", "опечатка", "misspelling"),
+    _G("Dist", "usage", "buzilgan shakl (ети, чо)", "искажённая форма", "distorted form"),
     # --- Spelling variants
     _G("V-be", "variant", "variant shakl (-ье)", "вариант на -ье", "variant (-ье)"),
     _G("V-en", "variant", "variant shakl", "вариант", "variant"),
@@ -131,7 +131,11 @@ GRAMMEMES: dict[str, Grammeme] = {g.code: g for g in [
 ]}
 
 # Usage notes that make a form worth flagging to a learner.
-RARE_USAGE = frozenset({"Infr", "Slng", "Arch", "Erro"})
+RARE_USAGE = frozenset({"Infr", "Slng", "Arch", "Erro", "Dist"})
+
+# Forms left out when the engine needs "the" form of a cell to explain a rule: rare usage,
+# spelling variants (-ою, -ею, …) and literary variants (краше). They stay in every table.
+NOT_MAIN = RARE_USAGE | frozenset({"Litr", "V-be", "V-bi", "V-ey", "V-oy", "V-ej", "V-sh", "V-ie", "V-en"})
 
 
 def grammeme(code: str) -> Grammeme | None:

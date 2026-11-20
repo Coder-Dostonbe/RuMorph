@@ -165,6 +165,11 @@ def cell(table, row_key, column):
     return [c["form"] for c in row["cells"][table["columns"].index(column)]]
 
 
+def _only(lexicon, lemma, pos):
+    (lexeme,) = [lx for lx in lexicon.by_lemma(lemma) if lx.pos == pos]
+    return lexeme
+
+
 def test_noun_table(lexicon):
     (lexeme,) = [lx for lx in lexicon.by_lemma("книга")]
     t = paradigm_table(lexeme)
@@ -191,6 +196,34 @@ def test_adjective_table_splits_animate_accusative(lexicon):
     assert cell(t, "accs.anim", "masc") == ["нового"] and cell(t, "accs.inan", "masc") == ["новый"]
     assert cell(t, "gent", "femn") == ["новой"]
     assert t["short"] and [c["form"] for c in t["short"][2]] == ["нова"]
+
+
+def test_pronoun_table_has_a_column_for_forms_after_prepositions(lexicon):
+    t = paradigm_table(_only(lexicon, "он", "NPRO"))
+    assert t["kind"] == "pronoun" and t["columns"] == ["form", "after_prep"]
+    rows = {r["key"]: [[c["form"] for c in cell] for cell in r["cells"]] for r in t["rows"]}
+    assert rows["gent"] == [["его"], ["него"]]
+    assert rows["loct"] == [[], ["нём"]]          # the prepositional case exists only after a preposition
+
+
+def test_reflexive_pronoun_has_an_empty_nominative(lexicon):
+    t = paradigm_table(_only(lexicon, "себя", "NPRO"))
+    rows = {r["key"]: r["cells"] for r in t["rows"]}
+    assert t["columns"] == ["form"] and rows["nomn"] == [[]]
+    ablt = rows["ablt"][0]
+    assert [c["form"] for c in ablt] == ["собой", "собою"] and [c["variant"] for c in ablt] == [False, True]
+
+
+def test_short_only_adjective_has_no_full_form_rows(lexicon):
+    t = paradigm_table(_only(lexicon, "рад", "ADJS"))
+    assert t["kind"] == "adjective" and t["rows"] == []
+    assert [[c["form"] for c in cell] for cell in t["short"]] == [["рад"], ["радо"], ["рада"], ["рады"]]
+
+
+def test_distorted_forms_are_rare(lexicon):
+    # OpenCorpora "Dist" marks distorted spellings (ети for эти); they must not look like normal forms.
+    result = analyze("ети", lexicon)
+    assert result.readings and all("lexicon.rare_form" in r.to_dict()["rules"] for r in result.readings)
 
 
 def test_every_form_appears_in_some_table(lexicon):

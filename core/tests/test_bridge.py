@@ -103,7 +103,23 @@ def test_lexeme_op_returns_table_and_profile():
     reading = ok("analyze", word="день")["readings"][0]
     result = ok("lexeme", id=reading["lexeme"])
     assert result["lemma"] == "день" and result["table"]["kind"] == "noun"
+    assert result["profile"]["kind"] == "noun" and result["profile"]["category"] == "noun.decl.2"
     assert {f["rule"] for f in result["profile"]["findings"]} == {"noun.fleeting_vowel", "noun.loc2"}
+
+
+def test_lexeme_op_for_a_pronoun_and_an_adjective():
+    pronoun = ok("lexeme", id=ok("analyze", word="него")["readings"][0]["lexeme"])
+    assert pronoun["lemma"] == "он" and pronoun["table"]["kind"] == "pronoun"
+    assert pronoun["profile"]["category"] == "pron.personal"
+    readings = ok("analyze", word="лучше")["readings"]
+    adjective = ok("lexeme", id=next(r["lexeme"] for r in readings if r["pos"] == "COMP"))
+    assert adjective["lemma"] == "хороший" and adjective["profile"]["kind"] == "adjective"
+    assert "adj.comparative_suppletive" in {f["rule"] for f in adjective["profile"]["findings"]}
+
+
+def test_lexeme_op_without_a_profile():
+    reading = ok("analyze", word="очень")["readings"][0]
+    assert ok("lexeme", id=reading["lexeme"])["profile"] is None
 
 
 def test_rules_op():

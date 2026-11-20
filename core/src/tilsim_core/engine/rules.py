@@ -2,8 +2,8 @@
 
 Word forms come from the lexicon (OpenCorpora paradigms); rules do not build
 them. A rule here explains why a form looks the way it does: which declension a
-noun follows, which spelling rule chose an ending, what makes a word an
-exception. classify.py decides which rules apply to a lexeme.
+noun or adjective follows, what kind of pronoun a word is, which spelling rule
+chose an ending, what makes a word an exception. classify.py decides which rules apply to a lexeme.
 
 As in ArabMorph, rules are data: explanations, examples and review status live
 here, separate from the code that detects them, so they can move into the
@@ -14,14 +14,14 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 
-SCHOOL = "Русский язык, школьная грамматика (склонение существительных); ссылка уточняется"
+SCHOOL = "Русский язык, школьная грамматика; ссылка уточняется"
 ROSENTAL = "Д. Э. Розенталь, «Справочник по правописанию и литературной правке»; раздел уточняется"
 
 
 @dataclass(frozen=True)
 class Rule:
     id: str
-    kind: str          # "declension" | "exception" | "spelling" | "note"
+    kind: str          # "declension" | "class" | "exception" | "spelling" | "note"
     name_uz: str
     name_ru: str
     name_en: str
@@ -152,20 +152,186 @@ _RULES = [
          "У одушевлённых существительных В. п. совпадает с Р. п. (м. р. ед. ч. и мн. ч.).",
          "For animate nouns the accusative equals the genitive (masc. sing. and all plurals).",
          "вижу брата, вижу сестёр", SCHOOL),
+    # --- Adjectives: declension by the last letter of the stem
+    Rule("adj.hard", "declension",
+         "Qattiq o'zakli sifat", "Прилагательное с твёрдой основой", "Hard-stem adjective",
+         "O'zak qattiq undosh bilan tugaydi (новый, белый, молодой). Qo'shimchalar ы, о, а, у unlilari bilan: "
+         "-ый/-ой, -ая, -ое, -ые; -ого, -ому, -ым, -ом.",
+         "Основа на твёрдый согласный: новый, белый, молодой. Окончания с ы, о, а, у.",
+         "The stem ends in a hard consonant; the endings have ы, о, а, у.",
+         "новый → новая, новое, новые, нового, новым", SCHOOL),
+    Rule("adj.soft", "declension",
+         "Yumshoq o'zakli sifat", "Прилагательное с мягкой основой", "Soft-stem adjective",
+         "O'zak yumshoq н bilan tugaydi (синий, летний, последний). Qo'shimchalar и, е, я, ю unlilari bilan: "
+         "-ий, -яя, -ее, -ие; -его, -ему, -им, -ем.",
+         "Основа на мягкий н: синий, летний. Окончания с и, е, я, ю.",
+         "The stem ends in a soft н; the endings have и, е, я, ю.",
+         "синий → синяя, синее, синие, синего, синим", SCHOOL),
+    Rule("adj.mixed", "declension",
+         "Aralash o'zakli sifat", "Прилагательное со смешанной основой", "Mixed-stem adjective",
+         "O'zak г, к, х yoki ж, ш, щ, ч bilan tugaydi (русский, тихий, хороший, большой). Qo'shimchalar "
+         "qattiq turdagidek, lekin imlo qoidalari ы o'rniga и, ba'zan о o'rniga е yozdiradi.",
+         "Основа на г, к, х или ж, ш, щ, ч. Окончания твёрдого типа, но по правилам правописания "
+         "пишется и вместо ы, а без ударения е вместо о.",
+         "The stem ends in г к х or ж ш щ ч: hard-type endings, but spelling rules write и for ы "
+         "and, unstressed, е for о.",
+         "русский → русские; хороший → хорошего; большой → большого", SCHOOL),
+    Rule("adj.possessive_type", "declension",
+         "третий turidagi sifat", "Прилагательное типа «третий»", "Adjective like третий",
+         "Bu sifat boshqa shakllarida o'zakdan keyin ь oladi: третий → третья, третье, третьего. "
+         "Shunday turlanadi: третий va hayvon nomidan yasalgan sifatlar (лисий, волчий).",
+         "В косвенных формах после основы пишется ь: третий → третья, третьего (так же лисий, волчий).",
+         "The other forms add ь after the stem: третий → третья, третьего (also лисий, волчий).",
+         "третий → третья, третье, третьи, третьего", SCHOOL),
+    Rule("adj.short_only", "declension",
+         "Faqat qisqa shakli bor sifat", "Прилагательное только в краткой форме", "Short-form-only adjective",
+         "Bu sifat faqat qisqa shaklda, kesim bo'lib keladi va turlanmaydi, faqat jins va son bo'yicha "
+         "o'zgaradi: я рад, она рада, мы рады.",
+         "Употребляется только в краткой форме, в роли сказуемого: рад, рада, радо, рады.",
+         "Only has short forms, used as a predicate: рад, рада, радо, рады.",
+         "я рад, она рада, мы рады", SCHOOL),
+    # --- Adjectives: exceptions and notes
+    Rule("adj.stressed_ending", "note",
+         "Urg'uli -ой qo'shimchasi", "Ударное окончание -ой", "Stressed ending -ой",
+         "Erkak jinsi bosh kelishigida urg'u qo'shimchaga tushsa, -ый/-ий o'rniga -ой yoziladi. "
+         "Boshqa shakllar o'z turidagidek.",
+         "Под ударением в им. п. м. р. пишется -ой вместо -ый/-ий.",
+         "When the masculine nominative ending is stressed it is written -ой instead of -ый/-ий.",
+         "молодой, большой, дорогой (lekin: новый, синий)", SCHOOL),
+    Rule("adj.relative", "note",
+         "Nisbiy sifat", "Относительное прилагательное", "Relational adjective",
+         "Belgini narsaning nimaga tegishli ekanidan oladi (русский язык, узбекский плов). Qisqa shakli va "
+         "qiyosiy darajasi bo'lmaydi.",
+         "Обозначает признак по отношению к предмету; не имеет краткой формы и степеней сравнения.",
+         "Describes a relation (русский язык); has no short form and no degrees of comparison.",
+         "русский, узбекский, летний", SCHOOL),
+    Rule("adj.short_fleeting", "exception",
+         "Qisqa shaklda qo'shiluvchi unli", "Беглая гласная в краткой форме", "Inserted vowel in the short form",
+         "Erkak jinsidagi qisqa shaklda o'zak oxiridagi ikki undosh orasiga о, е yoki ё qo'shiladi.",
+         "В краткой форме м. р. между согласными на конце основы появляется о, е или ё.",
+         "The masculine short form inserts о, е or ё between the two final consonants of the stem.",
+         "короткий → короток, интересный → интересен, лёгкий → лёгок", SCHOOL),
+    Rule("adj.short_suppletive", "exception",
+         "Qisqa shakl boshqa so'zdan", "Краткая форма от другой основы", "Short form from another stem",
+         "Bu sifatning qisqa shakli boshqa o'zakdan olinadi.",
+         "Краткая форма образуется от другой основы.",
+         "The short form comes from another stem.",
+         "большой → велик, велика", SCHOOL),
+    Rule("adj.comparative_ee", "note",
+         "Qiyosiy daraja -ее bilan", "Сравнительная степень на -ее", "Comparative in -ее",
+         "Qiyosiy daraja o'zakka -ее (so'zlashuvda -ей) qo'shib yasaladi va o'zgarmaydi.",
+         "Сравнительная степень образуется суффиксом -ее (разг. -ей) и не изменяется.",
+         "The comparative adds -ее (colloquially -ей) to the stem and never changes.",
+         "новый → новее, интересный → интереснее", SCHOOL),
+    Rule("adj.comparative_e", "exception",
+         "Qiyosiy daraja -е bilan", "Сравнительная степень на -е", "Comparative in -е",
+         "Qiyosiy daraja -е (ba'zan -ше) bilan yasaladi; o'zak oxiridagi undosh almashadi: г, д → ж; "
+         "к, т → ч; х → ш; ст → щ. -к-, -ок- qo'shimchalari tushib qolishi mumkin.",
+         "Сравнительная степень на -е (реже -ше) с чередованием: г, д → ж; к, т → ч; х → ш; ст → щ.",
+         "The comparative ends in -е (sometimes -ше) with a consonant change: г, д → ж; к, т → ч; х → ш; "
+         "ст → щ.",
+         "дорогой → дороже, тихий → тише, короткий → короче, молодой → моложе", SCHOOL),
+    Rule("adj.comparative_suppletive", "exception",
+         "Qiyosiy daraja boshqa so'zdan", "Супплетивная сравнительная степень", "Suppletive comparative",
+         "To'rt sifatning qiyosiy darajasi boshqa o'zakdan: хороший → лучше, плохой → хуже, "
+         "большой → больше, маленький → меньше.",
+         "Четыре прилагательных образуют сравнительную степень от другой основы.",
+         "Four adjectives build the comparative on another stem.",
+         "хороший → лучше, плохой → хуже, большой → больше, маленький → меньше", SCHOOL),
+    # --- Pronouns: kinds (a closed list, see classify.PRONOUN_CLASSES)
+    Rule("pron.personal", "class",
+         "Kishilik olmoshi", "Личное местоимение", "Personal pronoun",
+         "Shaxsni bildiradi: я, ты, он, она, оно, мы, вы, они. Har biri o'zicha turlanadi, shakllari "
+         "yodlanadi.",
+         "Указывает на лицо: я, ты, он, она, оно, мы, вы, они. Формы запоминаются.",
+         "Names the person: я, ты, он, она, оно, мы, вы, они. Their forms are learned by heart.",
+         "я → меня, мне, мной; мы → нас, нам, нами", SCHOOL),
+    Rule("pron.reflexive", "class",
+         "O'zlik olmoshi", "Возвратное местоимение", "Reflexive pronoun",
+         "себя harakat bajaruvchining o'ziga qaytishini bildiradi (o'zini, o'ziga). Barcha shaxs va sonlar "
+         "uchun bitta so'z.",
+         "Указывает на производителя действия; одно слово для всех лиц и чисел.",
+         "Refers back to the doer of the action; one word for every person and number.",
+         "я вижу себя, он думает о себе", SCHOOL),
+    Rule("pron.interrogative", "class",
+         "So'roq olmoshi", "Вопросительное местоимение", "Interrogative pronoun",
+         "Savol beradi: кто (kim), что (nima), какой (qanday), чей (kimning). кто jonli, что jonsiz narsa "
+         "haqida so'raydi.",
+         "Выражает вопрос: кто, что, какой, чей.",
+         "Asks a question: кто, что, какой, чей.",
+         "кто → кого, кому; какой → какая, какие", SCHOOL),
+    Rule("pron.negative", "class",
+         "Bo'lishsizlik olmoshi", "Отрицательное местоимение", "Negative pronoun",
+         "никто (hech kim), ничто (hech narsa). Gapda fe'l oldidan не bilan keladi: никто не знает.",
+         "Употребляется с отрицанием при глаголе: никто не знает.",
+         "Used with не before the verb: никто не знает.",
+         "никто не пришёл, я ничего не вижу", SCHOOL),
+    Rule("pron.possessive", "class",
+         "Egalik olmoshi", "Притяжательное местоимение", "Possessive pronoun",
+         "Kimga tegishliligini bildiradi: мой, твой, наш, ваш. Sifat kabi ot bilan jins, son va kelishikda "
+         "moslashadi.",
+         "Согласуется с существительным в роде, числе и падеже, как прилагательное.",
+         "Agrees with the noun in gender, number and case, like an adjective.",
+         "мой брат, моя сестра, моё окно, мои книги", SCHOOL),
+    Rule("pron.reflexive_possessive", "class",
+         "O'zlik egalik olmoshi", "Возвратно-притяжательное местоимение", "Reflexive possessive",
+         "свой 'o'zining' degani: narsa gapning egasiga tegishli bo'lsa ishlatiladi, shaxsdan qat'i nazar. "
+         "Он читает свою книгу (o'z kitobini) va Он читает его книгу (boshqa birovning kitobini) farqlanadi.",
+         "Указывает на принадлежность подлежащему: он читает свою книгу.",
+         "Shows the thing belongs to the subject: он читает свою книгу (his own book).",
+         "я люблю свою семью, она взяла свой телефон", SCHOOL),
+    Rule("pron.demonstrative", "class",
+         "Ko'rsatish olmoshi", "Указательное местоимение", "Demonstrative pronoun",
+         "этот (bu, yaqindagi) va тот (u, uzoqdagi). Ot bilan moslashadi; ko'plikda эти, те.",
+         "этот — близкий предмет, тот — далёкий; мн. ч. эти, те.",
+         "этот for something near, тот for something far; plural эти, те.",
+         "этот дом, эта книга, эти люди; тот → те, тех", SCHOOL),
+    Rule("pron.definitive", "class",
+         "Belgilash olmoshi", "Определительное местоимение", "Determiner pronoun",
+         "весь (butun, hamma), каждый (har bir), сам (o'zi). Ot bilan moslashadi.",
+         "весь, каждый, сам; согласуются с существительным.",
+         "весь (all), каждый (each), сам (oneself); agree with the noun.",
+         "весь день, вся семья, все люди; каждый год", SCHOOL),
+    # --- Pronouns: exceptions and notes
+    Rule("pron.n_after_prep", "exception",
+         "Predlogdan keyin н-", "Н- после предлога", "н- after a preposition",
+         "он, она, оно, они predlogdan keyin н- bilan boshlanadi: у него, к ней, с ними.",
+         "После предлога к формам 3-го лица прибавляется н-.",
+         "After a preposition the 3rd-person forms begin with н-.",
+         "его → у него, ей → к ней, ими → с ними", SCHOOL),
+    Rule("pron.possessive_3per", "note",
+         "его, её, их egalik ma'nosida", "его, её, их в значении принадлежности",
+         "его, её, их as possessives",
+         "'Uning', 'ularning' ma'nosida его, её, их ishlatiladi. Ular o'zgarmaydi va predlogdan keyin ham "
+         "н- olmaydi: у его брата.",
+         "В значении принадлежности не изменяются и не получают н-: у его брата.",
+         "As possessives they never change and take no н-, even after a preposition: у его брата.",
+         "его дом, её книга, их дети, у его брата", SCHOOL),
+    Rule("pron.no_nominative", "exception",
+         "Bosh kelishigi yo'q", "Нет именительного падежа", "No nominative",
+         "Bu olmoshning bosh kelishik shakli yo'q, chunki u gapning egasi bo'la olmaydi.",
+         "Не имеет формы именительного падежа.", "Has no nominative form.",
+         "себя, себе, собой", SCHOOL),
+    Rule("pron.negative_prep", "exception",
+         "ни ... predlog bilan ajraladi", "Предлог между ни и местоимением", "Preposition splits ни-",
+         "Predlog bilan kelganda ни ajraladi va predlog o'rtaga tushadi: ни у кого, ни о чём.",
+         "С предлогом пишется раздельно, предлог стоит после ни: ни у кого.",
+         "With a preposition ни splits off and the preposition goes in between: ни у кого.",
+         "никто → ни у кого, ничто → ни о чём", SCHOOL),
     # --- Spelling rules
     Rule("spelling.gkh_i", "spelling",
          "г, к, х, ж, ш, щ, ч dan keyin и", "После г, к, х, ж, ш, щ, ч пишется и", "и after г к х ж ш щ ч",
          "Bu harflardan keyin ы yozilmaydi, uning o'rniga и yoziladi.",
          "После г, к, х, ж, ш, щ, ч не пишется ы, пишется и.",
          "After these letters ы is never written; и is written instead.",
-         "книга → книги, нож → ножи, врач → врачи", ROSENTAL),
+         "книга → книги, нож → ножи, русский → русские, хороший → хорошие", ROSENTAL),
     Rule("spelling.sibilant_o_e", "spelling",
          "ж, ш, щ, ч, ц dan keyin urg'usiz е", "После шипящих и ц без ударения пишется е",
          "Unstressed е after sibilants and ц",
          "Qo'shimchada urg'u tushmasa, bu harflardan keyin о o'rniga е yoziladi.",
          "После ж, ш, щ, ч, ц в безударном окончании пишется е, под ударением — о.",
          "After ж ш щ ч ц an unstressed ending has е; a stressed one has о.",
-         "улица → улицей (lekin: душа → душой)", ROSENTAL),
+         "улица → улицей, хороший → хорошего (lekin: душа → душой, большой → большого)", ROSENTAL),
     # --- Data notes
     Rule("lexicon.form", "note",
          "Lug'atdan olingan shakl", "Форма из словаря", "Form from the dictionary",

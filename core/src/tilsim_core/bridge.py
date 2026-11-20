@@ -93,21 +93,21 @@ def _op_analyze(args: dict[str, Any]) -> dict[str, Any]:
 
 def _op_lexeme(args: dict[str, Any]) -> dict[str, Any]:
     """Paradigm table and classification for one lexeme id (taken from an analyze reading)."""
-    from .engine import classify_noun, default_lexicon, paradigm_table
+    from .engine import classify, default_lexicon, paradigm_table
 
     _only(args, "id", "lang")
     lang = _lang(args)
     lexeme = default_lexicon().lexemes.get(_string(args, "id"))
     if lexeme is None:
         raise BridgeError("not_found", "no lexeme with this id")
-    profile = classify_noun(lexeme).to_dict() if lexeme.pos == "NOUN" else None
+    profile = classify(lexeme)
     return {
         "id": lexeme.id,
         "lemma": lexeme.headword,
         "pos": lexeme.pos,
         "description": lexeme.lemma_tag.describe(lang),
         "source": lexeme.source,
-        "profile": profile,
+        "profile": profile.to_dict() if profile else None,
         "table": paradigm_table(lexeme),
     }
 
