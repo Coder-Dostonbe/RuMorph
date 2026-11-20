@@ -6,6 +6,8 @@
 //! with the migrations in db/sqlite/migrations) and the refresh token.
 
 mod secret;
+#[cfg(desktop)]
+mod window;
 
 use tauri_plugin_sql::{Migration, MigrationKind};
 
@@ -29,6 +31,12 @@ pub fn run() {
                 .add_migrations(DB_URL, migrations())
                 .build(),
         )
+        .setup(|_app| {
+            // The window starts hidden; it is sized to the screen first, then shown.
+            #[cfg(desktop)]
+            window::fit_and_show(_app.handle());
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             secret::secret_get,
             secret::secret_set,
