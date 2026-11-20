@@ -14,6 +14,8 @@ Asosiy topshiriq: [`docs/MASTER_PROMPT.md`](docs/MASTER_PROMPT.md). Unga qo'shim
 - **Har bir yangilanish `git@github.com:Coder-Dostonbe/RuMorph.git` ga push qilinadi** (branch `main`).
 - Har bir tugallangan qadam alohida commit: `feat: …`, `fix: …`, `docs: …`, `chore: …`, `test: …`.
 - Push'dan oldin barcha testlar o'tishi shart.
+- Commit muallifi: `Coder-Dostonbe <yusupovdostonbek21@gmail.com>` (GitHub activity shu email bo'yicha hisoblanadi). AI yozgan commit'larda izoh oxirida `Co-Authored-By` qatori bo'ladi.
+- Faqat oddiy push. `force push` va tarixni qayta yozish qilinmaydi.
 - Secrets hech qachon commit qilinmaydi: `.env`, API kalitlar, Tauri updater private key, Android keystore, sertifikatlar.
 - Kompyuterdagi ishchi nusxa: `Desktop/RuMorph`. Push'dan keyin u ham yangilanadi.
 
