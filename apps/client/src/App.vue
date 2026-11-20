@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { compact } from "./app/platform";
+import { compact, platform } from "./app/platform";
 import { useI18n } from "./i18n";
 import AppIcon from "./ui/AppIcon.vue";
 
@@ -15,7 +15,9 @@ const nav = computed(() => [
 </script>
 
 <template>
-  <div class="shell" :class="{ compact }">
+  <!-- Android draws the app behind the status bar: this strip keeps the clock and icons readable. -->
+  <div v-if="platform === 'android'" class="status-scrim" aria-hidden="true" />
+  <div class="shell" :class="{ compact, android: platform === 'android' }">
     <aside v-if="!compact" class="sidebar">
       <div class="brand">
         <img src="/brand/tilsim-b.svg" alt="" class="logo" />
@@ -59,7 +61,28 @@ const nav = computed(() => [
 }
 .shell.compact {
   grid-template-columns: 1fr;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+/* Height of the Android status bar. env() gives the exact value on WebViews that report it;
+   28px covers those that report 0 while still drawing edge to edge. */
+.shell.android {
+  --status-h: max(env(safe-area-inset-top, 0px), 28px);
+  padding-top: var(--status-h);
+}
+.status-scrim {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: max(env(safe-area-inset-top, 0px), 28px);
+  z-index: 10;
+  /* Follows the phone's own light / dark mode, which decides the colour of the status bar icons
+     (not the app's theme), so the icons always have contrast. */
+  background: #f6f4ee;
+}
+@media (prefers-color-scheme: dark) {
+  .status-scrim {
+    background: #000000;
+  }
 }
 
 .sidebar {
@@ -119,7 +142,7 @@ const nav = computed(() => [
   padding: 2rem clamp(1rem, 4vw, 3rem);
 }
 .compact .content {
-  padding: 1.25rem 1rem calc(1.25rem + env(safe-area-inset-top));
+  padding: 1rem 1rem 1.5rem;
 }
 
 .bottom-nav {
@@ -127,7 +150,7 @@ const nav = computed(() => [
   grid-template-columns: repeat(4, 1fr);
   background: var(--surface);
   border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .bottom-link {
   display: flex;
