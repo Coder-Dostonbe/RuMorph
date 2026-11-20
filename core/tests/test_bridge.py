@@ -73,3 +73,57 @@ def test_internal_errors_are_generic(monkeypatch, capsys):
 
 def test_non_string_request_is_refused():
     assert json.loads(bridge.handle(b"{}"))["error"]["code"] == "invalid_request"  # type: ignore[arg-type]
+
+
+# --- grammar ops ----------------------------------------------------------------------------------
+
+def ok(op, **args):
+    reply = call({"id": 1, "op": op, "args": args})
+    assert reply["ok"] is True, reply
+    return reply["result"]
+
+
+def test_analyze_op():
+    result = ok("analyze", word="книги")
+    assert result["status"] == "ambiguous" and result["lemmas"] == ["книга"]
+    assert len(result["readings"]) == 3
+
+
+def test_analyze_op_unknown_word_is_an_error_status_not_a_bridge_error():
+    result = ok("analyze", word="кнгиа")
+    assert result["status"] == "error" and result["errors"][0]["code"] == "unknown_word"
+
+
+def test_analyze_op_in_russian():
+    result = ok("analyze", word="столом", lang="ru")
+    assert "творительный" in result["readings"][0]["description"]
+
+
+def test_lexeme_op_returns_table_and_profile():
+    reading = ok("analyze", word="день")["readings"][0]
+    result = ok("lexeme", id=reading["lexeme"])
+    assert result["lemma"] == "день" and result["table"]["kind"] == "noun"
+    assert {f["rule"] for f in result["profile"]["findings"]} == {"noun.fleeting_vowel", "noun.loc2"}
+
+
+def test_rules_op():
+    rules = ok("rules", lang="en", ids=["noun.decl.1", "nope"])
+    assert [r["id"] for r in rules] == ["noun.decl.1"] and rules[0]["name"] == "1st declension"
+    assert len(ok("rules")) > 15
+
+
+def test_lexicon_info_and_warmup():
+    assert ok("lexicon_info")["packages"][0]["source"]["name"] == "OpenCorpora"
+    assert ok("warmup")["lexemes"] > 300
+
+
+@pytest.mark.parametrize(
+    ("op", "args", "code"),
+    [("analyze", {}, "invalid_args"), ("analyze", {"word": 1}, "invalid_args"),
+     ("analyze", {"word": "x" * 201}, "invalid_args"), ("analyze", {"word": "да", "lang": "de"}, "invalid_args"),
+     ("analyze", {"word": "да", "extra": 1}, "invalid_args"), ("lexeme", {"id": "nope"}, "not_found"),
+     ("rules", {"ids": "x"}, "invalid_args"), ("warmup", {"x": 1}, "invalid_args")],
+)
+def test_grammar_ops_validate_their_arguments(op, args, code):
+    reply = call({"id": 1, "op": op, "args": args})
+    assert reply["ok"] is False and reply["error"]["code"] == code

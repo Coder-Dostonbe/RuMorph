@@ -58,6 +58,90 @@ def _op_echo(args: dict[str, Any]) -> dict[str, Any]:
     return {"text": text}
 
 
+LANGS = ("uz", "ru", "en")
+
+
+def _lang(args: dict[str, Any]) -> str:
+    lang = args.get("lang", "uz")
+    if lang not in LANGS:
+        raise BridgeError("invalid_args", "'lang' must be one of: uz, ru, en")
+    return lang
+
+
+def _only(args: dict[str, Any], *allowed: str) -> None:
+    extra = set(args) - set(allowed)
+    if extra:
+        raise BridgeError("invalid_args", f"unexpected arguments: {', '.join(sorted(extra))}")
+
+
+def _string(args: dict[str, Any], name: str, limit: int = 200) -> str:
+    value = args.get(name)
+    if not isinstance(value, str):
+        raise BridgeError("invalid_args", f"'{name}' must be a string")
+    if len(value) > limit:
+        raise BridgeError("invalid_args", f"'{name}' is longer than {limit} characters")
+    return value
+
+
+def _op_analyze(args: dict[str, Any]) -> dict[str, Any]:
+    """Every reading of one word. Unknown or invalid words come back as status "error", not as a guess."""
+    from .engine import analyze
+
+    _only(args, "word", "lang")
+    return analyze(_string(args, "word")).to_dict(_lang(args))
+
+
+def _op_lexeme(args: dict[str, Any]) -> dict[str, Any]:
+    """Paradigm table and classification for one lexeme id (taken from an analyze reading)."""
+    from .engine import classify_noun, default_lexicon, paradigm_table
+
+    _only(args, "id", "lang")
+    lang = _lang(args)
+    lexeme = default_lexicon().lexemes.get(_string(args, "id"))
+    if lexeme is None:
+        raise BridgeError("not_found", "no lexeme with this id")
+    profile = classify_noun(lexeme).to_dict() if lexeme.pos == "NOUN" else None
+    return {
+        "id": lexeme.id,
+        "lemma": lexeme.headword,
+        "pos": lexeme.pos,
+        "description": lexeme.lemma_tag.describe(lang),
+        "source": lexeme.source,
+        "profile": profile,
+        "table": paradigm_table(lexeme),
+    }
+
+
+def _op_rules(args: dict[str, Any]) -> list[dict[str, Any]]:
+    from .engine import RULES
+
+    _only(args, "lang", "ids")
+    lang = _lang(args)
+    ids = args.get("ids")
+    if ids is not None and not (isinstance(ids, list) and all(isinstance(i, str) for i in ids)):
+        raise BridgeError("invalid_args", "'ids' must be a list of strings")
+    wanted = RULES if ids is None else {i: RULES[i] for i in ids if i in RULES}
+    return [rule.to_dict(lang) for rule in wanted.values()]
+
+
+def _op_lexicon_info(args: dict[str, Any]) -> dict[str, Any]:
+    from .engine import default_lexicon
+
+    _expect_no_args(args)
+    return default_lexicon().info()
+
+
+def _op_warmup(args: dict[str, Any]) -> dict[str, Any]:
+    """Load the lexicon and build its index. The app calls this before taking the memory snapshot,
+    so a restored start already has the lexicon in memory."""
+    from .engine import analyze, default_lexicon
+
+    _expect_no_args(args)
+    lexicon = default_lexicon()
+    analyze("слово", lexicon)
+    return {"lexemes": len(lexicon.lexemes), "keys": len(lexicon.index)}
+
+
 def _expect_no_args(args: dict[str, Any]) -> None:
     if args:
         raise BridgeError("invalid_args", f"unexpected arguments: {', '.join(sorted(args))}")
@@ -66,6 +150,11 @@ def _expect_no_args(args: dict[str, Any]) -> None:
 OPS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "version": _op_version,
     "echo": _op_echo,
+    "analyze": _op_analyze,
+    "lexeme": _op_lexeme,
+    "rules": _op_rules,
+    "lexicon_info": _op_lexicon_info,
+    "warmup": _op_warmup,
 }
 
 

@@ -1,4 +1,4 @@
-// Bundles core/src/tilsim_core/*.py into public/py/tilsim_core.json:
+// Bundles core/src/tilsim_core (*.py and the lexicon data/*.json) into public/py/tilsim_core.json:
 // { "version": "<core version>", "files": { "tilsim_core/bridge.py": "<source>", ... } }.
 // The Pyodide worker writes these files into its virtual file system and imports
 // the package from there, so the app needs no network to load its Python code.
@@ -16,7 +16,7 @@ function walk(dir) {
   return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name);
     if (statSync(path).isDirectory()) return name === "__pycache__" ? [] : walk(path);
-    return name.endsWith(".py") ? [path] : [];
+    return name.endsWith(".py") || (name.endsWith(".json") && dir.endsWith(`${sep}data`)) ? [path] : [];
   });
 }
 

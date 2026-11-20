@@ -45,6 +45,26 @@ describe("tilsim_core under Pyodide", () => {
     if (!reply.ok) expect(reply.error.code).toBe("unknown_op");
   });
 
+  it("analyses a Russian word with the bundled lexicon", () => {
+    const reply = call<{ status: string; lemmas: string[]; readings: { description: string }[] }>(
+      runtime, "analyze", { word: "книги" },
+    );
+    expect(reply.ok).toBe(true);
+    if (reply.ok) {
+      expect(reply.result.status).toBe("ambiguous");
+      expect(reply.result.lemmas).toEqual(["книга"]);
+      expect(reply.result.readings).toHaveLength(3);
+    }
+  });
+
+  it("measures a warm analysis", () => {
+    const t0 = performance.now();
+    for (let i = 0; i < 100; i++) call(runtime, "analyze", { word: "столом" });
+    const perCall = (performance.now() - t0) / 100;
+    console.log(`warm analyze: ${perCall.toFixed(3)} ms`);
+    expect(perCall).toBeLessThan(50);
+  });
+
   it("measures a warm call", () => {
     const t0 = performance.now();
     for (let i = 0; i < 100; i++) call(runtime, "echo", { text: "привет" });
@@ -84,6 +104,11 @@ describe("start-up from a memory snapshot", () => {
     expect(restored.timings.totalMs).toBeLessThan(fresh.timings.totalMs / 2);
     const reply = JSON.parse(restored.handle(JSON.stringify({ id: 1, op: "echo", args: { text: "Привет" } })));
     expect(reply).toEqual({ id: 1, ok: true, result: { text: "Привет" } });
+    // The lexicon was loaded before the snapshot, so the first analysis needs no loading.
+    const t = performance.now();
+    const analysed = JSON.parse(restored.handle(JSON.stringify({ id: 2, op: "analyze", args: { word: "столом" } })));
+    console.log(`first analyze after restore: ${(performance.now() - t).toFixed(1)} ms`);
+    expect(analysed.result.status).toBe("ok");
   });
 
   it("a damaged snapshot falls back to a fresh start instead of failing", async () => {

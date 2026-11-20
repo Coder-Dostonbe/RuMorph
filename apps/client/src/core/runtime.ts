@@ -148,8 +148,10 @@ export async function startCore(
   const t1 = performance.now();
   installFiles(pyodide, bundle);
   // Imported with runPython (not pyimport) so no JavaScript proxy exists when the snapshot is taken.
+  // "warmup" loads the lexicon and builds its index, so a start from the snapshot has it in memory.
   pyodide.runPython(
-    `import sys\nif "${PACKAGE_DIR}" not in sys.path: sys.path.insert(0, "${PACKAGE_DIR}")\nimport tilsim_core.bridge`,
+    `import sys\nif "${PACKAGE_DIR}" not in sys.path: sys.path.insert(0, "${PACKAGE_DIR}")\n` +
+      `import tilsim_core.bridge\ntilsim_core.bridge.dispatch("warmup")`,
   );
   const snapshot = options.makeSnapshot ? pyodide.makeMemorySnapshot() : undefined;
   const handle = pyodide.pyimport("tilsim_core.bridge").handle as (raw: string) => string;

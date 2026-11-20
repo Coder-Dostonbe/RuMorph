@@ -1,0 +1,356 @@
+{
+ "description": "Hand-checked noun classifications. Each entry lists every finding the engine must report for the lemma; nothing else may be reported. Checked against school grammar (declension 1: -а/-я, 2: masc. zero ending and neut. -о/-е, 3: fem. -ь).",
+ "entries": [
+  {
+   "lemma": "книга",
+   "declension": "noun.decl.1",
+   "findings": [
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "книга → книги"
+    }
+   ]
+  },
+  {
+   "lemma": "земля",
+   "declension": "noun.decl.1",
+   "findings": [
+    {
+     "rule": "noun.inserted_vowel",
+     "detail": "земля → земель"
+    }
+   ]
+  },
+  {
+   "lemma": "бабушка",
+   "declension": "noun.decl.1",
+   "findings": [
+    {
+     "rule": "noun.inserted_vowel",
+     "detail": "бабушка → бабушек"
+    },
+    {
+     "rule": "noun.accs_animate",
+     "detail": "бабушек"
+    },
+    {
+     "rule": "spelling.gkh_i",
+     "detail": "бабушка → бабушки"
+    }
+   ]
+  },
+  {
+   "lemma": "улица",
+   "declension": "noun.decl.1",
+   "findings": [
+    {
+     "rule": "spelling.sibilant_o_e",
+     "detail": "улица → улицей"
+    }
+   ]
+  },
+  {
+   "lemma": "стол",
+   "declension": "noun.decl.2",
+   "findings": []
+  },
+  {
+   "lemma": "день",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.fleeting_vowel",
+     "detail": "день → дня"
+    },
+    {
+     "rule": "noun.loc2",
+     "detail": "в/на дню"
+    }
+   ]
+  },
+  {
+   "lemma": "отец",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.fleeting_vowel",
+     "detail": "отец → отца"
+    },
+    {
+     "rule": "noun.accs_animate",
+     "detail": "отцов"
+    }
+   ]
+  },
+  {
+   "lemma": "ребёнок",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.suppletive_plural",
+     "detail": "ребёнок → дети"
+    },
+    {
+     "rule": "noun.fleeting_vowel",
+     "detail": "ребёнок → ребёнка"
+    },
+    {
+     "rule": "noun.accs_animate",
+     "detail": "детей"
+    }
+   ]
+  },
+  {
+   "lemma": "человек",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.suppletive_plural",
+     "detail": "человек → люди"
+    },
+    {
+     "rule": "noun.accs_animate",
+     "detail": "людей"
+    }
+   ]
+  },
+  {
+   "lemma": "брат",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.plural_ya",
+     "detail": "брат → братья"
+    },
+    {
+     "rule": "noun.accs_animate",
+     "detail": "братьев"
+    }
+   ]
+  },
+  {
+   "lemma": "друг",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.plural_ya",
+     "detail": "друг → друзья"
+    },
+    {
+     "rule": "noun.accs_animate",
+     "detail": "друзей"
+    }
+   ]
+  },
+  {
+   "lemma": "стул",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.plural_ya",
+     "detail": "стул → стулья"
+    }
+   ]
+  },
+  {
+   "lemma": "дом",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.plural_a",
+     "detail": "дом → дома"
+    },
+    {
+     "rule": "noun.loc2",
+     "detail": "в/на дому"
+    },
+    {
+     "rule": "noun.gen2",
+     "detail": "дому"
+    }
+   ]
+  },
+  {
+   "lemma": "лес",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.plural_a",
+     "detail": "лес → леса"
+    },
+    {
+     "rule": "noun.loc2",
+     "detail": "в/на лесу"
+    },
+    {
+     "rule": "noun.gen2",
+     "detail": "лесу"
+    }
+   ]
+  },
+  {
+   "lemma": "глаз",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.plural_a",
+     "detail": "глаз → глаза"
+    },
+    {
+     "rule": "noun.gen_plural_zero",
+     "detail": "глаз → (много) глаз"
+    },
+    {
+     "rule": "noun.loc2",
+     "detail": "в/на глазу"
+    },
+    {
+     "rule": "noun.gen2",
+     "detail": "глазу"
+    }
+   ]
+  },
+  {
+   "lemma": "чай",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.loc2",
+     "detail": "в/на чаю"
+    },
+    {
+     "rule": "noun.gen2",
+     "detail": "чаю"
+    }
+   ]
+  },
+  {
+   "lemma": "окно",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.inserted_vowel",
+     "detail": "окно → окон"
+    }
+   ]
+  },
+  {
+   "lemma": "письмо",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.inserted_vowel",
+     "detail": "письмо → писем"
+    }
+   ]
+  },
+  {
+   "lemma": "сердце",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.inserted_vowel",
+     "detail": "сердце → сердец"
+    }
+   ]
+  },
+  {
+   "lemma": "ночь",
+   "declension": "noun.decl.3",
+   "findings": []
+  },
+  {
+   "lemma": "дочь",
+   "declension": "noun.decl.3",
+   "findings": [
+    {
+     "rule": "noun.stem_extension",
+     "detail": "дочь → дочери"
+    },
+    {
+     "rule": "noun.accs_animate",
+     "detail": "дочерей"
+    }
+   ]
+  },
+  {
+   "lemma": "мать",
+   "declension": "noun.decl.3",
+   "findings": [
+    {
+     "rule": "noun.stem_extension",
+     "detail": "мать → матери"
+    },
+    {
+     "rule": "noun.accs_animate",
+     "detail": "матерей"
+    }
+   ]
+  },
+  {
+   "lemma": "тетрадь",
+   "declension": "noun.decl.3",
+   "findings": []
+  },
+  {
+   "lemma": "время",
+   "declension": "noun.heteroclitic",
+   "findings": [
+    {
+     "rule": "noun.stem_extension",
+     "detail": "время → времени"
+    }
+   ]
+  },
+  {
+   "lemma": "имя",
+   "declension": "noun.heteroclitic",
+   "findings": [
+    {
+     "rule": "noun.stem_extension",
+     "detail": "имя → имени"
+    }
+   ]
+  },
+  {
+   "lemma": "путь",
+   "declension": "noun.heteroclitic",
+   "findings": []
+  },
+  {
+   "lemma": "кофе",
+   "declension": "noun.indeclinable",
+   "findings": []
+  },
+  {
+   "lemma": "метро",
+   "declension": "noun.indeclinable",
+   "findings": []
+  },
+  {
+   "lemma": "деньги",
+   "declension": "noun.pluralia_tantum",
+   "findings": []
+  },
+  {
+   "lemma": "ножницы",
+   "declension": "noun.pluralia_tantum",
+   "findings": []
+  },
+  {
+   "lemma": "очки",
+   "declension": "noun.pluralia_tantum",
+   "findings": []
+  },
+  {
+   "lemma": "молоко",
+   "declension": "noun.decl.2",
+   "findings": [
+    {
+     "rule": "noun.singularia_tantum",
+     "detail": "молоко"
+    }
+   ]
+  }
+ ]
+}

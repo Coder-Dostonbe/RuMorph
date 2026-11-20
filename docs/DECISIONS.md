@@ -18,3 +18,4 @@
 | 2026-11-20 | 1-bosqich (kod) boshlandi. | Doston |
 | 2026-11-20 | Parol xeshlash: PBKDF2-SHA256, 100 000 iteratsiya, Worker'da Web Crypto orqali. Sabab: Pyodide'da `hashlib.pbkdf2_hmac` yo'q, Cloudflare Web Crypto 100 000 dan ko'p iteratsiyani qabul qilmaydi. | Claude (texnik cheklov) |
 | 2026-11-20 | **B variant tasdiqlandi.** Telefonda Pyodide noldan 8–10 s edi; xotira snapshot'i qo'shilgach keyingi ochilishlar ~1.7 s (Python 1.38 s + snapshot o'qish 0.31 s). Birinchi ochilish (snapshot yaratish) ~14 s, faqat o'rnatish yoki grammatika moduli yangilanganda. | Doston |
+| 2026-11-20 | 2-bosqich boshlandi. Engine lug'atga asoslanadi: OpenCorpora paradigmalari `pymorphy3-dicts-ru` (PyPI) nusxasidan eksport qilinadi, chunki opencorpora.org build mashinasidan ochilmaydi. pymorphy3 faqat eksport vositasi, ilova ichida yo'q. Boshlang'ich lug'at: ~320 ta A1–A2 lemma (`tools/lexicon/seed_lemmas.txt`). | Claude (texnik cheklov) |
