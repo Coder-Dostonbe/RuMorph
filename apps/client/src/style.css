@@ -30,47 +30,47 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1230;
-    --surface: #171b3f;
-    --surface-2: #20254f;
-    --border: #2e3463;
-    --text: #eceaf5;
-    --muted: #a9adc9;
+    --bg: #000000;
+    --surface: #0e0e10;
+    --surface-2: #19191c;
+    --border: #2a2a2e;
+    --text: #ededed;
+    --muted: #a1a1aa;
     --accent: #3cc2bc;
-    --accent-soft: #163b45;
-    --on-accent: #0c1f22;
-    --brand: #0b0e26;
-    --on-brand-muted: #9da1c2;
+    --accent-soft: #0f2a29;
+    --on-accent: #001514;
+    --brand: #000000;
+    --on-brand-muted: #a1a1aa;
     --ok: #7cc98f;
-    --ok-soft: #1c3326;
+    --ok-soft: #12261a;
     --warn: #e6bd66;
-    --warn-soft: #3a2f17;
+    --warn-soft: #2e2512;
     --err: #ef8f8f;
-    --err-soft: #3d2024;
-    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
+    --err-soft: #2e1719;
+    --shadow: none;
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #0f1230;
-  --surface: #171b3f;
-  --surface-2: #20254f;
-  --border: #2e3463;
-  --text: #eceaf5;
-  --muted: #a9adc9;
+  --bg: #000000;
+  --surface: #0e0e10;
+  --surface-2: #19191c;
+  --border: #2a2a2e;
+  --text: #ededed;
+  --muted: #a1a1aa;
   --accent: #3cc2bc;
-  --accent-soft: #163b45;
-  --on-accent: #0c1f22;
-  --brand: #0b0e26;
-  --on-brand-muted: #9da1c2;
+  --accent-soft: #0f2a29;
+  --on-accent: #001514;
+  --brand: #000000;
+  --on-brand-muted: #a1a1aa;
   --ok: #7cc98f;
-  --ok-soft: #1c3326;
+  --ok-soft: #12261a;
   --warn: #e6bd66;
-  --warn-soft: #3a2f17;
+  --warn-soft: #2e2512;
   --err: #ef8f8f;
-  --err-soft: #3d2024;
-  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
+  --err-soft: #2e1719;
+  --shadow: none;
   color-scheme: dark;
 }
 
@@ -84,6 +84,10 @@ html,
 body {
   margin: 0;
   height: 100%;
+  width: 100%;
+  /* The app scrolls inside .content only; the page itself never scrolls or shifts. */
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
@@ -98,6 +102,8 @@ body {
 
 #app {
   height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 h1,

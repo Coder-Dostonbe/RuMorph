@@ -31,10 +31,18 @@ pub fn run() {
                 .add_migrations(DB_URL, migrations())
                 .build(),
         )
-        .setup(|_app| {
-            // The window starts hidden; it is sized to the screen first, then shown.
+        .setup(|app| {
+            // The main window has "create": false in tauri.conf.json and is built here,
+            // so it is created at its final size (see window.rs).
             #[cfg(desktop)]
-            window::fit_and_show(_app.handle());
+            window::create_main(app.handle())?;
+            #[cfg(mobile)]
+            {
+                let config = app.config().app.windows.iter().find(|w| w.label == "main").cloned();
+                if let Some(config) = config {
+                    tauri::WebviewWindowBuilder::from_config(app.handle(), &config)?.build()?;
+                }
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

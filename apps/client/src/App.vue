@@ -52,8 +52,10 @@ const nav = computed(() => [
 <style scoped>
 .shell {
   display: grid;
-  grid-template-columns: 248px 1fr;
+  grid-template-columns: 248px minmax(0, 1fr);
   height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 .shell.compact {
   grid-template-columns: 1fr;
@@ -62,6 +64,8 @@ const nav = computed(() => [
 
 .sidebar {
   background: var(--brand);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
   color: var(--on-brand);
   padding: 1.25rem 0.85rem;
   display: flex;
@@ -109,7 +113,9 @@ const nav = computed(() => [
 }
 
 .content {
+  min-width: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 2rem clamp(1rem, 4vw, 3rem);
 }
 .compact .content {
