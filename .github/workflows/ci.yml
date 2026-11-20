@@ -177,9 +177,9 @@ jobs:
       - run: npm ci
       - name: Build APK
         working-directory: apps/client
-        env:
-          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.2.12479018
         run: |
+          export NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
+          ls "$NDK_HOME" > /dev/null
           npx tauri android init --ci
           npx tauri icon ../../brand/tilsim-b.svg -o src-tauri/icons
           npx tauri android build --debug --apk --target aarch64
