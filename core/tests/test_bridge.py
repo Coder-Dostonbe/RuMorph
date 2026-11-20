@@ -104,6 +104,7 @@ def test_lexeme_op_returns_table_and_profile():
     result = ok("lexeme", id=reading["lexeme"])
     assert result["lemma"] == "день" and result["table"]["kind"] == "noun"
     assert result["profile"]["kind"] == "noun" and result["profile"]["category"] == "noun.decl.2"
+    assert result["description"] == "ot · jonsiz · erkak jinsi"      # the word's, not the lemma form's case
     assert {f["rule"] for f in result["profile"]["findings"]} == {"noun.fleeting_vowel", "noun.loc2"}
 
 
@@ -143,6 +144,18 @@ def test_inflect_op():
     result = ok("inflect", id=lexeme, grammemes=["plur", "gent"])
     assert [f["form"] for f in result["forms"]] == ["книг"]
     assert ok("inflect", id=lexeme, grammemes=["past"])["forms"] == []     # a noun has no past tense
+
+
+def test_grammemes_op():
+    result = ok("grammemes", lang="ru")
+    assert result["grammemes"]["gent"] == {"name": "родительный падеж", "category": "case"}
+    assert "case" in result["categories"]
+
+
+def test_extra_forms_are_described_in_the_language_asked():
+    reading = ok("analyze", word="хороший")["readings"][0]
+    extra = ok("lexeme", id=reading["lexeme"], lang="en")["table"]["extra"]
+    assert extra and all(e["description"] for e in extra)
 
 
 def test_rules_op():

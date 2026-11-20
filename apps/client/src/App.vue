@@ -8,6 +8,7 @@ const m = useI18n();
 
 const nav = computed(() => [
   { to: "/", label: m.value.nav.home, icon: "home" as const },
+  { to: "/analyze", label: m.value.nav.analyze, icon: "search" as const },
   { to: "/account", label: m.value.nav.account, icon: "user" as const },
   { to: "/settings", label: m.value.nav.settings, icon: "settings" as const },
   { to: "/about", label: m.value.nav.about, icon: "info" as const },
@@ -147,7 +148,7 @@ const nav = computed(() => [
 
 .bottom-nav {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   background: var(--surface);
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom, 0px);

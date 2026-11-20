@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Line icons drawn on a 24 × 24 grid; colour follows the text colour.
-defineProps<{ name: "home" | "user" | "settings" | "info" }>();
+defineProps<{ name: "home" | "search" | "user" | "settings" | "info" }>();
 </script>
 
 <template>
@@ -10,6 +10,10 @@ defineProps<{ name: "home" | "user" | "settings" | "info" }>();
       <path d="M3 10.5 12 3l9 7.5" />
       <path d="M5.5 9v11h13V9" />
       <path d="M10 20v-6h4v6" />
+    </template>
+    <template v-else-if="name === 'search'">
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="m15.5 15.5 5 5" />
     </template>
     <template v-else-if="name === 'user'">
       <circle cx="12" cy="8" r="4" />

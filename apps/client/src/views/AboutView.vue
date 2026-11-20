@@ -5,9 +5,19 @@ import { platform } from "../app/platform";
 import { SUPPORTED_PROTOCOL } from "../core/protocol";
 import { format, useI18n } from "../i18n";
 import { useCore } from "../stores/core";
+import { useGrammar } from "../stores/grammar";
 
 const m = useI18n();
 const core = useCore();
+const grammarInfo = useGrammar();
+// Attribution required by the dictionary's licence (CC BY-SA).
+const lexiconSource = computed(() => {
+  const src = grammarInfo.lexicon?.packages[0]?.source;
+  if (!src) return "";
+  return format(m.value.about.lexiconSource, {
+    name: src.name, url: src.url, license: src.license, version: `${src.version ?? "?"} (rev. ${src.revision ?? "?"})`,
+  });
+});
 const appVersion = __APP_VERSION__;
 
 const device = ref<DeviceReport | null>(null);
@@ -121,7 +131,9 @@ function forgetSnapshot(): void {
         <template v-if="info?.resources.length">
           <dt>{{ m.about.downloads }}</dt>
           <dd>
-            <div v-for="r in info.resources" :key="r.name" class="small">{{ r.name }}: {{ ms(r.ms) }}, {{ mb(r.bytes) }} MB</div>
+            <div v-for="r in info.resources" :key="r.name" class="small">
+              {{ r.name }}: {{ ms(r.ms) }}<template v-if="r.bytes > 0">, {{ mb(r.bytes) }} MB</template>
+            </div>
           </dd>
         </template>
       </dl>
@@ -135,6 +147,11 @@ function forgetSnapshot(): void {
         }}
       </div>
       <p class="muted small">{{ m.about.measuredHere }}</p>
+    </div>
+
+    <div v-if="lexiconSource" class="card">
+      <h2>{{ m.about.lexicon }}</h2>
+      <p>{{ lexiconSource }}</p>
     </div>
 
     <div class="card">

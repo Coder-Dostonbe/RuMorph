@@ -93,7 +93,7 @@ def _op_analyze(args: dict[str, Any]) -> dict[str, Any]:
 
 def _op_lexeme(args: dict[str, Any]) -> dict[str, Any]:
     """Paradigm table and classification for one lexeme id (taken from an analyze reading)."""
-    from .engine import classify, default_lexicon, paradigm_table
+    from .engine import Tag, classify, default_lexicon, paradigm_table
 
     _only(args, "id", "lang")
     lang = _lang(args)
@@ -106,11 +106,31 @@ def _op_lexeme(args: dict[str, Any]) -> dict[str, Any]:
         "id": lexeme.id,
         "lemma": lexeme.headword,
         "pos": lexeme.pos,
-        "description": lexeme.lemma_tag.describe(lang),
+        # What holds for the whole word (part of speech, gender, aspect …), not the lemma form's case.
+        "description": Tag(",".join(lexeme.lemma_tag.lexical)).describe(lang),
         "source": lexeme.source,
         "profile": profile.to_dict() if profile else None,
-        "table": paradigm_table(lexeme, lexicon),
+        "table": _describe_extra(paradigm_table(lexeme, lexicon), lang),
     }
+
+
+def _describe_extra(table: dict[str, Any], lang: str) -> dict[str, Any]:
+    """Forms outside the grid carry only their tag; add its description in the reader's language."""
+    from .engine import Tag
+
+    for entry in table.get("extra", []):
+        entry["description"] = Tag(entry["tag"]).describe(lang)
+    return table
+
+
+def _op_grammemes(args: dict[str, Any]) -> dict[str, Any]:
+    """Names of every grammeme code in one language, for table headers and labels."""
+    from .engine.grammemes import CATEGORIES, GRAMMEMES
+
+    _only(args, "lang")
+    lang = _lang(args)
+    return {"categories": list(CATEGORIES),
+            "grammemes": {code: {"name": g.name(lang), "category": g.category} for code, g in GRAMMEMES.items()}}
 
 
 def _op_rules(args: dict[str, Any]) -> list[dict[str, Any]]:
@@ -187,6 +207,7 @@ OPS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "phrase": _op_phrase,
     "inflect": _op_inflect,
     "rules": _op_rules,
+    "grammemes": _op_grammemes,
     "lexicon_info": _op_lexicon_info,
     "warmup": _op_warmup,
 }

@@ -57,6 +57,23 @@ describe("tilsim_core under Pyodide", () => {
     }
   });
 
+  it("runs the analysis page's calls: phrase, verb table, grammeme names", () => {
+    const phrase = call<{ status: string; suggestions: string[] }>(runtime, "phrase", { preposition: "в", word: "школа", lang: "ru" });
+    expect(phrase.ok && phrase.result.status).toBe("error");
+    if (phrase.ok) expect(phrase.result.suggestions).toEqual(["в школу", "в школе"]);
+
+    const word = call<{ readings: { lexeme: string }[] }>(runtime, "analyze", { word: "пишу" });
+    if (!word.ok) throw new Error("analyze failed");
+    const lexeme = call<{ table: { kind: string; future_compound: { cells: { form: string }[][] }[] } }>(
+      runtime, "lexeme", { id: word.result.readings[0]?.lexeme, lang: "uz" },
+    );
+    expect(lexeme.ok && lexeme.result.table.kind).toBe("verb");
+    if (lexeme.ok) expect(lexeme.result.table.future_compound[0]?.cells[0]?.[0]?.form).toBe("буду писать");
+
+    const names = call<{ grammemes: Record<string, { name: string }> }>(runtime, "grammemes", { lang: "en" });
+    expect(names.ok && names.result.grammemes.gent?.name).toBe("genitive");
+  });
+
   it("measures a warm analysis", () => {
     const t0 = performance.now();
     for (let i = 0; i < 100; i++) call(runtime, "analyze", { word: "столом" });
