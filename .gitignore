@@ -44,3 +44,7 @@ Thumbs.db
 .DS_Store
 .vscode/
 .idea/
+
+# --- Generated client assets ---
+apps/client/public/pyodide/
+apps/client/public/py/

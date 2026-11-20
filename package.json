@@ -1,0 +1,10 @@
+{
+  "name": "tilsim",
+  "private": true,
+  "workspaces": ["apps/client"],
+  "scripts": {
+    "dev": "npm --workspace apps/client run dev",
+    "build": "npm --workspace apps/client run build",
+    "test": "npm --workspace apps/client run test"
+  }
+}
