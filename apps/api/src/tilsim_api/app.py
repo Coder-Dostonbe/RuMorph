@@ -16,6 +16,7 @@ from . import SERVICE, __version__, auth, tokens, validation
 from .config import ConfigError, Settings
 from .errors import ApiError, unauthorized
 from .http import Request, Response, error_response, json_response
+from .passwords import Derive, stdlib_derive
 
 Connect = Callable[[], Awaitable[Any]]
 
@@ -27,6 +28,8 @@ class Context:
     connect: Connect
     now: Callable[[], datetime] = lambda: datetime.now(timezone.utc)
     config_error: str | None = None
+    # PBKDF2 implementation: hashlib on CPython, Web Crypto in the Worker (Pyodide).
+    derive: Derive = stdlib_derive
 
 
 Handler = Callable[[Request, Context], Awaitable[Response]]
@@ -81,7 +84,7 @@ async def register(request: Request, ctx: Context) -> Response:
     device = validation.device(body.get("device"))
     async with _db(ctx) as conn:
         result = await auth.register(conn, settings, email=email, password=password, display_name=display_name,
-                                     device=device, now=ctx.now(), ip=request.ip)
+                                     device=device, now=ctx.now(), ip=request.ip, derive=ctx.derive)
     return json_response(201, result)
 
 
@@ -96,7 +99,7 @@ async def login(request: Request, ctx: Context) -> Response:
     device = validation.device(body.get("device"))
     async with _db(ctx) as conn:
         result = await auth.login(conn, settings, email=email, password=password, device=device,
-                                  now=ctx.now(), ip=request.ip)
+                                  now=ctx.now(), ip=request.ip, derive=ctx.derive)
     return json_response(200, result)
 
 

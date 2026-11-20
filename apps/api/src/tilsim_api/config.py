@@ -19,8 +19,8 @@ class Settings:
     cors_origins: frozenset[str] = frozenset()
     access_ttl: int = 15 * 60                  # seconds
     refresh_ttl: int = 30 * 24 * 60 * 60       # seconds
-    # OWASP 2023 recommendation for PBKDF2-HMAC-SHA256.
-    pbkdf2_iterations: int = 600_000
+    # Cloudflare's Web Crypto allows at most 100 000 PBKDF2 iterations (see passwords.py).
+    pbkdf2_iterations: int = 100_000
     max_failed_logins: int = 5                 # per email, per window
     failed_login_window: int = 15 * 60         # seconds
 
@@ -33,13 +33,9 @@ class Settings:
         secret = get("JWT_SECRET")
         if not secret or len(secret) < MIN_SECRET_LENGTH:
             raise ConfigError(f"JWT_SECRET must be set to at least {MIN_SECRET_LENGTH} characters")
-        iterations = int(get("PBKDF2_ITERATIONS", "600000") or "600000")
-        if iterations < 100_000:
-            raise ConfigError("PBKDF2_ITERATIONS must be at least 100000")
         origins = {o.strip() for o in (get("CORS_ORIGINS", "") or "").split(",") if o.strip()}
         return cls(
             jwt_secret=secret.encode("utf-8"),
             allow_registration=(get("ALLOW_REGISTRATION", "false") or "").lower() == "true",
             cors_origins=frozenset(origins),
-            pbkdf2_iterations=iterations,
         )

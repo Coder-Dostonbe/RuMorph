@@ -14,6 +14,7 @@ from . import passwords, tokens
 from .config import Settings
 from .errors import ApiError
 from .ids import uuid7
+from .passwords import Derive, stdlib_derive
 
 INVALID_CREDENTIALS = ApiError(401, "invalid_credentials", "wrong email or password")
 
@@ -80,10 +81,11 @@ def _public(result: dict[str, Any]) -> dict[str, Any]:
 
 
 async def register(conn, settings: Settings, *, email: str, password: str, display_name: str | None,
-                   device: dict[str, str], now: datetime, ip: str | None) -> dict[str, Any]:
+                   device: dict[str, str], now: datetime, ip: str | None,
+                   derive: Derive = stdlib_derive) -> dict[str, Any]:
     if not settings.allow_registration:
         raise ApiError(403, "registration_closed", "registration is closed")
-    password_hash = passwords.hash_password(password, settings.pbkdf2_iterations)
+    password_hash = await passwords.hash_password(password, settings.pbkdf2_iterations, derive)
     async with conn.transaction():
         # Serialises concurrent registrations so exactly one first account becomes admin.
         await conn.execute("LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE")
@@ -119,7 +121,7 @@ async def _too_many_failures(conn, settings: Settings, email: str, now: datetime
 
 
 async def login(conn, settings: Settings, *, email: str, password: str, device: dict[str, str],
-                now: datetime, ip: str | None) -> dict[str, Any]:
+                now: datetime, ip: str | None, derive: Derive = stdlib_derive) -> dict[str, Any]:
     if await _too_many_failures(conn, settings, email, now):
         await audit(conn, "login_blocked", ip=ip, email=email)
         raise ApiError(429, "too_many_attempts", "too many failed attempts, try again later",
@@ -129,10 +131,10 @@ async def login(conn, settings: Settings, *, email: str, password: str, device: 
         email,
     )
     if user is None:
-        passwords.dummy_verify(password, settings.pbkdf2_iterations)
+        await passwords.dummy_verify(password, settings.pbkdf2_iterations, derive)
         ok = False
     else:
-        ok = passwords.verify_password(password, user["password_hash"]) and user["disabled_at"] is None
+        ok = await passwords.verify_password(password, user["password_hash"], derive) and user["disabled_at"] is None
     await conn.execute(
         "INSERT INTO auth_attempts (email, ip, success, created_at) VALUES ($1, $2, $3, $4)", email, ip, ok, now,
     )
@@ -140,11 +142,13 @@ async def login(conn, settings: Settings, *, email: str, password: str, device: 
         await audit(conn, "login_failed", user_id=user["id"] if user else None, ip=ip)
         raise INVALID_CREDENTIALS
 
+    new_hash = None
+    if passwords.needs_rehash(user["password_hash"], settings.pbkdf2_iterations):
+        new_hash = await passwords.hash_password(password, settings.pbkdf2_iterations, derive)
     async with conn.transaction():
-        if passwords.needs_rehash(user["password_hash"], settings.pbkdf2_iterations):
+        if new_hash:
             await conn.execute(
-                "UPDATE users SET password_hash = $2, updated_at = $3 WHERE id = $1",
-                user["id"], passwords.hash_password(password, settings.pbkdf2_iterations), now,
+                "UPDATE users SET password_hash = $2, updated_at = $3 WHERE id = $1", user["id"], new_hash, now,
             )
         device_id = await _upsert_device(conn, user["id"], device, now)
         result = await _issue(conn, settings, user, device_id, now)

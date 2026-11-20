@@ -8,6 +8,7 @@ from workers import WorkerEntrypoint
 from tilsim_api.app import Context, handle
 from tilsim_api.config import ConfigError, Settings
 from tilsim_api.http import MAX_BODY_BYTES, Request
+from tilsim_api.webcrypto import derive
 
 
 def _headers(request) -> dict[str, str]:
@@ -38,6 +39,6 @@ class Default(WorkerEntrypoint):
         response = await handle(
             Request(method=request.method, url=str(request.url), headers=headers, body=body,
                     ip=headers.get("cf-connecting-ip")),
-            Context(settings=settings, connect=connect, config_error=config_error),
+            Context(settings=settings, connect=connect, config_error=config_error, derive=derive),
         )
         return WorkerResponse(response.body, status=response.status, headers=response.headers)

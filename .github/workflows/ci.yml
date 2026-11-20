@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
       - working-directory: core
         run: uv run --python 3.14 --no-project --with pytest python -m pytest -q
@@ -34,12 +34,19 @@ jobs:
         options: >-
           --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
       - working-directory: apps/api
         env:
           TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
         run: uv run --python 3.14 --no-project --with asyncpg --with pytest python -m pytest -q
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Password hashing with Web Crypto inside Pyodide (as in the Worker)
+        run: node --test apps/api/tests/js/webcrypto.test.mjs
 
   api-worker:
     name: API in the Workers runtime (pywrangler dev)
@@ -56,9 +63,9 @@ jobs:
         options: >-
           --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v6
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
       - name: Migrate
@@ -86,6 +93,18 @@ jobs:
           token=$(python3 -c "import json;print(json.load(open('register.json'))['access_token'])")
           curl -sf http://localhost:8787/v1/me -H "authorization: Bearer $token" | tee me.json
           grep -q 'ci@example.com' me.json
+          code=$(curl -s -o login.json -w '%{http_code}' -X POST http://localhost:8787/v1/auth/login \
+            -H 'content-type: application/json' \
+            -d '{"email":"ci@example.com","password":"ci-password-123","device":{"id":"6b0f3d9e-3a8f-4f8e-9a51-0c7b2d1e4f60","name":"CI","platform":"browser"}}')
+          cat login.json; test "$code" = "200"
+          refresh=$(python3 -c "import json;print(json.load(open('login.json'))['refresh_token'])")
+          code=$(curl -s -o refresh.json -w '%{http_code}' -X POST http://localhost:8787/v1/auth/refresh \
+            -H 'content-type: application/json' -d "{\"refresh_token\":\"$refresh\"}")
+          test "$code" = "200"
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8787/v1/auth/login \
+            -H 'content-type: application/json' \
+            -d '{"email":"ci@example.com","password":"wrong-password","device":{"id":"6b0f3d9e-3a8f-4f8e-9a51-0c7b2d1e4f60","platform":"browser"}}')
+          test "$code" = "401"
           curl -s -i -X OPTIONS http://localhost:8787/v1/auth/login -H 'origin: http://tauri.localhost' | grep -i 'access-control-allow-origin: http://tauri.localhost'
       - name: Worker log
         if: always()
@@ -97,8 +116,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: npm
@@ -111,8 +130,8 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: npm
@@ -138,8 +157,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: npm
@@ -147,9 +166,8 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - uses: android-actions/setup-android@v3
-      - name: Install NDK
-        run: sdkmanager --install "ndk;27.2.12479018"
+      - name: Install NDK (the runner already has the Android SDK)
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;27.2.12479018" > /dev/null
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android

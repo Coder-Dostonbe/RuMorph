@@ -1,5 +1,6 @@
 """Tests that need no database: tokens, passwords, ids, settings."""
 
+import asyncio
 import json
 import uuid
 from types import SimpleNamespace
@@ -63,23 +64,46 @@ def test_refresh_tokens_are_random_and_hashed():
     assert len(tokens.hash_refresh_token(a)) == 32
 
 
+def run(coro):
+    return asyncio.run(coro)
+
+
 def test_password_hash_and_verify():
-    stored = passwords.hash_password("to'g'ri parol 123", 1000)
+    stored = run(passwords.hash_password("to'g'ri parol 123", 1000))
     assert stored.startswith("pbkdf2_sha256$1000$")
-    assert passwords.verify_password("to'g'ri parol 123", stored)
-    assert not passwords.verify_password("noto'g'ri", stored)
-    assert passwords.hash_password("x" * 10, 1000) != passwords.hash_password("x" * 10, 1000)  # salted
+    assert run(passwords.verify_password("to'g'ri parol 123", stored))
+    assert not run(passwords.verify_password("noto'g'ri", stored))
+    a, b = run(passwords.hash_password("x" * 10, 1000)), run(passwords.hash_password("x" * 10, 1000))
+    assert a != b  # salted
+
+
+def test_known_pbkdf2_vector():
+    # RFC 6070-style check of the hashlib path; the Web Crypto path is checked against the
+    # same value inside Pyodide (tests/js/webcrypto.test.mjs).
+    out = run(passwords.stdlib_derive(b"password", b"salt", 1))
+    assert out.hex() == "120fb6cffcf8b32c43e7225256c4f837a86548c92ccc35480805987cb70be17b"
 
 
 @pytest.mark.parametrize("stored", ["", "plain", "md5$1$a$b", "pbkdf2_sha256$x$a$b", "pbkdf2_sha256$1000$!!$!!"])
 def test_malformed_hashes_never_verify(stored):
-    assert not passwords.verify_password("anything", stored)
+    assert not run(passwords.verify_password("anything", stored))
 
 
 def test_needs_rehash_when_iterations_rise():
-    stored = passwords.hash_password("parol-parol", 1000)
+    stored = run(passwords.hash_password("parol-parol", 1000))
     assert not passwords.needs_rehash(stored, 1000)
     assert passwords.needs_rehash(stored, 2000)
+    assert passwords.needs_rehash("pbkdf2_sha256$x$a$b", 1000)
+
+
+def test_default_iterations_fit_cloudflare_web_crypto():
+    assert passwords.DEFAULT_ITERATIONS == Settings(jwt_secret=b"k" * 32).pbkdf2_iterations == 100_000
+
+
+def test_missing_pbkdf2_is_reported(monkeypatch):
+    monkeypatch.delattr(passwords.hashlib, "pbkdf2_hmac")
+    with pytest.raises(RuntimeError, match="webcrypto"):
+        run(passwords.stdlib_derive(b"p", b"s", 1))
 
 
 def test_uuid7_is_time_ordered_and_valid():
@@ -96,7 +120,7 @@ def env(**kw):
 def test_settings_from_env():
     s = Settings.from_env(env(JWT_SECRET="k" * 32, ALLOW_REGISTRATION="true",
                               CORS_ORIGINS="http://tauri.localhost, http://localhost:1420"))
-    assert s.allow_registration and s.pbkdf2_iterations == 600_000
+    assert s.allow_registration and s.pbkdf2_iterations == 100_000
     assert s.cors_origins == {"http://tauri.localhost", "http://localhost:1420"}
 
 
@@ -104,7 +128,7 @@ def test_registration_is_closed_by_default():
     assert not Settings.from_env(env(JWT_SECRET="k" * 32)).allow_registration
 
 
-@pytest.mark.parametrize("bad", [env(), env(JWT_SECRET="short"), env(JWT_SECRET="k" * 32, PBKDF2_ITERATIONS="10")])
+@pytest.mark.parametrize("bad", [env(), env(JWT_SECRET="short")])
 def test_settings_refuse_weak_configuration(bad):
     with pytest.raises(ConfigError):
         Settings.from_env(bad)
