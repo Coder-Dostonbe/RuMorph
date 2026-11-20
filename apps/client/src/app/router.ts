@@ -4,6 +4,7 @@ import AccountView from "../views/AccountView.vue";
 import AnalyzeView from "../views/AnalyzeView.vue";
 import DictionaryView from "../views/DictionaryView.vue";
 import FlashcardsView from "../views/FlashcardsView.vue";
+import GrammarView from "../views/GrammarView.vue";
 import MoreView from "../views/MoreView.vue";
 import HomeView from "../views/HomeView.vue";
 import SettingsView from "../views/SettingsView.vue";
@@ -16,6 +17,7 @@ export const router = createRouter({
     { path: "/", name: "home", component: HomeView },
     { path: "/dictionary", name: "dictionary", component: DictionaryView },
     { path: "/cards", name: "cards", component: FlashcardsView },
+    { path: "/grammar", name: "grammar", component: GrammarView },
     { path: "/analyze", name: "analyze", component: AnalyzeView },
     { path: "/more", name: "more", component: MoreView },
     { path: "/account", name: "account", component: AccountView },

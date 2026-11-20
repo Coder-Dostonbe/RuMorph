@@ -235,6 +235,53 @@ def _op_srs_queue(args: dict[str, Any]) -> dict[str, Any]:
     return {"ids": queue([(c["id"], _card(c)) for c in cards], _now(args), new_limit=new_limit, new_seen_today=seen)}
 
 
+def _op_grammar(args: dict[str, Any]) -> dict[str, Any]:
+    """The grammar catalog: rules in groups, each with how many dictionary words it explains."""
+    from .engine import RULES
+    from .engine.catalog import GROUPS, group_of, rule_index
+
+    _only(args, "lang")
+    lang = _lang(args)
+    index = rule_index()
+    groups: dict[str, list[dict[str, Any]]] = {g: [] for g in GROUPS}
+    for rule in RULES.values():
+        group = group_of(rule.id)
+        if group is not None:
+            groups[group].append({**rule.to_dict(lang), "words": len(index.get(rule.id, ()))})
+    return {"groups": [{"id": g, "rules": rules} for g, rules in groups.items()]}
+
+
+def _op_rule_examples(args: dict[str, Any]) -> dict[str, Any]:
+    """Dictionary words a rule explains, most frequent first, each with its own example."""
+    from .engine import RULES, default_lexicon
+    from .engine.catalog import rule_index
+    from .engine.search import ranks
+
+    _only(args, "rule", "limit", "offset", "lang")
+    lang = _lang(args)
+    rule = _string(args, "rule", limit=80)
+    if rule not in RULES:
+        raise BridgeError("not_found", "no rule with this id")
+    limit, offset = args.get("limit", 20), args.get("offset", 0)
+    if not (isinstance(limit, int) and 1 <= limit <= 200 and isinstance(offset, int) and offset >= 0):
+        raise BridgeError("invalid_args", "'limit' must be 1–200 and 'offset' at least 0")
+    entries = rule_index().get(rule, [])
+    rank = ranks(default_lexicon())
+    return {"total": len(entries),
+            "items": [{**_summary(lx, lang, rank.get(lx.id)), "detail": detail}
+                      for lx, detail in entries[offset:offset + limit]]}
+
+
+def _op_prepositions(args: dict[str, Any]) -> list[dict[str, Any]]:
+    """Every preposition with the cases it takes and their meanings."""
+    from .engine.prepositions import PREPOSITIONS
+
+    _only(args, "lang")
+    lang = _lang(args)
+    return [{"preposition": p, "governs": [g.to_dict(lang) for g in governs]}
+            for p, governs in sorted(PREPOSITIONS.items())]
+
+
 def _op_grammemes(args: dict[str, Any]) -> dict[str, Any]:
     """Names of every grammeme code in one language, for table headers and labels."""
     from .engine.grammemes import CATEGORIES, GRAMMEMES
@@ -321,6 +368,9 @@ OPS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "rules": _op_rules,
     "grammemes": _op_grammemes,
     "search": _op_search,
+    "grammar": _op_grammar,
+    "rule_examples": _op_rule_examples,
+    "prepositions": _op_prepositions,
     "words": _op_words,
     "srs_review": _op_srs_review,
     "srs_preview": _op_srs_preview,

@@ -164,6 +164,24 @@ export interface CardState {
   last_review_at: string | null;
 }
 
+export interface CatalogRule extends Rule {
+  words: number;
+}
+
+export interface Catalog {
+  groups: { id: "noun" | "adj" | "pron" | "num" | "verb" | "spelling"; rules: CatalogRule[] }[];
+}
+
+export interface RuleExamples {
+  total: number;
+  items: (WordSummary & { detail: string })[];
+}
+
+export interface PrepositionInfo {
+  preposition: string;
+  governs: Government[];
+}
+
 export const POS_FILTERS = ["NOUN", "ADJF", "VERB", "ADVB", "NPRO", "NUMR", "PREP", "CONJ", "PRCL", "PRED", "INTJ"] as const;
 export type PosFilter = (typeof POS_FILTERS)[number];
 
@@ -215,6 +233,10 @@ export const grammar = {
     core.call<PhraseAnalysis>("phrase", { preposition, word, lang }),
   lexeme: (id: string, lang: Locale) => core.call<LexemeInfo>("lexeme", { id, lang }),
   rules: (lang: Locale) => core.call<Rule[]>("rules", { lang }),
+  catalog: (lang: Locale) => core.call<Catalog>("grammar", { lang }),
+  ruleExamples: (rule: string, lang: Locale, offset = 0, limit = 24) =>
+    core.call<RuleExamples>("rule_examples", { rule, lang, offset, limit }),
+  prepositions: (lang: Locale) => core.call<PrepositionInfo[]>("prepositions", { lang }),
   words: (ids: string[], lang: Locale) => core.call<Record<string, WordInfo>>("words", { ids, lang }),
   srsReview: (card: CardState, grade: 0 | 1 | 2 | 3, now: string) =>
     core.call<{ card: CardState }>("srs_review", { card, grade, now }),

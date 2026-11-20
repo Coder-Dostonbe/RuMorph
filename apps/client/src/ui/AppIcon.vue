@@ -26,6 +26,11 @@ defineProps<{ name: IconName }>();
       <rect x="3" y="6" width="14" height="15" rx="2" />
       <path d="M7 3h12a2 2 0 0 1 2 2v13" />
     </template>
+    <template v-else-if="name === 'grammar'">
+      <path d="M4 20 9.5 4h1L16 20" />
+      <path d="M6.2 14h7.6" />
+      <path d="M17 9h4M19 7v4" />
+    </template>
     <template v-else-if="name === 'more'">
       <circle cx="5" cy="12" r="1.4" />
       <circle cx="12" cy="12" r="1.4" />
