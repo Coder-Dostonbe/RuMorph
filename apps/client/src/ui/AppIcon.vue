@@ -22,6 +22,10 @@ defineProps<{ name: IconName }>();
       <path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" />
       <path d="M8 7h8M8 11h6" />
     </template>
+    <template v-else-if="name === 'cards'">
+      <rect x="3" y="6" width="14" height="15" rx="2" />
+      <path d="M7 3h12a2 2 0 0 1 2 2v13" />
+    </template>
     <template v-else-if="name === 'more'">
       <circle cx="5" cy="12" r="1.4" />
       <circle cx="12" cy="12" r="1.4" />

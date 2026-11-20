@@ -5,12 +5,23 @@
 import { computed, ref, watch } from "vue";
 import type { Example, VocabularyRow } from "../data/userData";
 import { format, useI18n } from "../i18n";
+import { useCards } from "../stores/cards";
 import { useVocabulary, type WordRef } from "../stores/vocabulary";
 
 const props = defineProps<{ word: WordRef }>();
 const emit = defineEmits<{ saved: [row: VocabularyRow] }>();
 const m = useI18n();
 const vocab = useVocabulary();
+const cards = useCards();
+void cards.load();
+
+const directions = ["ru_uz", "uz_ru"] as const;
+const canCard = computed(() => (existing.value?.translation ?? "") !== "");
+
+async function toggleCard(direction: (typeof directions)[number]): Promise<void> {
+  if (cards.find(props.word.id, direction)) await cards.remove(props.word.id, direction);
+  else await cards.add(props.word.id, direction);
+}
 
 const existing = computed(() => vocab.byLexeme.get(props.word.id) ?? null);
 const translation = ref("");
@@ -89,6 +100,16 @@ async function remove(): Promise<void> {
         </button>
       </div>
     </fieldset>
+    <fieldset class="field">
+      <legend>{{ m.cards.cardsFor }}</legend>
+      <div v-if="canCard" class="toggles">
+        <label v-for="d in directions" :key="d" class="toggle">
+          <input type="checkbox" :checked="!!cards.find(word.id, d)" @change="toggleCard(d)" />
+          {{ m.cards.directions[d] }}
+        </label>
+      </div>
+      <p v-else class="muted small">{{ m.cards.needTranslation }}</p>
+    </fieldset>
     <div v-if="failure" class="alert err">{{ failure }}</div>
     <div class="actions">
       <button class="btn primary" type="submit" :disabled="busy">{{ m.common.save }}</button>
@@ -137,6 +158,22 @@ legend {
   .example input:nth-child(2) {
     grid-column: 1;
   }
+}
+.toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+}
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+}
+.toggle input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent);
 }
 .field > .btn.link {
   justify-self: start;

@@ -62,6 +62,12 @@ watch([() => core.status, locale, tab], () => void search());
 watch([tab, query, openId], () => {
   void router.replace({ query: { ...(tab.value === "mine" ? { tab: "mine" } : {}), ...(query.value ? { q: query.value } : {}), ...(openId.value ? { word: openId.value } : {}) } });
 });
+// The page stays mounted when only its query changes (a link to another word): follow it.
+watch(() => route.query, (q) => {
+  if (typeof q.q === "string" && q.q !== query.value) query.value = q.q;
+  if (typeof q.word === "string" && q.word !== openId.value) open(q.word);
+  if ((q.tab === "mine") !== (tab.value === "mine")) tab.value = q.tab === "mine" ? "mine" : "all";
+});
 onMounted(() => {
   void vocab.load();
   void search();

@@ -274,6 +274,28 @@ def numeral_table(lexeme: Lexeme) -> dict:
     return {"kind": "numeral", "columns": columns, "rows": rows, "extra": _extra(lexeme, used)}
 
 
+# The forms a learner memorises with a word ("principal parts"), by part of speech.
+KEY_FORMS = {
+    "NOUN": (("sing", "gent"), ("plur", "nomn"), ("plur", "gent")),
+    "ADJF": (("ADJF", "femn", "sing", "nomn"), ("ADJF", "neut", "sing", "nomn"), ("ADJF", "plur", "nomn")),
+    "INFN": (("VERB", "1per", "sing", "indc"), ("VERB", "2per", "sing", "indc"), ("VERB", "3per", "plur", "indc"),
+             ("VERB", "past", "masc"), ("VERB", "past", "femn")),
+    "NUMR": (("gent",), ("ablt",)),
+    "NPRO": (("gent",), ("datv",), ("ablt",)),
+}
+
+
+def key_forms(lexeme: Lexeme) -> list[dict]:
+    """The principal parts of a word (книга: книги, книги, книг), taken from its paradigm, with
+    their grammemes; rare and variant forms are skipped and nothing is constructed."""
+    out = []
+    for grammemes in KEY_FORMS.get(lexeme.pos or "", ()):
+        found = lexeme.find(*grammemes, exclude=tuple(NOT_MAIN) + ("Supr", "Af-p"))
+        if found:
+            out.append({"form": found[0].text, "grammemes": list(grammemes), "index": found[0].index})
+    return out
+
+
 def form_list(lexeme: Lexeme) -> dict:
     """Any other part of speech: every form with its tag."""
     return {"kind": "list", "extra": _extra(lexeme, set())}

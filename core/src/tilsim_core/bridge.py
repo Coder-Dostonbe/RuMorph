@@ -158,6 +158,83 @@ def _op_search(args: dict[str, Any]) -> dict[str, Any]:
     return {"total": total, "items": [{**_summary(h.lexeme, lang, h.rank), "match": h.match} for h in hits]}
 
 
+def _op_words(args: dict[str, Any]) -> dict[str, Any]:
+    """Summaries and principal parts of several lexemes (for flashcards). Unknown ids are left out,
+    so the app can tell that a saved word is no longer in the lexicon."""
+    from .engine import default_lexicon
+    from .engine.search import ranks
+    from .engine.tables import key_forms
+
+    _only(args, "ids", "lang")
+    lang = _lang(args)
+    ids = args.get("ids")
+    if not (isinstance(ids, list) and len(ids) <= 2000 and all(isinstance(i, str) for i in ids)):
+        raise BridgeError("invalid_args", "'ids' must be a list of at most 2000 strings")
+    lexicon = default_lexicon()
+    rank = ranks(lexicon)
+    out = {}
+    for lexeme_id in ids:
+        lexeme = lexicon.lexemes.get(lexeme_id)
+        if lexeme is not None:
+            out[lexeme_id] = {**_summary(lexeme, lang, rank.get(lexeme_id)), "key_forms": key_forms(lexeme)}
+    return out
+
+
+def _card(value: Any) -> Any:
+    from .srs import CardState
+
+    if not isinstance(value, dict):
+        raise BridgeError("invalid_args", "'card' must be an object")
+    try:
+        return CardState.from_dict(value)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise BridgeError("invalid_args", f"bad card: {exc}") from None
+
+
+def _now(args: dict[str, Any]) -> str:
+    from .srs import parse_time
+
+    now = args.get("now")
+    try:
+        parse_time(now)  # type: ignore[arg-type]
+    except (TypeError, ValueError, AttributeError):
+        raise BridgeError("invalid_args", "'now' must be an ISO 8601 time with a time zone") from None
+    return now  # type: ignore[return-value]
+
+
+def _op_srs_review(args: dict[str, Any]) -> dict[str, Any]:
+    """The card after an answer graded 0–3, and when each grade would bring it back next time."""
+    from .srs import GRADES, review
+
+    _only(args, "card", "grade", "now")
+    grade = args.get("grade")
+    if grade not in GRADES or isinstance(grade, bool):
+        raise BridgeError("invalid_args", "'grade' must be 0, 1, 2 or 3")
+    card = review(_card(args.get("card")), grade, _now(args))
+    return {"card": card.to_dict()}
+
+
+def _op_srs_preview(args: dict[str, Any]) -> dict[str, Any]:
+    from .srs import preview
+
+    _only(args, "card", "now")
+    return {"days": {str(g): d for g, d in preview(_card(args.get("card")), _now(args)).items()}}
+
+
+def _op_srs_queue(args: dict[str, Any]) -> dict[str, Any]:
+    from .srs import queue
+
+    _only(args, "cards", "now", "new_limit", "new_seen_today")
+    cards = args.get("cards")
+    if not (isinstance(cards, list) and len(cards) <= 20000 and all(isinstance(c, dict) and isinstance(c.get("id"), str)
+                                                                    for c in cards)):
+        raise BridgeError("invalid_args", "'cards' must be a list of card objects with an 'id'")
+    new_limit, seen = args.get("new_limit", 20), args.get("new_seen_today", 0)
+    if not (isinstance(new_limit, int) and 0 <= new_limit <= 1000 and isinstance(seen, int) and seen >= 0):
+        raise BridgeError("invalid_args", "'new_limit' must be 0–1000 and 'new_seen_today' at least 0")
+    return {"ids": queue([(c["id"], _card(c)) for c in cards], _now(args), new_limit=new_limit, new_seen_today=seen)}
+
+
 def _op_grammemes(args: dict[str, Any]) -> dict[str, Any]:
     """Names of every grammeme code in one language, for table headers and labels."""
     from .engine.grammemes import CATEGORIES, GRAMMEMES
@@ -244,6 +321,10 @@ OPS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "rules": _op_rules,
     "grammemes": _op_grammemes,
     "search": _op_search,
+    "words": _op_words,
+    "srs_review": _op_srs_review,
+    "srs_preview": _op_srs_preview,
+    "srs_queue": _op_srs_queue,
     "lexicon_info": _op_lexicon_info,
     "warmup": _op_warmup,
 }

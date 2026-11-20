@@ -147,6 +147,23 @@ export interface SearchResult {
   items: (WordSummary & { match: "form" | "prefix" | "browse" })[];
 }
 
+export interface KeyForm {
+  form: string;
+  grammemes: string[];
+  index: number;
+}
+
+export type WordInfo = WordSummary & { key_forms: KeyForm[] };
+
+export interface CardState {
+  due_at: string;
+  interval_days: number;
+  ease: number;
+  reps: number;
+  lapses: number;
+  last_review_at: string | null;
+}
+
 export const POS_FILTERS = ["NOUN", "ADJF", "VERB", "ADVB", "NPRO", "NUMR", "PREP", "CONJ", "PRCL", "PRED", "INTJ"] as const;
 export type PosFilter = (typeof POS_FILTERS)[number];
 
@@ -198,6 +215,12 @@ export const grammar = {
     core.call<PhraseAnalysis>("phrase", { preposition, word, lang }),
   lexeme: (id: string, lang: Locale) => core.call<LexemeInfo>("lexeme", { id, lang }),
   rules: (lang: Locale) => core.call<Rule[]>("rules", { lang }),
+  words: (ids: string[], lang: Locale) => core.call<Record<string, WordInfo>>("words", { ids, lang }),
+  srsReview: (card: CardState, grade: 0 | 1 | 2 | 3, now: string) =>
+    core.call<{ card: CardState }>("srs_review", { card, grade, now }),
+  srsPreview: (card: CardState, now: string) => core.call<{ days: Record<string, number> }>("srs_preview", { card, now }),
+  srsQueue: (cards: (CardState & { id: string })[], now: string, newLimit: number, newSeenToday: number) =>
+    core.call<{ ids: string[] }>("srs_queue", { cards, now, new_limit: newLimit, new_seen_today: newSeenToday }),
   search: (query: string, lang: Locale, opts: { pos?: PosFilter | null; limit?: number; offset?: number } = {}) =>
     core.call<SearchResult>("search", {
       query, lang, limit: opts.limit ?? 30, offset: opts.offset ?? 0, ...(opts.pos ? { pos: opts.pos } : {}),
