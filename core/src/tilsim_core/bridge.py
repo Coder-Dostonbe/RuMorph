@@ -302,6 +302,14 @@ def _op_exercises(args: dict[str, Any]) -> list[dict[str, Any]]:
     return [q.to_dict() for q in generate(kind, count, seed, max_rank=max_rank, vocabulary=vocabulary)]
 
 
+def _op_spellcheck(args: dict[str, Any]) -> dict[str, Any]:
+    """Spell and grammar check of a text (tilsim_core/spell.py)."""
+    from .spell import MAX_TEXT, check
+
+    _only(args, "text", "lang")
+    return check(_string(args, "text", limit=MAX_TEXT)).to_dict(_lang(args))
+
+
 def _op_grammemes(args: dict[str, Any]) -> dict[str, Any]:
     """Names of every grammeme code in one language, for table headers and labels."""
     from .engine.grammemes import CATEGORIES, GRAMMEMES
@@ -388,6 +396,7 @@ OPS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "rules": _op_rules,
     "grammemes": _op_grammemes,
     "search": _op_search,
+    "spellcheck": _op_spellcheck,
     "exercises": _op_exercises,
     "grammar": _op_grammar,
     "rule_examples": _op_rule_examples,

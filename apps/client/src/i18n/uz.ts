@@ -5,6 +5,7 @@ const uz = {
     tagline: "Rus tilini o'rganish",
   },
   nav: {
+    spell: "Imlo",
     tests: "Mashqlar",
     grammar: "Grammatika",
     cards: "Kartochkalar",
@@ -268,6 +269,25 @@ const uz = {
     best: "Eng yaxshi natija: {n}",
     gameOver: "Vaqt tugadi. Ochko: {n}",
     persons: { "1per.sing": "я", "2per.sing": "ты", "3per.sing": "он / она", "1per.plur": "мы", "2per.plur": "вы", "3per.plur": "они" },
+  },
+  spell: {
+    title: "Imlo tekshiruvi",
+    intro: "Ruscha matnni yozing yoki qo'ying. Tekshiruv qurilmaning o'zida, internetsiz bajariladi.",
+    placeholder: "Masalan: Я иду в школа. Еще он читал книгу.",
+    check: "Tekshirish",
+    limit: "Matn juda uzun (ko'pi bilan {n} belgi).",
+    summary: "{words} ta so'z, {known} tasi lug'atda. Topilganlar: {issues} ta.",
+    clean: "Hech qanday muammo topilmadi.",
+    levels: {
+      error: "Aniq xato",
+      grammar: "Grammatik xato (ehtimol)",
+      unknown: "Lug'atda yo'q",
+      note: "Eslatma",
+      repeat: "Takror",
+    },
+    unknownNote: "Lug'atda {n} ta so'z bor. Unda yo'q so'z xato degani emas: takliflar faqat o'xshash so'zlar.",
+    apply: "Almashtirish",
+    stale: "Matn o'zgardi: qayta tekshiring.",
   },
   about: {
     title: "Ilova haqida",

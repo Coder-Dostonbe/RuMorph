@@ -195,6 +195,23 @@ export interface Question {
   option_kind?: "grammeme";
 }
 
+export interface SpellIssue {
+  start: number;
+  end: number;
+  word: string;
+  level: "error" | "grammar" | "unknown" | "note" | "repeat";
+  messages: string[];
+  suggestions: string[];
+  replace_start: number;
+  replace_end: number;
+}
+
+export interface SpellResult {
+  words: number;
+  known: number;
+  issues: SpellIssue[];
+}
+
 export const POS_FILTERS = ["NOUN", "ADJF", "VERB", "ADVB", "NPRO", "NUMR", "PREP", "CONJ", "PRCL", "PRED", "INTJ"] as const;
 export type PosFilter = (typeof POS_FILTERS)[number];
 
@@ -253,6 +270,7 @@ export const grammar = {
   exercises: (kind: ExerciseKind, count: number, seed: number, maxRank: number,
     vocabulary: { lexeme_id: string; lemma: string; translation: string }[] = []) =>
     core.call<Question[]>("exercises", { kind, count, seed, max_rank: maxRank, vocabulary }),
+  spellcheck: (text: string, lang: Locale) => core.call<SpellResult>("spellcheck", { text, lang }),
   words: (ids: string[], lang: Locale) => core.call<Record<string, WordInfo>>("words", { ids, lang }),
   srsReview: (card: CardState, grade: 0 | 1 | 2 | 3, now: string) =>
     core.call<{ card: CardState }>("srs_review", { card, grade, now }),

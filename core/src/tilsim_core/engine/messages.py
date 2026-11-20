@@ -65,6 +65,11 @@ TEXTS: dict[str, dict[str, str]] = {
         "ru": "Помета словаря: {labels}.",
         "en": "Dictionary label: {labels}.",
     },
+    "repeated_word": {
+        "uz": "«{word}» ketma-ket ikki marta yozilgan.",
+        "ru": "«{word}» написано два раза подряд.",
+        "en": "“{word}” is written twice in a row.",
+    },
     "after_prep_only": {
         "uz": "Bu shakl faqat predlogdan keyin ishlatiladi: {example}.",
         "ru": "Эта форма употребляется только после предлога: {example}.",

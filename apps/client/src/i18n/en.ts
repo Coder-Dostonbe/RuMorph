@@ -6,6 +6,7 @@ const en: Messages = {
     tagline: "Learn Russian",
   },
   nav: {
+    spell: "Spelling",
     tests: "Exercises",
     grammar: "Grammar",
     cards: "Flashcards",
@@ -269,6 +270,25 @@ const en: Messages = {
     best: "Best score: {n}",
     gameOver: "Time is up. Score: {n}",
     persons: { "1per.sing": "я", "2per.sing": "ты", "3per.sing": "он / она", "1per.plur": "мы", "2per.plur": "вы", "3per.plur": "они" },
+  },
+  spell: {
+    title: "Spell check",
+    intro: "Type or paste a Russian text. The check runs on this device, without the internet.",
+    placeholder: "For example: Я иду в школа. Еще он читал книгу.",
+    check: "Check",
+    limit: "The text is too long (at most {n} characters).",
+    summary: "{words} words, {known} in the dictionary. Found: {issues}.",
+    clean: "No problems found.",
+    levels: {
+      error: "Error",
+      grammar: "Grammar error (likely)",
+      unknown: "Not in the dictionary",
+      note: "Note",
+      repeat: "Repeated",
+    },
+    unknownNote: "The dictionary has {n} words. A word missing from it is not necessarily wrong: only similar words are suggested.",
+    apply: "Replace",
+    stale: "The text has changed: check it again.",
   },
   about: {
     title: "About",

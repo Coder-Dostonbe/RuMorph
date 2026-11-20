@@ -5,6 +5,7 @@ import AnalyzeView from "../views/AnalyzeView.vue";
 import DictionaryView from "../views/DictionaryView.vue";
 import FlashcardsView from "../views/FlashcardsView.vue";
 import GrammarView from "../views/GrammarView.vue";
+import SpellView from "../views/SpellView.vue";
 import TestsView from "../views/TestsView.vue";
 import MoreView from "../views/MoreView.vue";
 import HomeView from "../views/HomeView.vue";
@@ -20,6 +21,7 @@ export const router = createRouter({
     { path: "/cards", name: "cards", component: FlashcardsView },
     { path: "/tests", name: "tests", component: TestsView },
     { path: "/grammar", name: "grammar", component: GrammarView },
+    { path: "/spell", name: "spell", component: SpellView },
     { path: "/analyze", name: "analyze", component: AnalyzeView },
     { path: "/more", name: "more", component: MoreView },
     { path: "/account", name: "account", component: AccountView },
