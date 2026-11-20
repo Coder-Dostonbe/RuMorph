@@ -65,6 +65,41 @@ TEXTS: dict[str, dict[str, str]] = {
         "ru": "Помета словаря: {labels}.",
         "en": "Dictionary label: {labels}.",
     },
+    "after_prep_only": {
+        "uz": "Bu shakl faqat predlogdan keyin ishlatiladi: {example}.",
+        "ru": "Эта форма употребляется только после предлога: {example}.",
+        "en": "This form is used only after a preposition: {example}.",
+    },
+    "not_a_preposition": {
+        "uz": "«{word}» predlog emas yoki lug'atda predlog sifatida yo'q.",
+        "ru": "«{word}» не предлог или нет в словаре как предлог.",
+        "en": "“{word}” is not a preposition, or not in the dictionary as one.",
+    },
+    "no_case_after_preposition": {
+        "uz": "«{word}» kelishik bilan o'zgarmaydi (fe'l, ravish …), shuning uchun «{prep}» unga kelishik talab qilmaydi.",
+        "ru": "«{word}» не имеет падежа (глагол, наречие …), поэтому предлог «{prep}» им не управляет.",
+        "en": "“{word}” has no case (a verb, an adverb, …), so “{prep}” does not govern it.",
+    },
+    "wrong_case_after_preposition": {
+        "uz": "«{prep}» dan keyin {cases} keladi. «{word}» bu kelishikda emas.",
+        "ru": "После «{prep}» нужен {cases}. «{word}» стоит не в этом падеже.",
+        "en": "“{prep}” takes the {cases}. “{word}” is not in that case.",
+    },
+    "needs_n_form": {
+        "uz": "Predlogdan keyin н- li shakl ishlatiladi: {prep} {fixed}.",
+        "ru": "После предлога нужна форма с н-: {prep} {fixed}.",
+        "en": "After a preposition the н- form is used: {prep} {fixed}.",
+    },
+    "possessive_without_n": {
+        "uz": "«{word}» «uning, ularning» ma'nosida ot oldidan kelsa, н- olmaydi va to'g'ri: у {word} брата.",
+        "ru": "В значении принадлежности перед существительным «{word}» пишется без н-: у {word} брата.",
+        "en": "As a possessive before a noun, “{word}” takes no н- and is right: у {word} брата.",
+    },
+    "rare_government": {
+        "uz": "Bu birikma kam uchraydi, faqat barqaror iboralarda: {example}.",
+        "ru": "Редкое управление, только в устойчивых сочетаниях: {example}.",
+        "en": "A rare construction, only in set phrases: {example}.",
+    },
 }
 
 

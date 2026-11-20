@@ -52,6 +52,10 @@
     {
      "rule": "adj.stressed_ending",
      "detail": "второй"
+    },
+    {
+     "rule": "num.ordinal",
+     "detail": "второй"
     }
    ]
   },
@@ -314,7 +318,12 @@
   {
    "lemma": "третий",
    "category": "adj.possessive_type",
-   "findings": []
+   "findings": [
+    {
+     "rule": "num.ordinal",
+     "detail": "третий"
+    }
+   ]
   },
   {
    "lemma": "рад",

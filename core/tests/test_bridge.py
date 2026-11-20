@@ -130,6 +130,21 @@ def test_lexeme_op_without_a_profile():
     assert ok("lexeme", id=reading["lexeme"])["profile"] is None
 
 
+def test_phrase_op():
+    result = ok("phrase", preposition="без", word="книги", lang="en")
+    assert result["status"] == "ok" and result["readings"][0]["government"]["case"] == "gent"
+    assert [g["case"] for g in result["governs"]] == ["gent"]
+    wrong = ok("phrase", preposition="в", word="школа")
+    assert wrong["status"] == "error" and wrong["suggestions"] == ["в школу", "в школе"]
+
+
+def test_inflect_op():
+    lexeme = ok("analyze", word="книга")["readings"][0]["lexeme"]
+    result = ok("inflect", id=lexeme, grammemes=["plur", "gent"])
+    assert [f["form"] for f in result["forms"]] == ["книг"]
+    assert ok("inflect", id=lexeme, grammemes=["past"])["forms"] == []     # a noun has no past tense
+
+
 def test_rules_op():
     rules = ok("rules", lang="en", ids=["noun.decl.1", "nope"])
     assert [r["id"] for r in rules] == ["noun.decl.1"] and rules[0]["name"] == "1st declension"
@@ -146,7 +161,11 @@ def test_lexicon_info_and_warmup():
     [("analyze", {}, "invalid_args"), ("analyze", {"word": 1}, "invalid_args"),
      ("analyze", {"word": "x" * 201}, "invalid_args"), ("analyze", {"word": "да", "lang": "de"}, "invalid_args"),
      ("analyze", {"word": "да", "extra": 1}, "invalid_args"), ("lexeme", {"id": "nope"}, "not_found"),
-     ("rules", {"ids": "x"}, "invalid_args"), ("warmup", {"x": 1}, "invalid_args")],
+     ("rules", {"ids": "x"}, "invalid_args"), ("warmup", {"x": 1}, "invalid_args"),
+     ("phrase", {"word": "книги"}, "invalid_args"), ("phrase", {"preposition": "в" * 21, "word": "a"}, "invalid_args"),
+     ("inflect", {"id": "nope", "grammemes": ["gent"]}, "not_found"),
+     ("inflect", {"id": "ru-core:0", "grammemes": ["nope"]}, "invalid_args"),
+     ("inflect", {"id": "ru-core:0", "grammemes": []}, "invalid_args")],
 )
 def test_grammar_ops_validate_their_arguments(op, args, code):
     reply = call({"id": 1, "op": op, "args": args})

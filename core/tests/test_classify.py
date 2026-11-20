@@ -21,6 +21,7 @@ CORPORA = {
     "adjectives": "adjective",
     "pronouns": "pronoun",
     "verbs": "verb",
+    "numerals": "numeral",
 }
 ENTRIES = [(name, entry) for name in CORPORA
            for entry in json.loads((CORPUS_DIR / f"{name}.json").read_text(encoding="utf-8"))["entries"]]
@@ -63,17 +64,10 @@ def test_every_rule_has_three_languages_and_an_example():
         assert rule.review_status == "pending_specialist_review", rule.id
 
 
-def test_every_pronoun_and_adjective_in_the_lexicon_gets_a_profile():
-    # A closed-class list that misses a lexicon pronoun would silently give category None.
-    # "один" is a numeral (OpenCorpora tags it as a pronominal adjective); step 2.6 classifies it.
-    pending = {"один"}
+def test_every_inflected_word_in_the_lexicon_gets_a_class():
+    # A class the engine cannot tell is None; for the bundled lexicon every inflected word must have one
+    # (a closed-class list that misses a pronoun or numeral would show up here).
     for lexeme in default_lexicon().lexemes.values():
-        profile = classify(lexeme)
-        if lexeme.pos in ("NPRO", "ADJF", "ADJS") and lexeme.lemma not in pending:
+        if lexeme.pos in ("NOUN", "NPRO", "ADJF", "ADJS", "NUMR", "INFN"):
+            profile = classify(lexeme)
             assert profile is not None and profile.category is not None, lexeme.lemma
-
-
-def test_every_verb_in_the_lexicon_gets_a_conjugation():
-    for lexeme in default_lexicon().lexemes.values():
-        if lexeme.pos == "INFN":
-            assert classify(lexeme).category is not None, lexeme.lemma

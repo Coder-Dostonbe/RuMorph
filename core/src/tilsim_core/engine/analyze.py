@@ -19,6 +19,8 @@ from .normalize import lookup_key, normalize_word
 
 OK, AMBIGUOUS, ERROR = "ok", "ambiguous", "error"
 _ALPHABET = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+# A preposition that takes each case, for examples (у него, к нему, на него, с ним, о нём).
+_EXAMPLE_PREP = {"gent": "у", "datv": "к", "accs": "на", "ablt": "с", "loct": "о"}
 
 
 @dataclass
@@ -108,6 +110,9 @@ def analyze(text: str, lexicon: Lexicon | None = None) -> Analysis:
         # ё matters for pronunciation: say when it was written as е, and when it does not match.
         if "ё" in form.text and "ё" not in normalized.word and form.text.replace("ё", "е") == normalized.word:
             reading.notes.append(Message("spelled_with_yo", {"form": form.text}))
+        if "Af-p" in form.tag:
+            prep = _EXAMPLE_PREP.get(form.tag.case or "", "")
+            reading.notes.append(Message("after_prep_only", {"example": f"{prep} {form.text}".strip()}))
         rare = RARE_USAGE & form.tag.grammemes
         if rare:
             codes = sorted(rare)

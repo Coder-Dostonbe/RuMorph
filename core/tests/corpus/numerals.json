@@ -1,0 +1,155 @@
+{
+ "description": "Hand-checked numeral classifications. Each entry lists every finding the engine must report for the lemma; nothing else may be reported. Government follows school grammar: один agrees; 2–4 and оба take the genitive singular; 5 and up the genitive plural; with animate nouns the accusative of 2–4 equals the genitive and the noun is genitive plural (двух братьев).",
+ "entries": [
+  {
+   "lemma": "один",
+   "category": "num.one",
+   "findings": [
+    {
+     "rule": "num.agrees",
+     "detail": "один стол, одна книга, одно окно"
+    }
+   ]
+  },
+  {
+   "lemma": "два",
+   "category": "num.two_to_four",
+   "findings": [
+    {
+     "rule": "num.governs_gen_sg",
+     "detail": "два стола, две книги"
+    },
+    {
+     "rule": "num.accs_animate",
+     "detail": "два стола, двух братьев"
+    }
+   ]
+  },
+  {
+   "lemma": "три",
+   "category": "num.two_to_four",
+   "findings": [
+    {
+     "rule": "num.governs_gen_sg",
+     "detail": "три стола, три книги"
+    },
+    {
+     "rule": "num.accs_animate",
+     "detail": "три стола, трёх братьев"
+    }
+   ]
+  },
+  {
+   "lemma": "четыре",
+   "category": "num.two_to_four",
+   "findings": [
+    {
+     "rule": "num.governs_gen_sg",
+     "detail": "четыре стола, четыре книги"
+    },
+    {
+     "rule": "num.accs_animate",
+     "detail": "четыре стола, четырёх братьев"
+    }
+   ]
+  },
+  {
+   "lemma": "оба",
+   "category": "num.both",
+   "findings": [
+    {
+     "rule": "num.governs_gen_sg",
+     "detail": "оба стола, обе книги"
+    },
+    {
+     "rule": "num.accs_animate",
+     "detail": "оба стола, обоих братьев"
+    }
+   ]
+  },
+  {
+   "lemma": "пять",
+   "category": "num.five_to_twenty",
+   "findings": [
+    {
+     "rule": "num.governs_gen_pl",
+     "detail": "пять столов, пять книг"
+    }
+   ]
+  },
+  {
+   "lemma": "восемь",
+   "category": "num.five_to_twenty",
+   "findings": [
+    {
+     "rule": "num.governs_gen_pl",
+     "detail": "восемь столов, восемь книг"
+    },
+    {
+     "rule": "noun.fleeting_vowel",
+     "detail": "восемь → восьми"
+    }
+   ]
+  },
+  {
+   "lemma": "одиннадцать",
+   "category": "num.five_to_twenty",
+   "findings": [
+    {
+     "rule": "num.governs_gen_pl",
+     "detail": "одиннадцать столов, одиннадцать книг"
+    }
+   ]
+  },
+  {
+   "lemma": "двадцать",
+   "category": "num.five_to_twenty",
+   "findings": [
+    {
+     "rule": "num.governs_gen_pl",
+     "detail": "двадцать столов, двадцать книг"
+    }
+   ]
+  },
+  {
+   "lemma": "сорок",
+   "category": "num.sorok_sto",
+   "findings": [
+    {
+     "rule": "num.governs_gen_pl",
+     "detail": "сорок столов, сорок книг"
+    }
+   ]
+  },
+  {
+   "lemma": "сто",
+   "category": "num.sorok_sto",
+   "findings": [
+    {
+     "rule": "num.governs_gen_pl",
+     "detail": "сто столов, сто книг"
+    }
+   ]
+  },
+  {
+   "lemma": "пятьдесят",
+   "category": "num.compound",
+   "findings": [
+    {
+     "rule": "num.governs_gen_pl",
+     "detail": "пятьдесят столов, пятьдесят книг"
+    }
+   ]
+  },
+  {
+   "lemma": "двести",
+   "category": "num.hundreds",
+   "findings": [
+    {
+     "rule": "num.governs_gen_pl",
+     "detail": "двести столов, двести книг"
+    }
+   ]
+  }
+ ]
+}

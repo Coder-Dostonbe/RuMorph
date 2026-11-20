@@ -270,6 +270,31 @@ def test_compound_future_needs_the_lexicon(lexicon):
     assert paradigm_table(_only(lexicon, "писать", "INFN"))["future_compound"] is None
 
 
+def test_numeral_table_has_gender_columns_only_when_needed(lexicon):
+    two = paradigm_table(_only(lexicon, "два", "NUMR"))
+    assert two["kind"] == "numeral" and two["columns"] == ["masc", "neut", "femn"]
+    rows = {r["key"]: [_forms(c) for c in r["cells"]] for r in two["rows"]}
+    assert rows["nomn"] == [["два"], ["два"], ["две"]] and rows["gent"] == [["двух"]] * 3
+    assert rows["accs.anim"] == [["двух"]] * 3 and rows["accs.inan"] == [["два"], ["два"], ["две"]]
+    assert paradigm_table(_only(lexicon, "пять", "NUMR"))["columns"] == ["form"]
+
+
+def test_form_after_preposition_is_noted(lexicon):
+    notes = [n for r in analyze("него", lexicon).to_dict("uz")["readings"] for n in r["notes"]]
+    assert notes and all("predlogdan keyin" in n for n in notes)
+
+
+def test_analysis_and_inflection_agree_for_every_form(lexicon):
+    """Both directions of the lexicon: every form is found by analysis (form → reading), and the
+    reading's tag gives the form back (reading → form). A broken index or paradigm fails here."""
+    from tilsim_core.engine.normalize import lookup_key
+
+    for lexeme in lexicon.lexemes.values():
+        for form in lexeme.forms:
+            assert (lexeme.id, form.index) in lexicon.index[lookup_key(form.text)], form.text
+            assert form.text in {f.text for f in lexeme.find(*form.tag.grammemes)}, form.text
+
+
 def _indices(node):
     """Every form index anywhere in a table (cells are dicts with "index")."""
     if isinstance(node, dict):

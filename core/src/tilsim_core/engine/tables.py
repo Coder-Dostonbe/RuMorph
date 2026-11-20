@@ -5,6 +5,7 @@ shows them.
 - adjective (and pronouns that agree with a noun, and participles): cases ×
   genders and plural, accusative split into animate / inanimate;
 - pronoun: cases × "plain / after a preposition";
+- numeral: cases × genders where it has them (два / две);
 - verb: infinitive, present or future by person, past by gender, imperative,
   participles (each with its own adjective grid) and gerunds.
 
@@ -248,6 +249,31 @@ def verb_table(lexeme: Lexeme, auxiliary: Lexeme | None = None) -> dict:
     }
 
 
+def numeral_table(lexeme: Lexeme) -> dict:
+    """Cases in rows; a column per gender when the numeral has gender forms (два, две; оба, обе).
+    A form without gender (двух) stands in every gender column."""
+    genders = [g for g in ("masc", "neut", "femn") if lexeme.find(g)]
+    columns = genders or ["form"]
+    animate = bool(lexeme.find("anim"))
+    used: set[int] = set()
+    rows = []
+    for case in CASES:
+        keys = [("accs.anim", "anim"), ("accs.inan", "inan")] if case == "accs" and animate else [(case, None)]
+        for key, animacy in keys:
+            found = lexeme.find(case)
+            if animacy:
+                found = [f for f in found if animacy in f.tag] or \
+                    [f for f in found if "anim" not in f.tag and "inan" not in f.tag]
+            cells = []
+            for column in columns:
+                in_column = found if column == "form" else \
+                    [f for f in found if column in f.tag or not any(g in f.tag for g in genders)]
+                used.update(f.index for f in in_column)
+                cells.append(_cell(in_column))
+            rows.append({"key": key, "cells": cells})
+    return {"kind": "numeral", "columns": columns, "rows": rows, "extra": _extra(lexeme, used)}
+
+
 def form_list(lexeme: Lexeme) -> dict:
     """Any other part of speech: every form with its tag."""
     return {"kind": "list", "extra": _extra(lexeme, set())}
@@ -261,6 +287,8 @@ def paradigm_table(lexeme: Lexeme, lexicon: Lexicon | None = None) -> dict:
         return noun_table(lexeme)
     if pos == "NPRO":
         return pronoun_table(lexeme)
+    if pos == "NUMR":
+        return numeral_table(lexeme)
     if pos in ("ADJF", "ADJS"):
         return adjective_table(lexeme)
     if pos in ("INFN", "VERB"):

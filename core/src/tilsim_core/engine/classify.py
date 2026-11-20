@@ -34,7 +34,7 @@ class Finding:
 
 @dataclass
 class Profile:
-    kind: str                              # "noun" | "adjective" | "pronoun" | "verb"
+    kind: str                              # "noun" | "adjective" | "pronoun" | "verb" | "numeral"
     category: str | None                   # rule id of the class, None if the engine cannot tell
     findings: list[Finding] = field(default_factory=list)
 
@@ -94,6 +94,8 @@ def classify_noun(lexeme: Lexeme) -> Profile:
         return profile
     if "Sgtm" in lexeme.lemma_tag:
         add(Finding("noun.singularia_tantum", lemma))
+    if lemma in NUMERAL_NOUNS:
+        add(Finding("num.governs_gen_pl", f"{lemma} столов, {lemma} книг"))
 
     nom_sg = _text(lexeme, "sing", "nomn")
     gen_sg = _text(lexeme, "sing", "gent")
@@ -197,6 +199,8 @@ def classify_adjective(lexeme: Lexeme) -> Profile:
             add(Finding("spelling.sibilant_o_e", f"{lemma} → {gen}"))
         if "Qual" not in tag and "Anum" not in tag and not lexeme.find("ADJS"):
             add(Finding("adj.relative", lemma))
+        if "Anum" in tag:
+            add(Finding("num.ordinal", lemma))
 
     short_m = _text(lexeme, "ADJS", "masc")
     short_f = _text(lexeme, "ADJS", "femn")
@@ -373,10 +377,69 @@ def classify_verb(lexeme: Lexeme) -> Profile:
     return profile
 
 
+# --- Numerals -------------------------------------------------------------------------------
+
+NUMERAL_NOUNS = frozenset({"тысяча", "миллион", "миллиард"})      # nouns that count like пять
+SOROK_STO = frozenset({"сорок", "девяносто", "сто"})
+
+
+def _numeral_category(lemma: str) -> str | None:
+    if lemma == "один":
+        return "num.one"
+    if lemma in ("два", "три", "четыре"):
+        return "num.two_to_four"
+    if lemma == "оба":
+        return "num.both"
+    if lemma in SOROK_STO:
+        return "num.sorok_sto"
+    if lemma.endswith("десят"):
+        return "num.compound"
+    if lemma.endswith(("сти", "ста", "сот")):
+        return "num.hundreds"
+    if lemma.endswith(("ть", "мь")):
+        return "num.five_to_twenty"
+    return None
+
+
+def classify_numeral(lexeme: Lexeme) -> Profile:
+    lemma = lexeme.lemma
+    profile = Profile("numeral", _numeral_category(lemma))
+    add = profile.findings.append
+    category = profile.category
+    if category is None:
+        return profile
+    if category == "num.one":
+        m, f, n = (_text(lexeme, "sing", g, "nomn") for g in ("masc", "femn", "neut"))
+        if m and f and n:
+            add(Finding("num.agrees", f"{m} стол, {f} книга, {n} окно"))
+        return profile
+
+    masc = _text(lexeme, "nomn", exclude=("femn", "neut")) or lemma
+    femn = _text(lexeme, "femn", "nomn") or masc
+    if category in ("num.two_to_four", "num.both"):
+        add(Finding("num.governs_gen_sg", f"{masc} стола, {femn} книги"))
+        inan, anim = _text(lexeme, "accs", "inan"), _text(lexeme, "accs", "anim")
+        if inan and anim and inan != anim:
+            # Animate: the numeral takes the genitive and so does the noun, in the plural (двух братьев).
+            add(Finding("num.accs_animate", f"{inan} стола, {anim} братьев"))
+    else:
+        add(Finding("num.governs_gen_pl", f"{lemma} столов, {lemma} книг"))
+
+    gen = _text(lexeme, "gent")
+    if gen and category == "num.five_to_twenty":
+        stem, gen_stem = lemma[:-1], gen[:-1]                       # пят-ь / пят-и, восем-ь / восьм-и
+        if _drop_one(_fold(stem), _fold(gen_stem).replace("ь", ""), FLEETING) or \
+                _drop_one(_fold(stem), _fold(gen_stem[:-1]), FLEETING):
+            add(Finding("noun.fleeting_vowel", f"{lemma} → {gen}"))
+    return profile
+
+
 def classify(lexeme: Lexeme) -> Profile | None:
     """The profile for any lexeme the engine can classify; None for other parts of speech."""
     if lexeme.pos == "NOUN":
         return classify_noun(lexeme)
+    if lexeme.pos == "NUMR" or (lexeme.pos == "ADJF" and lexeme.lemma == "один"):
+        return classify_numeral(lexeme)
     if is_pronoun(lexeme):
         return classify_pronoun(lexeme)
     if lexeme.pos in ("ADJF", "ADJS"):
