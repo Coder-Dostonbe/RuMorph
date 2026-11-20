@@ -1,0 +1,172 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: tilsim_core (pytest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - working-directory: core
+        run: uv run --python 3.14 --no-project --with pytest python -m pytest -q
+
+  api:
+    name: API (pytest + PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - working-directory: apps/api
+        env:
+          TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+        run: uv run --python 3.14 --no-project --with asyncpg --with pytest python -m pytest -q
+
+  api-worker:
+    name: API in the Workers runtime (pywrangler dev)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: tilsim
+          POSTGRES_PASSWORD: tilsim
+          POSTGRES_DB: tilsim
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Migrate
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgres://tilsim:tilsim@localhost:5432/tilsim
+        run: uv run --no-project --with asyncpg python scripts/migrate.py
+      - name: Start the Worker and call it
+        working-directory: apps/api
+        run: |
+          echo "JWT_SECRET=ci-only-secret-0123456789abcdef0123456789" > .dev.vars
+          uv sync
+          (uv run pywrangler dev --port 8787 > worker.log 2>&1 &)
+          for i in $(seq 1 90); do
+            curl -sf http://localhost:8787/health > /dev/null && break
+            sleep 4
+          done
+          set -x
+          curl -sf http://localhost:8787/health | tee health.json
+          grep -q '"database":"ok"' health.json
+          code=$(curl -s -o register.json -w '%{http_code}' -X POST http://localhost:8787/v1/auth/register \
+            -H 'content-type: application/json' -H 'origin: http://tauri.localhost' \
+            -d '{"email":"ci@example.com","password":"ci-password-123","device":{"id":"6b0f3d9e-3a8f-4f8e-9a51-0c7b2d1e4f60","name":"CI","platform":"browser"}}')
+          cat register.json; test "$code" = "201"
+          token=$(python3 -c "import json;print(json.load(open('register.json'))['access_token'])")
+          curl -sf http://localhost:8787/v1/me -H "authorization: Bearer $token" | tee me.json
+          grep -q 'ci@example.com' me.json
+          curl -s -i -X OPTIONS http://localhost:8787/v1/auth/login -H 'origin: http://tauri.localhost' | grep -i 'access-control-allow-origin: http://tauri.localhost'
+      - name: Worker log
+        if: always()
+        working-directory: apps/api
+        run: cat worker.log || true
+
+  client:
+    name: Client (vue-tsc, build, vitest + Pyodide)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  windows:
+    name: Windows app (cargo test + NSIS installer)
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/client/src-tauri
+      - run: npm ci
+      - name: Rust tests
+        working-directory: apps/client/src-tauri
+        run: cargo test --locked
+      - name: Build installer
+        working-directory: apps/client
+        run: npx tauri build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tilsim-windows-installer
+          path: apps/client/src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
+  android:
+    name: Android app (debug APK)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - name: Install NDK
+        run: sdkmanager --install "ndk;27.2.12479018"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/client/src-tauri
+      - run: npm ci
+      - name: Build APK
+        working-directory: apps/client
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.2.12479018
+        run: |
+          npx tauri android init --ci
+          npx tauri icon ../../brand/tilsim-b.svg -o src-tauri/icons
+          npx tauri android build --debug --apk --target aarch64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tilsim-android-debug-apk
+          path: apps/client/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error

@@ -1,0 +1,15 @@
+[project]
+name = "tilsim-api"
+version = "0.1.0"
+description = "Tilsim API — Cloudflare Python Worker"
+requires-python = ">=3.12"
+# Only what the Worker itself imports. asyncpg is the driver Cloudflare
+# recommends for Hyperdrive in Python Workers.
+dependencies = ["asyncpg"]
+
+[dependency-groups]
+dev = ["workers-py", "pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

@@ -51,3 +51,8 @@ apps/client/public/py/
 
 # --- Rust ---
 apps/client/src-tauri/target/
+
+# --- Python Worker ---
+apps/api/python_modules/
+apps/api/.venv-workers/
+apps/api/node_modules/

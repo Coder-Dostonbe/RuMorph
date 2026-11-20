@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "tilsim-api",
+  "main": "src/entry.py",
+  "compatibility_date": "2026-11-17",
+  "compatibility_flags": ["python_workers"],
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      // Output of: npx wrangler hyperdrive create tilsim-db --connection-string="<Neon URL>"
+      "id": "REPLACE_WITH_HYPERDRIVE_ID",
+      // Used by `pywrangler dev` instead of Hyperdrive.
+      "localConnectionString": "postgres://tilsim:tilsim@localhost:5432/tilsim"
+    }
+  ],
+  "vars": {
+    // Set to "false" after your own account exists. The first account becomes admin.
+    "ALLOW_REGISTRATION": "true",
+    // Origins of the app's webview (Windows / Android) and the dev servers.
+    "CORS_ORIGINS": "http://tauri.localhost,tauri://localhost,https://tauri.localhost,http://localhost:1420,http://localhost:4173"
+  }
+  // Secret, never in this file: npx wrangler secret put JWT_SECRET
+}
