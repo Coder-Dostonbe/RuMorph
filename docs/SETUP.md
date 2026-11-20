@@ -34,14 +34,14 @@ Server sozlanmagan bo'lsa ham ilova ishlaydi: bosh sahifada "Server: sozlanmagan
 "Ilova haqida" sahifasida Python muhitining ishga tushish vaqti ko'rinadi.
 
 **Tayyor o'rnatuvchi va APK:** har bir push'dan keyin GitHub Actions ularni o'zi yig'adi.
-GitHub → RuMorph → **Actions** → oxirgi "CI" → pastdagi **Artifacts**:
+<https://github.com/Coder-Dostonbe/RuMorph/releases/tag/dev> sahifasida (telefondan ham ochiladi):
 
-- `tilsim-windows-installer` — Windows o'rnatuvchisi;
-- `tilsim-android-debug-apk` — Android uchun APK (debug kalit bilan imzolangan, faqat sinov uchun).
+- `Tilsim-windows-setup.exe` — Windows o'rnatuvchisi;
+- `Tilsim-android-test.apk` — Android uchun APK (debug kalit bilan imzolangan, faqat sinov uchun).
 
 ## 3. Android'da sinash (1-bosqich spike)
 
-1. `tilsim-android-debug-apk` ni yuklab oling, ichidagi `.apk` ni telefonga o'tkazing.
+1. Telefondan <https://github.com/Coder-Dostonbe/RuMorph/releases/tag/dev> ni oching va `Tilsim-android-test.apk` ni yuklab oling.
 2. Telefonda "Noma'lum manbalardan o'rnatish"ga ruxsat bering va o'rnating.
 3. Ilovani oching, **Ilova haqida** sahifasiga o'ting va **"Python muhitining ishga tushishi → Jami"** raqamini menga yuboring.
    Ilovani 2–3 marta yopib-ochib o'lchang: birinchi ochilish odatda sekinroq bo'ladi.

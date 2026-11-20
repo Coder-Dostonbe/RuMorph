@@ -45,7 +45,7 @@ Ikkala yo'l bir xil xesh beradi, buni test tekshiradi.
 
 ## Sizdan kerak bo'ladigan narsalar (spike)
 
-1. **Android:** GitHub → Actions → oxirgi "CI" → `tilsim-android-debug-apk` ni yuklab, telefonga o'rnating.
+1. **Android:** telefondan <https://github.com/Coder-Dostonbe/RuMorph/releases/tag/dev> → `Tilsim-android-test.apk` ni o'rnating.
    **Ilova haqida → Jami** raqamini 2–3 marta ochib yuboring.
 2. **Neon + Cloudflare:** `docs/SETUP.md` 4–5-bo'limlari. Deploy'dan keyin login va refresh'ning
    CPU vaqtini yuboring (6-bo'lim).

@@ -188,3 +188,29 @@ jobs:
           name: tilsim-android-debug-apk
           path: apps/client/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
+
+  publish:
+    name: Publish test builds (GitHub Release "dev")
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [core, api, api-worker, client, windows, android]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Replace the "dev" pre-release with this commit's builds
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir upload
+          cp artifacts/tilsim-windows-installer/*.exe upload/Tilsim-windows-setup.exe
+          find artifacts/tilsim-android-debug-apk -name '*.apk' -exec cp {} upload/Tilsim-android-test.apk \;
+          ls -la upload
+          gh release delete dev --cleanup-tag --yes || true
+          gh release create dev upload/* --prerelease --target "$GITHUB_SHA" \
+            --title "Tilsim — sinov versiyasi (${GITHUB_SHA::7})" \
+            --notes "main branch'ning oxirgi muvaffaqiyatli build'i. Faqat sinov uchun: Windows o'rnatuvchisi imzolanmagan (SmartScreen ogohlantiradi), Android APK debug kalit bilan imzolangan."
