@@ -1,6 +1,8 @@
 <script setup lang="ts">
 // Line icons drawn on a 24 × 24 grid; colour follows the text colour.
-defineProps<{ name: "home" | "search" | "user" | "settings" | "info" }>();
+import type { IconName } from "../app/nav";
+
+defineProps<{ name: IconName }>();
 </script>
 
 <template>
@@ -14,6 +16,16 @@ defineProps<{ name: "home" | "search" | "user" | "settings" | "info" }>();
     <template v-else-if="name === 'search'">
       <circle cx="10.5" cy="10.5" r="6.5" />
       <path d="m15.5 15.5 5 5" />
+    </template>
+    <template v-else-if="name === 'book'">
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
+      <path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" />
+      <path d="M8 7h8M8 11h6" />
+    </template>
+    <template v-else-if="name === 'more'">
+      <circle cx="5" cy="12" r="1.4" />
+      <circle cx="12" cy="12" r="1.4" />
+      <circle cx="19" cy="12" r="1.4" />
     </template>
     <template v-else-if="name === 'user'">
       <circle cx="12" cy="8" r="4" />

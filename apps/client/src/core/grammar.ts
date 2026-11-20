@@ -26,6 +26,7 @@ export interface Reading {
   description: string;
   rules: string[];
   confidence: number;
+  frequency: number | null;
   notes: string[];
   government?: Government;
 }
@@ -132,12 +133,31 @@ export interface Profile {
   findings: Finding[];
 }
 
+export interface WordSummary {
+  id: string;
+  lemma: string;
+  pos: string | null;
+  description: string;
+  frequency: number | null;
+  rank: number | null;
+}
+
+export interface SearchResult {
+  total: number;
+  items: (WordSummary & { match: "form" | "prefix" | "browse" })[];
+}
+
+export const POS_FILTERS = ["NOUN", "ADJF", "VERB", "ADVB", "NPRO", "NUMR", "PREP", "CONJ", "PRCL", "PRED", "INTJ"] as const;
+export type PosFilter = (typeof POS_FILTERS)[number];
+
 export interface LexemeInfo {
   id: string;
   lemma: string;
   pos: string | null;
   description: string;
   source: string;
+  frequency: number | null;
+  rank: number | null;
   profile: Profile | null;
   table: Table;
 }
@@ -178,6 +198,10 @@ export const grammar = {
     core.call<PhraseAnalysis>("phrase", { preposition, word, lang }),
   lexeme: (id: string, lang: Locale) => core.call<LexemeInfo>("lexeme", { id, lang }),
   rules: (lang: Locale) => core.call<Rule[]>("rules", { lang }),
+  search: (query: string, lang: Locale, opts: { pos?: PosFilter | null; limit?: number; offset?: number } = {}) =>
+    core.call<SearchResult>("search", {
+      query, lang, limit: opts.limit ?? 30, offset: opts.offset ?? 0, ...(opts.pos ? { pos: opts.pos } : {}),
+    }),
   grammemes: (lang: Locale) => core.call<Grammemes>("grammemes", { lang }),
   lexiconInfo: () => core.call<LexiconInfo>("lexicon_info"),
 };

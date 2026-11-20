@@ -92,30 +92,6 @@ legend {
   font-size: 0.9rem;
   margin-bottom: 0.35rem;
 }
-.segmented {
-  display: inline-flex;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-.seg {
-  border: none;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  padding: 0.5rem 0.9rem;
-  cursor: pointer;
-  min-height: 2.5rem;
-  transition: background 150ms var(--ease);
-}
-.seg + .seg {
-  border-left: 1px solid var(--border);
-}
-.seg.active {
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: 600;
-}
 .row {
   display: flex;
   align-items: center;

@@ -2,6 +2,8 @@ import { createRouter, createWebHashHistory } from "vue-router";
 import AboutView from "../views/AboutView.vue";
 import AccountView from "../views/AccountView.vue";
 import AnalyzeView from "../views/AnalyzeView.vue";
+import DictionaryView from "../views/DictionaryView.vue";
+import MoreView from "../views/MoreView.vue";
 import HomeView from "../views/HomeView.vue";
 import SettingsView from "../views/SettingsView.vue";
 
@@ -11,7 +13,9 @@ export const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     { path: "/", name: "home", component: HomeView },
+    { path: "/dictionary", name: "dictionary", component: DictionaryView },
     { path: "/analyze", name: "analyze", component: AnalyzeView },
+    { path: "/more", name: "more", component: MoreView },
     { path: "/account", name: "account", component: AccountView },
     { path: "/settings", name: "settings", component: SettingsView },
     { path: "/about", name: "about", component: AboutView },

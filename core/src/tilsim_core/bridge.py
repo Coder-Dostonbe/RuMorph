@@ -94,6 +94,7 @@ def _op_analyze(args: dict[str, Any]) -> dict[str, Any]:
 def _op_lexeme(args: dict[str, Any]) -> dict[str, Any]:
     """Paradigm table and classification for one lexeme id (taken from an analyze reading)."""
     from .engine import Tag, classify, default_lexicon, paradigm_table
+    from .engine.search import ranks
 
     _only(args, "id", "lang")
     lang = _lang(args)
@@ -110,6 +111,7 @@ def _op_lexeme(args: dict[str, Any]) -> dict[str, Any]:
         "description": Tag(",".join(lexeme.lemma_tag.lexical)).describe(lang),
         "source": lexeme.source,
         "frequency": lexeme.freq,
+        "rank": ranks(lexicon).get(lexeme.id),
         "profile": profile.to_dict() if profile else None,
         "table": _describe_extra(paradigm_table(lexeme, lexicon), lang),
     }
@@ -122,6 +124,38 @@ def _describe_extra(table: dict[str, Any], lang: str) -> dict[str, Any]:
     for entry in table.get("extra", []):
         entry["description"] = Tag(entry["tag"]).describe(lang)
     return table
+
+
+def _summary(lexeme: Any, lang: str, rank: int | None) -> dict[str, Any]:
+    from .engine import Tag
+
+    return {
+        "id": lexeme.id,
+        "lemma": lexeme.headword,
+        "pos": lexeme.pos,
+        "description": Tag(",".join(lexeme.lemma_tag.lexical)).describe(lang),
+        "frequency": lexeme.freq,
+        "rank": rank,
+    }
+
+
+def _op_search(args: dict[str, Any]) -> dict[str, Any]:
+    """Dictionary search: a form, the beginning of a word, or nothing (browse by frequency)."""
+    from .engine.search import POS_FILTERS, search
+
+    _only(args, "query", "pos", "limit", "offset", "lang")
+    lang = _lang(args)
+    query = args.get("query", "")
+    if not isinstance(query, str) or len(query) > 60:
+        raise BridgeError("invalid_args", "'query' must be a string of at most 60 characters")
+    pos = args.get("pos")
+    if pos is not None and pos not in POS_FILTERS:
+        raise BridgeError("invalid_args", f"'pos' must be one of {', '.join(POS_FILTERS)}")
+    limit, offset = args.get("limit", 30), args.get("offset", 0)
+    if not (isinstance(limit, int) and 1 <= limit <= 200 and isinstance(offset, int) and offset >= 0):
+        raise BridgeError("invalid_args", "'limit' must be 1–200 and 'offset' at least 0")
+    total, hits = search(query, pos=pos, limit=limit, offset=offset)
+    return {"total": total, "items": [{**_summary(h.lexeme, lang, h.rank), "match": h.match} for h in hits]}
 
 
 def _op_grammemes(args: dict[str, Any]) -> dict[str, Any]:
@@ -209,6 +243,7 @@ OPS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "inflect": _op_inflect,
     "rules": _op_rules,
     "grammemes": _op_grammemes,
+    "search": _op_search,
     "lexicon_info": _op_lexicon_info,
     "warmup": _op_warmup,
 }

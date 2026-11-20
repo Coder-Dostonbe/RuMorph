@@ -7,6 +7,7 @@ import { router } from "./app/router";
 import { useCore } from "./stores/core";
 import { useSession } from "./stores/session";
 import { useSettings } from "./stores/settings";
+import { useVocabulary } from "./stores/vocabulary";
 
 const app = createApp(App);
 app.use(createPinia());
@@ -16,6 +17,7 @@ const settings = useSettings();
 await settings.load();
 app.mount("#app");
 
-// Both run in the background; the UI shows their progress.
+// These run in the background; the UI shows their progress.
 void useCore().start();
 void useSession().restore();
+void useVocabulary().load();

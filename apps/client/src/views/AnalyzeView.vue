@@ -5,12 +5,12 @@
 import { computed, nextTick, ref, watch } from "vue";
 import { CoreError } from "../core/client";
 import { grammar, type Analysis, type LexemeInfo, type PhraseAnalysis, type Reading } from "../core/grammar";
+import VocabEditor from "../ui/VocabEditor.vue";
+import LexemeDetail from "../ui/grammar/LexemeDetail.vue";
 import { format, locale, useI18n } from "../i18n";
 import { useCore } from "../stores/core";
 import { useGrammar } from "../stores/grammar";
 import StatusBadge from "../ui/StatusBadge.vue";
-import ParadigmTable from "../ui/grammar/ParadigmTable.vue";
-import ProfileView from "../ui/grammar/ProfileView.vue";
 
 const m = useI18n();
 const core = useCore();
@@ -24,6 +24,7 @@ const inputError = ref("");
 const result = ref<Analysis | PhraseAnalysis | null>(null);
 const selected = ref<Reading | null>(null);
 const lexeme = ref<LexemeInfo | null>(null);
+const detailOpen = ref(false);
 const detail = ref<HTMLElement | null>(null);
 
 const phrase = computed(() => (result.value && "preposition" in result.value ? result.value : null));
@@ -64,7 +65,7 @@ async function run(text = query.value): Promise<void> {
     const previous = selected.value;
     const keep = previous ? readings.find((r) => r.lexeme === previous.lexeme && r.form_index === previous.form_index) : undefined;
     selected.value = keep ?? (readings.length === 1 ? readings[0] ?? null : null);
-    lexeme.value = selected.value ? await grammar.lexeme(selected.value.lexeme, lang) : null;
+    detailOpen.value = selected.value !== null;
   } catch (e) {
     failure.value = format(m.value.analyze.callFailed, { error: describeError(e) });
   } finally {
@@ -74,13 +75,9 @@ async function run(text = query.value): Promise<void> {
 
 async function open(reading: Reading): Promise<void> {
   selected.value = reading;
-  try {
-    lexeme.value = await grammar.lexeme(reading.lexeme, locale.value);
-    await nextTick();
-    detail.value?.scrollIntoView({ behavior: "smooth", block: "start" });
-  } catch (e) {
-    failure.value = format(m.value.analyze.callFailed, { error: describeError(e) });
-  }
+  detailOpen.value = true;
+  await nextTick();
+  detail.value?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function suggest(text: string): void {
@@ -93,9 +90,11 @@ watch(locale, () => {
   if (result.value) void run(lastText.value);
 });
 
-function selectedIndex(): number | null {
-  return selected.value && lexeme.value?.id === selected.value.lexeme ? selected.value.form_index : null;
-}
+const word = computed(() =>
+  lexeme.value && selected.value && lexeme.value.id === selected.value.lexeme
+    ? { id: lexeme.value.id, lemma: lexeme.value.lemma, pos: lexeme.value.pos }
+    : null,
+);
 </script>
 
 <template>
@@ -164,19 +163,12 @@ function selectedIndex(): number | null {
         </article>
       </div>
 
-      <article v-if="lexeme" ref="detail" class="card detail">
-        <header class="head">
-          <div>
-            <h2 lang="ru">{{ lexeme.lemma }}</h2>
-            <p class="muted small">{{ lexeme.description }}</p>
-          </div>
-          <button type="button" class="btn" @click="lexeme = null">{{ m.analyze.close }}</button>
-        </header>
-        <h3>{{ m.analyze.rules }}</h3>
-        <ProfileView :profile="lexeme.profile" />
-        <h3 class="table-title">{{ m.analyze.table }}</h3>
-        <ParadigmTable :table="lexeme.table" :selected="selectedIndex()" />
-      </article>
+      <div v-if="detailOpen && selected" ref="detail">
+        <LexemeDetail :id="selected.lexeme" :selected="selected.form_index" closable
+          @close="detailOpen = false" @loaded="lexeme = $event">
+          <VocabEditor v-if="word" :word="word" />
+        </LexemeDetail>
+      </div>
     </div>
 
     <p v-if="source" class="muted small source">{{ source }}</p>

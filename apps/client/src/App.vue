@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useRoute } from "vue-router";
+import { NAV } from "./app/nav";
 import { compact, platform } from "./app/platform";
 import { useI18n } from "./i18n";
 import AppIcon from "./ui/AppIcon.vue";
 
 const m = useI18n();
+const route = useRoute();
 
-const nav = computed(() => [
-  { to: "/", label: m.value.nav.home, icon: "home" as const },
-  { to: "/analyze", label: m.value.nav.analyze, icon: "search" as const },
-  { to: "/account", label: m.value.nav.account, icon: "user" as const },
-  { to: "/settings", label: m.value.nav.settings, icon: "settings" as const },
-  { to: "/about", label: m.value.nav.about, icon: "info" as const },
-]);
+const nav = computed(() => NAV.map((item) => ({ ...item, text: item.label(m.value) })));
+const primary = computed(() => nav.value.filter((item) => item.primary));
+// "More" is the active tab whenever the current page is not one of the primary ones.
+const onSecondary = computed(() => !primary.value.some((item) => item.to === route.path));
 </script>
 
 <template>
@@ -30,7 +30,7 @@ const nav = computed(() => [
       <nav :aria-label="m.nav.menu">
         <RouterLink v-for="item in nav" :key="item.to" :to="item.to" class="side-link">
           <AppIcon :name="item.icon" />
-          <span>{{ item.label }}</span>
+          <span>{{ item.text }}</span>
         </RouterLink>
       </nav>
     </aside>
@@ -44,9 +44,13 @@ const nav = computed(() => [
     </main>
 
     <nav v-if="compact" class="bottom-nav" :aria-label="m.nav.menu">
-      <RouterLink v-for="item in nav" :key="item.to" :to="item.to" class="bottom-link">
+      <RouterLink v-for="item in primary" :key="item.to" :to="item.to" class="bottom-link">
         <AppIcon :name="item.icon" />
-        <span>{{ item.label }}</span>
+        <span>{{ item.text }}</span>
+      </RouterLink>
+      <RouterLink to="/more" class="bottom-link" :class="{ 'router-link-exact-active': onSecondary }">
+        <AppIcon name="more" />
+        <span>{{ m.nav.more }}</span>
       </RouterLink>
     </nav>
   </div>
@@ -148,7 +152,8 @@ const nav = computed(() => [
 
 .bottom-nav {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
   background: var(--surface);
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom, 0px);
