@@ -48,3 +48,6 @@ Thumbs.db
 # --- Generated client assets ---
 apps/client/public/pyodide/
 apps/client/public/py/
+
+# --- Rust ---
+apps/client/src-tauri/target/
