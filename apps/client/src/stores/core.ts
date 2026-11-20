@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { core, CoreError, type CoreReady } from "../core/client";
+import { core, CoreError, type CoreReady, type SnapshotSaved } from "../core/client";
 import type { CoreVersion } from "../core/protocol";
 
 export type CoreStatus = "idle" | "loading" | "ready" | "failed";
@@ -11,6 +11,8 @@ export const useCore = defineStore("core", () => {
   const info = ref<CoreReady | null>(null);
   const version = ref<CoreVersion | null>(null);
   const error = ref<string>("");
+  const snapshotSaved = ref<SnapshotSaved | null>(null);
+  core.onSnapshotSaved = (info) => (snapshotSaved.value = info);
 
   async function start(): Promise<void> {
     if (status.value === "loading" || status.value === "ready") return;
@@ -26,5 +28,5 @@ export const useCore = defineStore("core", () => {
     }
   }
 
-  return { status, info, version, error, start, stderr: core.stderr };
+  return { status, info, version, error, snapshotSaved, start, forgetSnapshot: () => core.forgetSnapshot(), stderr: core.stderr };
 });

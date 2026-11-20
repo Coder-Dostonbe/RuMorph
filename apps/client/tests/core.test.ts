@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { BridgeReply, CoreVersion } from "../src/core/protocol";
-import { isCoreBundle, startCore, type CoreRuntime } from "../src/core/runtime";
+import { isCoreBundle, snapshotKey, startCore, type CoreBundle, type CoreRuntime } from "../src/core/runtime";
 
 const bundle: unknown = JSON.parse(readFileSync(new URL("../public/py/tilsim_core.json", import.meta.url), "utf8"));
 
@@ -57,5 +57,43 @@ describe("tilsim_core under Pyodide", () => {
     await expect(
       startCore({ version: "x", hash: "x", files: { "../evil.py": "" } }),
     ).rejects.toThrow(/invalid path/);
+  });
+
+  it("refuses a bundle that is not a core bundle", () => {
+    expect(isCoreBundle({ version: "1", hash: "x", files: { "a.py": 5 } })).toBe(false);
+  });
+});
+
+describe("start-up from a memory snapshot", () => {
+  const b = bundle as CoreBundle;
+  let snapshot: Uint8Array;
+
+  it("a fresh start can make a snapshot with tilsim_core imported", async () => {
+    const fresh = await startCore(b, { makeSnapshot: true });
+    expect(fresh.timings.mode).toBe("fresh");
+    expect(fresh.snapshot?.byteLength).toBeGreaterThan(1_000_000);
+    snapshot = fresh.snapshot!;
+    console.log(`fresh ${fresh.timings.totalMs.toFixed(0)} ms, snapshot ${(snapshot.byteLength / 1e6).toFixed(1)} MB`);
+  });
+
+  it("a start from the snapshot works and is much faster", async () => {
+    const fresh = await startCore(b);
+    const restored = await startCore(b, { snapshot });
+    expect(restored.timings.mode).toBe("snapshot");
+    console.log(`from snapshot ${restored.timings.totalMs.toFixed(0)} ms (fresh ${fresh.timings.totalMs.toFixed(0)} ms)`);
+    expect(restored.timings.totalMs).toBeLessThan(fresh.timings.totalMs / 2);
+    const reply = JSON.parse(restored.handle(JSON.stringify({ id: 1, op: "echo", args: { text: "Привет" } })));
+    expect(reply).toEqual({ id: 1, ok: true, result: { text: "Привет" } });
+  });
+
+  it("a damaged snapshot falls back to a fresh start instead of failing", async () => {
+    const broken = await startCore(b, { snapshot: new Uint8Array([1, 2, 3, 4]) });
+    expect(broken.timings.mode).toBe("fresh");
+    expect(broken.timings.snapshotError).toBeTruthy();
+    expect(JSON.parse(broken.handle(JSON.stringify({ id: 1, op: "version" }))).ok).toBe(true);
+  });
+
+  it("the snapshot key changes with the core bundle", () => {
+    expect(snapshotKey(b)).not.toBe(snapshotKey({ ...b, hash: "other" }));
   });
 });

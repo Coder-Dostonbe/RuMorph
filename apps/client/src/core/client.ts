@@ -1,5 +1,5 @@
 // The app's handle on tilsim_core: starts the Pyodide worker and sends typed calls.
-import type { BridgeReply, FromWorker, ToWorker } from "./protocol";
+import type { BridgeReply, FromWorker, ResourceTiming, ToWorker } from "./protocol";
 import type { StartTimings } from "./runtime";
 
 export class CoreError extends Error {
@@ -13,8 +13,16 @@ export class CoreError extends Error {
 
 export interface CoreReady {
   timings: StartTimings;
+  snapshotReadMs?: number;
+  resources: ResourceTiming[];
   bundleVersion: string;
   bundleHash: string;
+}
+
+export interface SnapshotSaved {
+  saved: boolean;
+  ms: number;
+  bytes: number;
 }
 
 const CALL_TIMEOUT_MS = 15_000;
@@ -32,6 +40,8 @@ export class CoreClient {
   private pending = new Map<number, Pending>();
   private ready: Promise<CoreReady> | null = null;
   readonly stderr: string[] = [];
+  /** Called once a snapshot made during this start has been written (or failed to be). */
+  onSnapshotSaved: ((info: SnapshotSaved) => void) | null = null;
 
   /** Starts the worker once; later calls return the same promise. */
   start(): Promise<CoreReady> {
@@ -45,7 +55,18 @@ export class CoreClient {
         switch (message.type) {
           case "ready":
             clearTimeout(timer);
-            resolve({ timings: message.timings, bundleVersion: message.bundleVersion, bundleHash: message.bundleHash });
+            resolve({
+              timings: message.timings,
+              snapshotReadMs: message.snapshotReadMs,
+              resources: message.resources,
+              bundleVersion: message.bundleVersion,
+              bundleHash: message.bundleHash,
+            });
+            break;
+          case "snapshot_saved":
+            this.onSnapshotSaved?.({ saved: message.saved, ms: message.ms, bytes: message.bytes });
+            break;
+          case "snapshot_forgotten":
             break;
           case "failed":
             clearTimeout(timer);
@@ -64,7 +85,7 @@ export class CoreClient {
         clearTimeout(timer);
         reject(new CoreError("start_failed", event.message || "core worker failed"));
       };
-      worker.postMessage({ type: "start" } satisfies ToWorker);
+      worker.postMessage({ type: "start", useSnapshot: true } satisfies ToWorker);
     });
     return this.ready;
   }
@@ -84,6 +105,11 @@ export class CoreClient {
     const reply = JSON.parse(raw) as BridgeReply<T>;
     if (!reply.ok) throw new CoreError(reply.error.code, reply.error.message);
     return reply.result;
+  }
+
+  /** Deletes the saved snapshot; the next app start initialises Python from scratch and makes a new one. */
+  forgetSnapshot(): void {
+    this.worker?.postMessage({ type: "forget_snapshot" } satisfies ToWorker);
   }
 
   private settle(seq: number, raw: string): void {

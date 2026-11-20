@@ -3,14 +3,31 @@
 import type { StartTimings } from "./runtime";
 
 export type ToWorker =
-  | { type: "start" }
+  | { type: "start"; useSnapshot: boolean }
+  | { type: "forget_snapshot" }
   | { type: "call"; seq: number; raw: string };
 
+/** One downloaded runtime file, from the Resource Timing API. */
+export interface ResourceTiming {
+  name: string;
+  ms: number;
+  bytes: number;
+}
+
 export type FromWorker =
-  | { type: "ready"; timings: StartTimings; bundleVersion: string; bundleHash: string }
+  | {
+      type: "ready";
+      timings: StartTimings;
+      snapshotReadMs?: number;
+      resources: ResourceTiming[];
+      bundleVersion: string;
+      bundleHash: string;
+    }
   | { type: "failed"; message: string }
   | { type: "reply"; seq: number; raw: string }
-  | { type: "stderr"; line: string };
+  | { type: "stderr"; line: string }
+  | { type: "snapshot_saved"; saved: boolean; ms: number; bytes: number }
+  | { type: "snapshot_forgotten" };
 
 export interface BridgeOk<T> {
   id: number | string;
