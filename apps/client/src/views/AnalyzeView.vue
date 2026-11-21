@@ -3,7 +3,6 @@
 // device, so it works offline. The engine's status is shown as it is: several readings stay
 // several, and an unknown word is an error with suggestions, never a guess.
 import { computed, nextTick, ref, watch } from "vue";
-import { CoreError } from "../core/client";
 import { grammar, type Analysis, type LexemeInfo, type PhraseAnalysis, type Reading } from "../core/grammar";
 import VocabEditor from "../ui/VocabEditor.vue";
 import LexemeDetail from "../ui/grammar/LexemeDetail.vue";
@@ -11,6 +10,7 @@ import { format, locale, useI18n } from "../i18n";
 import { useCore } from "../stores/core";
 import { useGrammar } from "../stores/grammar";
 import StatusBadge from "../ui/StatusBadge.vue";
+import { callFailed, coreFailed } from "../ui/failure";
 
 const m = useI18n();
 const core = useCore();
@@ -43,9 +43,6 @@ const source = computed(() => {
   return format(m.value.analyze.source, { name: src.name, license: src.license, lexemes: info.lexemes, forms: info.forms });
 });
 
-function describeError(e: unknown): string {
-  return e instanceof CoreError ? `${e.code}: ${e.message}` : String(e);
-}
 
 async function run(text = query.value): Promise<void> {
   const words = text.trim().split(/\s+/).filter(Boolean);
@@ -67,7 +64,7 @@ async function run(text = query.value): Promise<void> {
     selected.value = keep ?? (readings.length === 1 ? readings[0] ?? null : null);
     detailOpen.value = selected.value !== null;
   } catch (e) {
-    failure.value = format(m.value.analyze.callFailed, { error: describeError(e) });
+    failure.value = callFailed(m.value, e);
   } finally {
     busy.value = false;
   }
@@ -102,7 +99,7 @@ const word = computed(() =>
     <h1>{{ m.analyze.title }}</h1>
     <p class="muted intro">{{ m.analyze.intro }}</p>
 
-    <div v-if="core.status === 'failed'" class="alert err">{{ format(m.analyze.coreFailed, { error: core.error }) }}</div>
+    <div v-if="core.status === 'failed'" class="alert err">{{ coreFailed(m, core.error) }}</div>
     <div v-else-if="core.status !== 'ready'" class="alert warn">{{ m.analyze.coreLoading }}</div>
 
     <form class="card search" @submit.prevent="run()">

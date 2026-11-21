@@ -6,6 +6,7 @@ import { grammar, type DayActivity } from "../core/grammar";
 import { loadRecords, utcOffsetMinutes, type Records } from "../data/records";
 import { dateLocale, format, useI18n } from "../i18n";
 import { useCore } from "../stores/core";
+import { callFailed } from "../ui/failure";
 
 const m = useI18n();
 const core = useCore();
@@ -25,7 +26,7 @@ async function load(): Promise<void> {
     records.value ??= await loadRecords();
     days.value = await grammar.calendar(records.value, year.value, month.value, utcOffsetMinutes());
   } catch (e) {
-    failure.value = String(e);
+    failure.value = callFailed(m.value, e);
   }
 }
 onMounted(load);

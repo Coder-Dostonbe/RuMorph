@@ -1,24 +1,25 @@
 <script setup lang="ts">
 // Dictionary: every word of the lexicon (search by form or beginning, or browse by frequency),
-// and the learner's own words with their translations. Runs offline.
+// and the learner's own words. Translations come from the admin (stores/translations.ts). Runs offline.
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { CoreError } from "../core/client";
 import { grammar, POS_FILTERS, type LexemeInfo, type PosFilter, type SearchResult } from "../core/grammar";
-import { storageKind } from "../data/userData";
 import { format, locale, useI18n } from "../i18n";
 import { useCore } from "../stores/core";
 import { useGrammar } from "../stores/grammar";
+import { useTranslations } from "../stores/translations";
 import { useVocabulary } from "../stores/vocabulary";
 import VocabEditor from "../ui/VocabEditor.vue";
 import FrequencyBadge from "../ui/grammar/FrequencyBadge.vue";
 import LexemeDetail from "../ui/grammar/LexemeDetail.vue";
+import { callFailed, coreFailed } from "../ui/failure";
 
 const PAGE = 40;
 const m = useI18n();
 const core = useCore();
 const g = useGrammar();
 const vocab = useVocabulary();
+const tr = useTranslations();
 const route = useRoute();
 const router = useRouter();
 
@@ -33,6 +34,8 @@ const openInfo = ref<LexemeInfo | null>(null);
 
 const latin = computed(() => /[a-z]/i.test(query.value));
 const mine = computed(() => vocab.find(query.value));
+// Latin letters: the query is Uzbek, so the translations are searched instead of the lexicon.
+const byTranslation = computed(() => (latin.value ? tr.search(query.value).slice(0, 200) : []));
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 let seq = 0;
@@ -48,7 +51,7 @@ async function search(append = false): Promise<void> {
     if (mySeq !== seq) return;
     result.value = append && result.value ? { total: page.total, items: [...result.value.items, ...page.items] } : page;
   } catch (e) {
-    if (mySeq === seq) failure.value = format(m.value.analyze.callFailed, { error: e instanceof CoreError ? e.message : String(e) });
+    if (mySeq === seq) failure.value = callFailed(m.value, e);
   } finally {
     if (mySeq === seq) busy.value = false;
   }
@@ -70,6 +73,7 @@ watch(() => route.query, (q) => {
 });
 onMounted(() => {
   void vocab.load();
+  void tr.load();
   void search();
 });
 
@@ -89,9 +93,8 @@ const openWord = computed(() =>
   <section class="page">
     <h1>{{ m.dictionary.title }}</h1>
     <p class="muted intro">{{ m.dictionary.intro }}</p>
-    <div v-if="core.status === 'failed'" class="alert err">{{ format(m.analyze.coreFailed, { error: core.error }) }}</div>
+    <div v-if="core.status === 'failed'" class="alert err">{{ coreFailed(m, core.error) }}</div>
     <div v-else-if="core.status !== 'ready'" class="alert warn">{{ m.analyze.coreLoading }}</div>
-    <div v-if="storageKind === 'browser'" class="alert warn">{{ m.dictionary.browserStorage }}</div>
 
     <div class="layout">
       <div class="list-col">
@@ -115,7 +118,17 @@ const openWord = computed(() =>
         <div v-if="failure" class="alert err">{{ failure }}</div>
 
         <template v-if="tab === 'all'">
-          <p v-if="latin" class="muted small">{{ m.dictionary.latinHint }}</p>
+          <template v-if="latin">
+            <p class="muted small">{{ m.dictionary.latinHint }} {{ format(m.dictionary.translatedFound, { n: byTranslation.length }) }}</p>
+            <ul class="words">
+              <li v-for="e in byTranslation" :key="e.lexeme_id">
+                <button type="button" class="word" :class="{ active: e.lexeme_id === openId }" @click="open(e.lexeme_id)">
+                  <span class="lemma" lang="ru">{{ e.lemma }}</span>
+                  <span class="tr">{{ e.translation }}</span>
+                </button>
+              </li>
+            </ul>
+          </template>
           <p v-else-if="result" class="muted small">
             {{ query ? format(m.dictionary.found, { n: result.total }) : m.dictionary.browsing }}
           </p>
@@ -123,7 +136,7 @@ const openWord = computed(() =>
             <li v-for="item in result.items" :key="item.id">
               <button type="button" class="word" :class="{ active: item.id === openId }" @click="open(item.id)">
                 <span class="lemma" lang="ru">{{ item.lemma }}</span>
-                <span v-if="vocab.byLexeme.get(item.id)?.translation" class="tr">{{ vocab.byLexeme.get(item.id)?.translation }}</span>
+                <span v-if="tr.get(item.id)" class="tr">{{ tr.get(item.id) }}</span>
                 <span class="muted small desc">{{ item.description }}</span>
                 <FrequencyBadge :rank="item.rank" />
               </button>
@@ -142,7 +155,7 @@ const openWord = computed(() =>
             <li v-for="row in mine" :key="row.id">
               <button type="button" class="word" :class="{ active: row.lexeme_id === openId }" @click="open(row.lexeme_id)">
                 <span class="lemma" lang="ru">{{ row.lemma }}</span>
-                <span v-if="row.translation" class="tr">{{ row.translation }}</span>
+                <span v-if="tr.get(row.lexeme_id)" class="tr">{{ tr.get(row.lexeme_id) }}</span>
                 <span class="muted small">{{ m.dictionary.statuses[row.status] }}</span>
               </button>
             </li>

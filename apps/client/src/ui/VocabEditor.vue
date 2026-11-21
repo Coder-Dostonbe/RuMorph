@@ -1,11 +1,13 @@
 <script setup lang="ts">
-// The learner's own entry for a word: translation, note, examples, learning status.
-// Nothing is filled in for them: there is no open Russian–Uzbek dictionary, so the translation
-// is theirs to write (AI suggestions come in Phase 5).
+// The learner's own entry for a word: note, examples, learning status, flashcards.
+// The translation is not theirs to write while the app is in testing: it comes from the admin
+// (src/stores/translations.ts) and is shown above, in the word's header.
 import { computed, ref, watch } from "vue";
 import type { Example, VocabularyRow } from "../data/userData";
 import { format, useI18n } from "../i18n";
+import { callFailed } from "./failure";
 import { useCards } from "../stores/cards";
+import { useTranslations } from "../stores/translations";
 import { useVocabulary, type WordRef } from "../stores/vocabulary";
 
 const props = defineProps<{ word: WordRef }>();
@@ -15,8 +17,10 @@ const vocab = useVocabulary();
 const cards = useCards();
 void cards.load();
 
+const tr = useTranslations();
 const directions = ["ru_uz", "uz_ru"] as const;
-const canCard = computed(() => (existing.value?.translation ?? "") !== "");
+// The Uzbek → Russian card asks with the translation, so it needs one.
+const hasTranslation = computed(() => tr.get(props.word.id) !== null);
 
 async function toggleCard(direction: (typeof directions)[number]): Promise<void> {
   if (cards.find(props.word.id, direction)) await cards.remove(props.word.id, direction);
@@ -24,7 +28,6 @@ async function toggleCard(direction: (typeof directions)[number]): Promise<void>
 }
 
 const existing = computed(() => vocab.byLexeme.get(props.word.id) ?? null);
-const translation = ref("");
 const note = ref("");
 const examples = ref<Example[]>([]);
 const status = ref<VocabularyRow["status"]>("learning");
@@ -34,7 +37,6 @@ const busy = ref(false);
 
 function reset(): void {
   const row = existing.value;
-  translation.value = row?.translation ?? "";
   note.value = row?.note ?? "";
   examples.value = row ? row.examples.map((e) => ({ ...e })) : [];
   status.value = row?.status ?? "learning";
@@ -49,12 +51,12 @@ async function save(): Promise<void> {
   failure.value = "";
   try {
     const row = await vocab.save(props.word, {
-      translation: translation.value, note: note.value, examples: examples.value, status: status.value,
+      note: note.value, examples: examples.value, status: status.value,
     });
     savedAt.value = new Date().toLocaleTimeString();
     emit("saved", row);
   } catch (e) {
-    failure.value = format(m.value.dictionary.saveFailed, { error: String(e) });
+    failure.value = format(m.value.dictionary.saveFailed, { error: callFailed(m.value, e) });
   } finally {
     busy.value = false;
   }
@@ -74,10 +76,6 @@ async function remove(): Promise<void> {
 <template>
   <form class="editor" @submit.prevent="save">
     <h3>{{ existing ? m.dictionary.myEntry : m.dictionary.addToMine }}</h3>
-    <div class="field">
-      <label :for="`tr-${word.id}`">{{ m.dictionary.translation }}</label>
-      <input :id="`tr-${word.id}`" v-model="translation" class="input" maxlength="200" :placeholder="m.dictionary.translationHint" />
-    </div>
     <div class="field">
       <label :for="`note-${word.id}`">{{ m.dictionary.note }}</label>
       <textarea :id="`note-${word.id}`" v-model="note" class="input area" rows="2" maxlength="1000" />
@@ -102,13 +100,14 @@ async function remove(): Promise<void> {
     </fieldset>
     <fieldset class="field">
       <legend>{{ m.cards.cardsFor }}</legend>
-      <div v-if="canCard" class="toggles">
-        <label v-for="d in directions" :key="d" class="toggle">
-          <input type="checkbox" :checked="!!cards.find(word.id, d)" @change="toggleCard(d)" />
+      <div class="toggles">
+        <label v-for="d in directions" :key="d" class="toggle" :class="{ off: d === 'uz_ru' && !hasTranslation && !cards.find(word.id, d) }">
+          <input type="checkbox" :checked="!!cards.find(word.id, d)"
+            :disabled="d === 'uz_ru' && !hasTranslation && !cards.find(word.id, d)" @change="toggleCard(d)" />
           {{ m.cards.directions[d] }}
         </label>
       </div>
-      <p v-else class="muted small">{{ m.cards.needTranslation }}</p>
+      <p v-if="!hasTranslation" class="muted small">{{ m.cards.needTranslation }}</p>
     </fieldset>
     <div v-if="failure" class="alert err">{{ failure }}</div>
     <div class="actions">
@@ -169,6 +168,10 @@ legend {
   align-items: center;
   gap: 0.45rem;
   cursor: pointer;
+}
+.toggle.off {
+  color: var(--muted);
+  cursor: default;
 }
 .toggle input {
   width: 1.1rem;

@@ -1,22 +1,25 @@
 <script setup lang="ts">
 // Flashcards: review session and the list of cards. Scheduling is SM-2 in tilsim_core (srs.py);
-// the card faces come from the learner's own entries (translation, note, examples) and the
+// the card faces come from the admin's translation, the learner's own entries (note, examples) and the
 // lexicon (description, principal forms).
 import { computed, onMounted, ref, watch } from "vue";
-import { CoreError } from "../core/client";
 import { grammar, type WordInfo } from "../core/grammar";
 import type { FlashcardRow } from "../data/userData";
 import { format, locale, useI18n } from "../i18n";
 import { useCards } from "../stores/cards";
 import { useCore } from "../stores/core";
 import { useGrammar } from "../stores/grammar";
+import { useTranslations } from "../stores/translations";
 import { useVocabulary } from "../stores/vocabulary";
 import { formatDays, formatUntil } from "../ui/duration";
+import { callFailed, coreFailed } from "../ui/failure";
 
 const m = useI18n();
 const core = useCore();
 const cards = useCards();
 const vocab = useVocabulary();
+const tr = useTranslations();
+void tr.load();
 const g = useGrammar();
 const PART_OF_SPEECH = new Set(["VERB", "ADJF", "indc"]);
 
@@ -35,7 +38,7 @@ const lastSessionAnswers = ref<number | null>(null);
 const busy = ref(false);
 
 function err(e: unknown): string {
-  return e instanceof CoreError ? `${e.code}: ${e.message}` : String(e);
+  return callFailed(m.value, e);
 }
 
 async function refresh(): Promise<void> {
@@ -135,7 +138,7 @@ async function onNewPerDay(event: Event): Promise<void> {
   <section class="page" tabindex="-1" @keydown="onKey">
     <h1>{{ m.cards.title }}</h1>
     <p class="muted intro">{{ m.cards.intro }}</p>
-    <div v-if="core.status === 'failed'" class="alert err">{{ format(m.analyze.coreFailed, { error: core.error }) }}</div>
+    <div v-if="core.status === 'failed'" class="alert err">{{ coreFailed(m, core.error) }}</div>
     <div v-else-if="core.status !== 'ready'" class="alert warn">{{ m.analyze.coreLoading }}</div>
     <div v-if="failure" class="alert err">{{ failure }}</div>
 
@@ -175,7 +178,7 @@ async function onNewPerDay(event: Event): Promise<void> {
           <tbody>
             <tr v-for="c in sortedCards" :key="c.id">
               <td lang="ru" class="w">{{ words[c.lexeme_id]?.lemma ?? c.lexeme_id.split("|")[0] }}</td>
-              <td>{{ vocab.byLexeme.get(c.lexeme_id)?.translation }}</td>
+              <td>{{ tr.get(c.lexeme_id) ?? "" }}</td>
               <td class="muted small">{{ m.cards.directions[c.direction] }}</td>
               <td class="small">{{ m.cards.due }}: {{ formatUntil(c.due_at, m) }}</td>
               <td class="small">{{ m.cards.interval }}: {{ c.interval_days ? formatDays(c.interval_days, m) : "—" }}</td>
@@ -197,10 +200,10 @@ async function onNewPerDay(event: Event): Promise<void> {
           <h2 class="prompt" lang="ru">{{ currentWord?.lemma ?? current.lexeme_id.split("|")[0] }}</h2>
           <p class="muted small">{{ currentWord?.description }}</p>
         </template>
-        <h2 v-else class="prompt">{{ currentEntry?.translation || m.cards.noTranslation }}</h2>
+        <h2 v-else class="prompt">{{ tr.get(current.lexeme_id) ?? m.common.testMode }}</h2>
 
         <div v-if="revealed" class="answer">
-          <h2 v-if="current.direction === 'ru_uz'" class="tr">{{ currentEntry?.translation || m.cards.noTranslation }}</h2>
+          <h2 v-if="current.direction === 'ru_uz'" class="tr">{{ tr.get(current.lexeme_id) ?? m.common.testMode }}</h2>
           <template v-else>
             <h2 class="tr" lang="ru">{{ currentWord?.lemma ?? current.lexeme_id.split("|")[0] }}</h2>
             <p class="muted small">{{ currentWord?.description }}</p>

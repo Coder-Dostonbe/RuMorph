@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import { NAV } from "./app/nav";
+import { visibleNav } from "./app/nav";
 import { compact, platform } from "./app/platform";
 import { useI18n } from "./i18n";
+import { useAdmin } from "./stores/admin";
 import AppIcon from "./ui/AppIcon.vue";
 
 const m = useI18n();
 const route = useRoute();
+const admin = useAdmin();
 
-const nav = computed(() => NAV.map((item) => ({ ...item, text: item.label(m.value) })));
+const nav = computed(() => visibleNav(admin.unlocked).map((item) => ({ ...item, text: item.label(m.value) })));
 const primary = computed(() => nav.value.filter((item) => item.primary));
 // "More" is the active tab whenever the current page is not one of the primary ones.
 const onSecondary = computed(() => !primary.value.some((item) => item.to === route.path));

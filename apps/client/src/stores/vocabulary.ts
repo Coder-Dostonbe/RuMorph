@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { vocabulary, type Example, type VocabularyRow } from "../data/userData";
+import { useTranslations } from "./translations";
 
 export interface WordRef {
   id: string;
@@ -8,7 +9,10 @@ export interface WordRef {
   pos: string | null;
 }
 
-/** The learner's own words (user_vocabulary), loaded once and kept in memory. */
+/**
+ * The learner's own words (user_vocabulary), loaded once and kept in memory. Their old
+ * `translation` column is no longer written: translations are in ./translations.ts.
+ */
 export const useVocabulary = defineStore("vocabulary", () => {
   const rows = ref<VocabularyRow[]>([]);
   const loaded = ref(false);
@@ -28,11 +32,10 @@ export const useVocabulary = defineStore("vocabulary", () => {
 
   async function save(
     word: WordRef,
-    fields: { translation: string; note: string; examples: Example[]; status: VocabularyRow["status"] },
+    fields: { note: string; examples: Example[]; status: VocabularyRow["status"] },
   ): Promise<VocabularyRow> {
     await load();
     const clean = {
-      translation: fields.translation.trim(),
       note: fields.note.trim(),
       examples: fields.examples.map((e) => ({ ru: e.ru.trim(), uz: e.uz.trim() })).filter((e) => e.ru || e.uz),
       status: fields.status,
@@ -40,7 +43,7 @@ export const useVocabulary = defineStore("vocabulary", () => {
     const existing = byLexeme.value.get(word.id);
     const row = existing
       ? await vocabulary.update(existing, clean)
-      : await vocabulary.insert({ lexeme_id: word.id, lemma: word.lemma, pos: word.pos, ...clean });
+      : await vocabulary.insert({ lexeme_id: word.id, lemma: word.lemma, pos: word.pos, translation: "", ...clean });
     rows.value = [...rows.value.filter((r) => r.id !== row.id), row];
     return row;
   }
@@ -56,8 +59,9 @@ export const useVocabulary = defineStore("vocabulary", () => {
   function find(text: string): VocabularyRow[] {
     const needle = text.trim().toLocaleLowerCase();
     if (!needle) return [...rows.value].sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+    const translations = useTranslations();
     return rows.value.filter((r) =>
-      [r.translation, r.note, r.lemma].some((v) => v.toLocaleLowerCase().includes(needle)),
+      [translations.get(r.lexeme_id) ?? "", r.note, r.lemma].some((v) => v.toLocaleLowerCase().includes(needle)),
     );
   }
 

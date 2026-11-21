@@ -7,6 +7,7 @@ import { router } from "./app/router";
 import { useCore } from "./stores/core";
 import { useSession } from "./stores/session";
 import { useSettings } from "./stores/settings";
+import { useTranslations } from "./stores/translations";
 import { useVocabulary } from "./stores/vocabulary";
 
 const app = createApp(App);
@@ -21,3 +22,4 @@ app.mount("#app");
 void useCore().start();
 void useSession().restore();
 void useVocabulary().load();
+void useTranslations().load();

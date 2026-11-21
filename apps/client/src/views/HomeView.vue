@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Dashboard: today's work and the learner's results, all counted from their own records by
-// tilsim_core (stats.py), plus the state of the engine, the account and the server.
+// tilsim_core (stats.py). The state of the engine, the account and the server is in the admin panel.
 import { computed, onMounted, ref, watch } from "vue";
 import { grammar, type Summary } from "../core/grammar";
 import { loadRecords, utcOffsetMinutes } from "../data/records";
@@ -8,14 +8,10 @@ import { readings, readingTexts, type ReadingTextRow } from "../data/userData";
 import { dateLocale, format, useI18n } from "../i18n";
 import { useCards } from "../stores/cards";
 import { useCore } from "../stores/core";
-import { useServer } from "../stores/server";
-import { useSession } from "../stores/session";
-import StatusBadge from "../ui/StatusBadge.vue";
+import { callFailed, coreFailed } from "../ui/failure";
 
 const m = useI18n();
 const core = useCore();
-const server = useServer();
-const session = useSession();
 const cards = useCards();
 
 const summary = ref<Summary | null>(null);
@@ -37,13 +33,10 @@ async function load(): Promise<void> {
     for (const h of history) if ((last.get(h.text_id) ?? "") < h.read_at) last.set(h.text_id, h.read_at);
     todayText.value = [...texts].sort((a, b) => (last.get(a.id) ?? "").localeCompare(last.get(b.id) ?? "") || a.created_at.localeCompare(b.created_at))[0] ?? null;
   } catch (e) {
-    failure.value = String(e);
+    failure.value = callFailed(m.value, e);
   }
 }
-onMounted(() => {
-  void load();
-  if (server.state === "unknown") void server.check();
-});
+onMounted(() => void load());
 watch(() => core.status, () => void load());
 
 const bars = computed(() => {
@@ -61,6 +54,7 @@ const empty = computed(() => summary.value !== null && summary.value.words.total
     <h1>{{ m.home.title }}</h1>
     <p class="muted intro">{{ m.home.intro }}</p>
     <div v-if="core.status !== 'ready' && core.status !== 'failed'" class="alert warn">{{ m.analyze.coreLoading }}</div>
+    <div v-if="core.status === 'failed'" class="alert err">{{ coreFailed(m, core.error) }}</div>
     <div v-if="failure" class="alert err">{{ failure }}</div>
 
     <article class="card today">
@@ -131,43 +125,6 @@ const empty = computed(() => summary.value !== null && summary.value.words.total
       </table>
     </article>
 
-    <h2 class="system-title">{{ m.home.system }}</h2>
-    <div class="grid">
-      <article class="card">
-        <header>
-          <h3>{{ m.home.engineCard }}</h3>
-          <StatusBadge v-if="core.status === 'ready'" tone="ok" :label="m.status.ready" />
-          <StatusBadge v-else-if="core.status === 'failed'" tone="err" :label="m.status.failed" />
-          <StatusBadge v-else tone="muted" :label="m.status.loading" />
-        </header>
-        <p v-if="core.status === 'ready' && core.version" class="small">
-          {{ format(m.home.engineReady, { python: core.version.python, core: core.version.core }) }}
-        </p>
-        <p v-else-if="core.status === 'failed'" class="err-text small">{{ format(m.home.engineFailed, { error: core.error }) }}</p>
-        <p v-else class="muted small">{{ m.home.engineLoading }}</p>
-      </article>
-      <article class="card">
-        <header>
-          <h3>{{ m.home.accountCard }}</h3>
-          <StatusBadge v-if="session.signedIn" tone="ok" :label="m.status.online" />
-          <StatusBadge v-else tone="muted" :label="m.status.signedOut" />
-        </header>
-        <p v-if="session.user" class="small">{{ format(m.home.signedInAs, { email: session.user.email }) }}</p>
-        <p v-else class="muted small">{{ m.home.signedOut }}</p>
-      </article>
-      <article class="card">
-        <header>
-          <h3>{{ m.home.serverCard }}</h3>
-          <StatusBadge v-if="server.state === 'ok'" tone="ok" :label="m.status.online" />
-          <StatusBadge v-else-if="server.state === 'unreachable'" tone="err" :label="m.status.offline" />
-          <StatusBadge v-else-if="server.state === 'not_configured'" tone="warn" :label="m.status.notConfigured" />
-          <StatusBadge v-else tone="muted" :label="m.status.loading" />
-        </header>
-        <p v-if="server.state === 'ok'" class="small">{{ format(m.home.serverOk, { ms: server.latencyMs ?? 0 }) }}</p>
-        <p v-else-if="server.state === 'not_configured'" class="muted small">{{ m.home.serverNotConfigured }}</p>
-        <p v-else-if="server.state === 'unreachable'" class="muted small">{{ format(m.home.serverUnreachable, { error: server.error }) }}</p>
-      </article>
-    </div>
   </section>
 </template>
 
@@ -267,29 +224,6 @@ a.tile:hover {
 }
 .chart + table + * {
   margin-top: 1.6rem;
-}
-.system-title {
-  margin: 1.2rem 0 0;
-  font-size: 1rem;
-  color: var(--muted);
-}
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 0.75rem;
-}
-.grid header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-.grid h3 {
-  margin: 0;
-  font-size: 0.95rem;
-}
-.err-text {
-  color: var(--err);
 }
 .visually-hidden {
   position: absolute;

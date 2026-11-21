@@ -13,6 +13,10 @@ defineProps<{ name: IconName }>();
       <path d="M5.5 9v11h13V9" />
       <path d="M10 20v-6h4v6" />
     </template>
+    <template v-else-if="name === 'shield'">
+      <path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6z" />
+      <path d="m9 12 2 2 4-4" />
+    </template>
     <template v-else-if="name === 'search'">
       <circle cx="10.5" cy="10.5" r="6.5" />
       <path d="m15.5 15.5 5 5" />

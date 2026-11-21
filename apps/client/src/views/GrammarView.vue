@@ -4,12 +4,12 @@
 // and the table of prepositions with their cases.
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { CoreError } from "../core/client";
 import { grammar, type Catalog, type CatalogRule, type PrepositionInfo, type RuleExamples } from "../core/grammar";
 import { format, locale, useI18n } from "../i18n";
 import { useCore } from "../stores/core";
 import { useGrammar } from "../stores/grammar";
 import FrequencyBadge from "../ui/grammar/FrequencyBadge.vue";
+import { callFailed, coreFailed } from "../ui/failure";
 
 const m = useI18n();
 const core = useCore();
@@ -28,7 +28,7 @@ const examples = ref<RuleExamples | null>(null);
 const examplesBusy = ref(false);
 
 function err(e: unknown): string {
-  return format(m.value.analyze.callFailed, { error: e instanceof CoreError ? `${e.code}: ${e.message}` : String(e) });
+  return callFailed(m.value, e);
 }
 
 async function load(): Promise<void> {
@@ -93,7 +93,7 @@ const kindLabel = (kind: string): string => (m.value.grammar.kinds as Record<str
   <section class="page">
     <h1>{{ m.grammar.title }}</h1>
     <p class="muted intro">{{ m.grammar.intro }}</p>
-    <div v-if="core.status === 'failed'" class="alert err">{{ format(m.analyze.coreFailed, { error: core.error }) }}</div>
+    <div v-if="core.status === 'failed'" class="alert err">{{ coreFailed(m, core.error) }}</div>
     <div v-else-if="core.status !== 'ready'" class="alert warn">{{ m.analyze.coreLoading }}</div>
     <div v-if="failure" class="alert err">{{ failure }}</div>
 

@@ -4,7 +4,6 @@
 // Finishing a text logs a reading session (reading_history).
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { CoreError } from "../core/client";
 import { grammar, type PreparedText, type ReadingToken } from "../core/grammar";
 import { readings, readingTexts, type ReadingRow, type ReadingTextRow } from "../data/userData";
 import { dateLocale, format, useI18n } from "../i18n";
@@ -13,6 +12,7 @@ import { useVocabulary } from "../stores/vocabulary";
 import VocabEditor from "../ui/VocabEditor.vue";
 import LexemeDetail from "../ui/grammar/LexemeDetail.vue";
 import type { LexemeInfo } from "../core/grammar";
+import { callFailed, coreFailed } from "../ui/failure";
 
 const MAX = 50000;
 const m = useI18n();
@@ -35,7 +35,7 @@ const openedAt = ref(0);
 const finishedNote = ref("");
 
 function err(e: unknown): string {
-  return format(m.value.analyze.callFailed, { error: e instanceof CoreError ? `${e.code}: ${e.message}` : String(e) });
+  return callFailed(m.value, e);
 }
 
 async function load(): Promise<void> {
@@ -150,7 +150,7 @@ async function finish(): Promise<void> {
 <template>
   <section class="page">
     <h1>{{ m.reading.title }}</h1>
-    <div v-if="core.status === 'failed'" class="alert err">{{ format(m.analyze.coreFailed, { error: core.error }) }}</div>
+    <div v-if="core.status === 'failed'" class="alert err">{{ coreFailed(m, core.error) }}</div>
     <div v-else-if="core.status !== 'ready'" class="alert warn">{{ m.analyze.coreLoading }}</div>
     <div v-if="failure" class="alert err">{{ failure }}</div>
 

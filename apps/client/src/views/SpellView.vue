@@ -1,11 +1,11 @@
 <script setup lang="ts">
 // Spell and grammar check of a Russian text (tilsim_core/spell.py), on the device.
 import { computed, ref, watch } from "vue";
-import { CoreError } from "../core/client";
 import { grammar, type SpellIssue, type SpellResult } from "../core/grammar";
 import { format, locale, useI18n } from "../i18n";
 import { useCore } from "../stores/core";
 import { useGrammar } from "../stores/grammar";
+import { callFailed, coreFailed } from "../ui/failure";
 
 const MAX = 20000;
 const m = useI18n();
@@ -32,7 +32,7 @@ async function run(): Promise<void> {
     result.value = await grammar.spellcheck(snapshot, locale.value);
     checkedText.value = snapshot;
   } catch (e) {
-    failure.value = format(m.value.analyze.callFailed, { error: e instanceof CoreError ? `${e.code}: ${e.message}` : String(e) });
+    failure.value = callFailed(m.value, e);
   } finally {
     busy.value = false;
   }
@@ -71,7 +71,7 @@ const hasUnknown = computed(() => result.value?.issues.some((i) => i.level === "
   <section class="page">
     <h1>{{ m.spell.title }}</h1>
     <p class="muted intro">{{ m.spell.intro }}</p>
-    <div v-if="core.status === 'failed'" class="alert err">{{ format(m.analyze.coreFailed, { error: core.error }) }}</div>
+    <div v-if="core.status === 'failed'" class="alert err">{{ coreFailed(m, core.error) }}</div>
     <div v-else-if="core.status !== 'ready'" class="alert warn">{{ m.analyze.coreLoading }}</div>
 
     <div class="card">

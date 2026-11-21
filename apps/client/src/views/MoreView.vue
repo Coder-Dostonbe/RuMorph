@@ -1,17 +1,19 @@
 <script setup lang="ts">
 // Every section, for the phone layout where the bottom bar holds only the main ones.
-import { NAV } from "../app/nav";
+import { visibleNav } from "../app/nav";
 import { useI18n } from "../i18n";
+import { useAdmin } from "../stores/admin";
 import AppIcon from "../ui/AppIcon.vue";
 
 const m = useI18n();
+const admin = useAdmin();
 </script>
 
 <template>
   <section class="page">
     <h1>{{ m.more.title }}</h1>
     <nav class="list" :aria-label="m.nav.menu">
-      <RouterLink v-for="item in NAV" :key="item.to" :to="item.to" class="item">
+      <RouterLink v-for="item in visibleNav(admin.unlocked)" :key="item.to" :to="item.to" class="item">
         <AppIcon :name="item.icon" />
         <span>{{ item.label(m) }}</span>
       </RouterLink>

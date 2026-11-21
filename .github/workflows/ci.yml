@@ -20,6 +20,10 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - working-directory: core
         run: uv run --python 3.14 --no-project --with pytest python -m pytest -q
+      - name: translations shipped with the app (merge tool and file)
+        run: |
+          uv run --python 3.14 --no-project --with pytest python -m pytest -q tools/translations
+          uv run --python 3.14 --no-project python tools/translations/merge.py --check
       - name: lexicon matches its OpenCorpora export
         run: >
           uv run --python 3.14 --no-project

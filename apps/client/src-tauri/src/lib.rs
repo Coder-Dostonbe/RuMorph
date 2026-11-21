@@ -3,8 +3,10 @@
 //! The shell stays small: the UI and its data layer are in the webview, the
 //! domain logic runs in Pyodide inside the webview. Rust owns only what the
 //! webview must not do itself: the SQLite database (through tauri-plugin-sql,
-//! with the migrations in db/sqlite/migrations) and the refresh token.
+//! with the migrations in db/sqlite/migrations), the refresh token and the admin
+//! password hash (secret.rs), and writing the admin's translation export (export.rs).
 
+mod export;
 mod secret;
 #[cfg(desktop)]
 mod window;
@@ -26,6 +28,12 @@ fn migrations() -> Vec<Migration> {
             version: 2,
             description: "learning",
             sql: include_str!("../../../../db/sqlite/migrations/0002_learning.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 3,
+            description: "admin_translations",
+            sql: include_str!("../../../../db/sqlite/migrations/0003_admin_translations.sql"),
             kind: MigrationKind::Up,
         },
     ]
@@ -56,7 +64,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             secret::secret_get,
             secret::secret_set,
-            secret::secret_delete
+            secret::secret_delete,
+            export::export_translations
         ])
         .run(tauri::generate_context!())
         .expect("error while running Tilsim");

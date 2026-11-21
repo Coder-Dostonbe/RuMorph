@@ -2,14 +2,15 @@
 // Exercises: a test of one kind of question, or the quick-answer game (60 s, mixed kinds).
 // Questions come from tilsim_core (exercises.py); results go to test_results.
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { CoreError } from "../core/client";
 import { grammar, type ExerciseKind, type Question } from "../core/grammar";
 import { testResults, type TestResultRow } from "../data/userData";
 import { dateLocale, format, useI18n } from "../i18n";
 import { useCore } from "../stores/core";
 import { useGrammar } from "../stores/grammar";
+import { useTranslations, type TranslationEntry } from "../stores/translations";
 import { useVocabulary } from "../stores/vocabulary";
 import QuestionCard from "../ui/QuestionCard.vue";
+import { callFailed, coreFailed } from "../ui/failure";
 
 const KINDS: ExerciseKind[] = ["case_form", "conjugation", "preposition", "gender", "aspect", "translation"];
 const LEVELS = ["500", "1000", "3000"] as const;
@@ -20,6 +21,7 @@ const PENALTY_SECONDS = 3;
 const m = useI18n();
 const core = useCore();
 const vocab = useVocabulary();
+const tr = useTranslations();
 const g = useGrammar();
 
 /** What was asked, in words: "jo'nalish kelishigi, ko'plik", "у …", "1-shaxs, birlik". */
@@ -45,7 +47,7 @@ const timeLeft = ref(GAME_SECONDS);
 let clock: ReturnType<typeof setInterval> | undefined;
 
 function err(e: unknown): string {
-  return format(m.value.analyze.callFailed, { error: e instanceof CoreError ? `${e.code}: ${e.message}` : String(e) });
+  return callFailed(m.value, e);
 }
 
 async function loadHistory(): Promise<void> {
@@ -54,17 +56,24 @@ async function loadHistory(): Promise<void> {
 onMounted(() => {
   void loadHistory();
   void vocab.load();
+  void tr.load();
 });
 onBeforeUnmount(() => clearInterval(clock));
 
-const translated = computed(() => vocab.rows.filter((r) => r.translation.trim()));
-const distinctTranslations = computed(() => new Set(translated.value.map((r) => r.translation.trim())).size);
+// Translation questions use the learner's own words when at least four of them have different
+// translations; otherwise every translated word.
+const distinct = (list: TranslationEntry[]) => new Set(list.map((e) => e.translation)).size;
+const translated = computed(() => {
+  const mine = vocab.rows.map((r) => tr.all.get(r.lexeme_id)).filter((e): e is TranslationEntry => e !== undefined);
+  return distinct(mine) >= 4 ? mine : [...tr.all.values()];
+});
+const distinctTranslations = computed(() => distinct(translated.value));
 function available(k: ExerciseKind): boolean {
   return k !== "translation" || distinctTranslations.value >= 4;
 }
 
 const seed = (): number => Math.floor(Math.random() * 2 ** 31);
-const vocabularyArg = () => translated.value.map((r) => ({ lexeme_id: r.lexeme_id, lemma: r.lemma, translation: r.translation }));
+const vocabularyArg = () => translated.value.map((e) => ({ lexeme_id: e.lexeme_id, lemma: e.lemma, translation: e.translation }));
 
 async function startTest(): Promise<void> {
   failure.value = "";
@@ -187,7 +196,7 @@ watch(() => core.status, () => (failure.value = ""));
 <template>
   <section class="page">
     <h1>{{ m.tests.title }}</h1>
-    <div v-if="core.status === 'failed'" class="alert err">{{ format(m.analyze.coreFailed, { error: core.error }) }}</div>
+    <div v-if="core.status === 'failed'" class="alert err">{{ coreFailed(m, core.error) }}</div>
     <div v-else-if="core.status !== 'ready'" class="alert warn">{{ m.analyze.coreLoading }}</div>
     <div v-if="failure" class="alert err">{{ failure }}</div>
 

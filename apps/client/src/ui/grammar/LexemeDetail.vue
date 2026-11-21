@@ -1,13 +1,15 @@
 <script setup lang="ts">
-// One word from the lexicon: what it is, how frequent, the rules that explain it and every form.
+// One word from the lexicon: its translation, what it is, how frequent, the rules that explain it
+// and every form.
 // Used by the analysis page and the dictionary.
 import { computed, ref, watch } from "vue";
-import { CoreError } from "../../core/client";
 import { grammar, type LexemeInfo } from "../../core/grammar";
-import { format, locale, useI18n } from "../../i18n";
+import { locale, useI18n } from "../../i18n";
 import FrequencyBadge from "./FrequencyBadge.vue";
 import ParadigmTable from "./ParadigmTable.vue";
 import ProfileView from "./ProfileView.vue";
+import TranslationLine from "../TranslationLine.vue";
+import { callFailed } from "../failure";
 
 const props = defineProps<{ id: string; selected?: number | null; closable?: boolean }>();
 const emit = defineEmits<{ close: []; loaded: [info: LexemeInfo] }>();
@@ -23,7 +25,7 @@ async function load(): Promise<void> {
     emit("loaded", info.value);
   } catch (e) {
     info.value = null;
-    failure.value = format(m.value.analyze.callFailed, { error: e instanceof CoreError ? `${e.code}: ${e.message}` : String(e) });
+    failure.value = callFailed(m.value, e);
   }
 }
 
@@ -38,6 +40,7 @@ const selectedIndex = computed(() => (info.value?.id === props.id ? props.select
       <header class="head">
         <div>
           <h2 lang="ru">{{ info.lemma }}</h2>
+          <TranslationLine :word="{ id: info.id, lemma: info.lemma }" />
           <p class="muted small">{{ info.description }}</p>
           <FrequencyBadge :rank="info.rank" :frequency="info.frequency" />
         </div>
@@ -63,6 +66,10 @@ const selectedIndex = computed(() => (info.value?.id === props.id ? props.select
   align-items: flex-start;
   gap: 0.75rem;
   margin-bottom: 0.6rem;
+}
+.head > div {
+  flex: 1;
+  min-width: 0;
 }
 .head h2 {
   margin: 0;

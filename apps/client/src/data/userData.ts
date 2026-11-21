@@ -1,6 +1,7 @@
 // The learner's own data (db/sqlite/migrations/0002_learning.sql): words, cards, reviews, texts,
-// reading sessions, test results. In the app it lives in SQLite; in a plain browser (development
-// only) in localStorage under "tilsim.table.<name>".
+// reading sessions, test results; and the admin's translations (0003_admin_translations.sql).
+// In the app it lives in SQLite; in a plain browser (development only) in localStorage under
+// "tilsim.table.<name>".
 //
 // Rows are never deleted: removing one sets deleted_at, so the change can be synced (Phase 6).
 // Every change raises version and updated_at.
@@ -27,6 +28,13 @@ export interface VocabularyRow extends BaseRow {
   note: string;
   examples: Example[];
   status: "learning" | "known";
+}
+
+/** A translation entered in the admin panel (0003_admin_translations.sql). */
+export interface AdminTranslationRow extends BaseRow {
+  lexeme_id: string;
+  lemma: string;
+  translation: string;
 }
 
 export type Direction = "ru_uz" | "uz_ru";
@@ -91,6 +99,7 @@ const SPECS = {
   reading_texts: { columns: [...BASE, "title", "body", "source"], json: [] },
   reading_history: { columns: [...BASE, "text_id", "read_at", "words", "looked_up", "duration_ms"], json: [] },
   test_results: { columns: [...BASE, "kind", "taken_at", "total", "correct", "details"], json: ["details"] },
+  admin_translations: { columns: [...BASE, "lexeme_id", "lemma", "translation"], json: [] },
 } satisfies Record<string, TableSpec>;
 
 export type TableName = keyof typeof SPECS;
@@ -194,7 +203,9 @@ type RowOf<T extends TableName> = T extends "user_vocabulary"
         ? ReadingTextRow
         : T extends "reading_history"
           ? ReadingRow
-          : TestResultRow;
+          : T extends "admin_translations"
+            ? AdminTranslationRow
+            : TestResultRow;
 
 export type NewRow<R extends BaseRow> = Omit<R, keyof BaseRow> & Partial<Pick<R, "id">>;
 
@@ -205,20 +216,27 @@ export function table<T extends TableName>(name: T) {
     async list(): Promise<R[]> {
       return ((await backend.all(name)) as unknown as R[]).filter((r) => !r.deleted_at);
     },
+    /** Every row, the ones marked deleted included. */
+    async listAll(): Promise<R[]> {
+      return (await backend.all(name)) as unknown as R[];
+    },
     async insert(fields: NewRow<R>): Promise<R> {
       const at = nowIso();
       const row = { ...fields, id: fields.id ?? uuidv7(), created_at: at, updated_at: at, deleted_at: null, version: 1 } as R;
       await backend.put(name, row as unknown as Record<string, unknown>);
       return row;
     },
+    /** Changes a row; a row marked deleted becomes live again. */
     async update(row: R, changes: Partial<Omit<R, keyof BaseRow>>): Promise<R> {
-      const next = { ...row, ...changes, updated_at: nowIso(), version: row.version + 1 } as R;
+      const next = { ...row, ...changes, deleted_at: null, updated_at: nowIso(), version: row.version + 1 } as R;
       await backend.put(name, next as unknown as Record<string, unknown>);
       return next;
     },
-    async remove(row: R): Promise<void> {
+    async remove(row: R): Promise<R> {
       const at = nowIso();
-      await backend.put(name, { ...row, deleted_at: at, updated_at: at, version: row.version + 1 } as unknown as Record<string, unknown>);
+      const next = { ...row, deleted_at: at, updated_at: at, version: row.version + 1 } as R;
+      await backend.put(name, next as unknown as Record<string, unknown>);
+      return next;
     },
   };
 }
@@ -229,3 +247,4 @@ export const reviews = table("review_history");
 export const readingTexts = table("reading_texts");
 export const readings = table("reading_history");
 export const testResults = table("test_results");
+export const adminTranslations = table("admin_translations");
