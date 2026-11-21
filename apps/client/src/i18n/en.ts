@@ -452,6 +452,24 @@ const en: Messages = {
     editorLabel: "Translation (admin)",
     editorHint: "Saving an empty field removes the translation.",
   },
+  update: {
+    available: "A new version is available: {version}",
+    current: "Current version: {version}",
+    install: "Update",
+    installingShort: "Downloading…",
+    installing: "The update is downloading. When it is done the app updates itself.",
+    permission: "Allow Tilsim to install apps (in the settings that opened), then press “Update” again.",
+    installer: "Press “Install” in the installer. Your data stays.",
+    failed: "The update failed. Check the internet connection and try again later.",
+    failedDetail: "The update failed: {error}",
+    later: "Later",
+    adminTitle: "Automatic updates",
+    adminOff: "Off in this build: the signing key is not configured.",
+    adminNone: "The latest version is installed.",
+    adminChecking: "Checking…",
+    adminChecked: "Last check: {time}",
+    check: "Check now",
+  },
 };
 
 export default en;

@@ -1,0 +1,14 @@
+[package]
+name = "tauri-plugin-tilsim-update"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Tilsim: download a newer APK and open Android's installer (Android only)."
+links = "tauri-plugin-tilsim-update"
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+
+[build-dependencies]
+tauri-plugin = { version = "2", features = ["build"] }

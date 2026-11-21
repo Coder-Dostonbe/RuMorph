@@ -451,6 +451,24 @@ const uz = {
     editorLabel: "Tarjima (admin)",
     editorHint: "Bo'sh qoldirib saqlasangiz, tarjima o'chadi.",
   },
+  update: {
+    available: "Yangi versiya bor: {version}",
+    current: "Hozirgi versiya: {version}",
+    install: "Yangilash",
+    installingShort: "Yuklanmoqda…",
+    installing: "Yangilanish yuklab olinmoqda. Tugagach ilova o'zi yangilanadi.",
+    permission: "Tilsim'ga ilova o'rnatishga ruxsat bering (ochilgan sozlamada), so'ng yana «Yangilash»ni bosing.",
+    installer: "O'rnatish oynasida «O'rnatish»ni bosing. Ma'lumotlaringiz saqlanib qoladi.",
+    failed: "Yangilab bo'lmadi. Internetni tekshirib, keyinroq qayta urinib ko'ring.",
+    failedDetail: "Yangilab bo'lmadi: {error}",
+    later: "Keyinroq",
+    adminTitle: "Avtomatik yangilanish",
+    adminOff: "Bu build'da o'chiq: imzo kaliti sozlanmagan.",
+    adminNone: "Eng so'nggi versiya o'rnatilgan.",
+    adminChecking: "Tekshirilmoqda…",
+    adminChecked: "Oxirgi tekshiruv: {time}",
+    check: "Hozir tekshirish",
+  },
 } as const;
 
 type Widen<T> = T extends string ? string : { readonly [K in keyof T]: Widen<T[K]> };

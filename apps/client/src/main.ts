@@ -8,6 +8,7 @@ import { useCore } from "./stores/core";
 import { useSession } from "./stores/session";
 import { useSettings } from "./stores/settings";
 import { useTranslations } from "./stores/translations";
+import { useUpdates } from "./stores/updates";
 import { useVocabulary } from "./stores/vocabulary";
 
 const app = createApp(App);
@@ -23,3 +24,4 @@ void useCore().start();
 void useSession().restore();
 void useVocabulary().load();
 void useTranslations().load();
+useUpdates().startChecking();

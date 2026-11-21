@@ -154,11 +154,30 @@ jobs:
         run: cargo test --locked
       - name: Build installer
         working-directory: apps/client
-        run: npx tauri build
+        shell: bash
+        env:
+          # Optional repository secrets for automatic updates (docs/SETUP.md, "Avtomatik
+          # yangilanish"). With them the installer gets an updater signature (.sig) and the
+          # app trusts the matching public key. Without them updates stay off in this build.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_UPDATER_PUBKEY: ${{ secrets.TAURI_UPDATER_PUBKEY }}
+        run: |
+          node scripts/set-version.mjs "0.1.${{ github.run_number }}"
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ] && [ -n "$TAURI_UPDATER_PUBKEY" ]; then
+            CONFIG=$(node -e 'console.log(JSON.stringify({bundle:{createUpdaterArtifacts:true},plugins:{updater:{pubkey:process.env.TAURI_UPDATER_PUBKEY}}}))')
+            npx tauri build --config "$CONFIG"
+          else
+            echo "::warning::Updater keys are not set: this build cannot update itself"
+            npx tauri build
+          fi
+          ls src-tauri/target/release/bundle/nsis
       - uses: actions/upload-artifact@v4
         with:
           name: tilsim-windows-installer
-          path: apps/client/src-tauri/target/release/bundle/nsis/*.exe
+          path: |
+            apps/client/src-tauri/target/release/bundle/nsis/*.exe
+            apps/client/src-tauri/target/release/bundle/nsis/*.sig
           if-no-files-found: error
 
   android:
@@ -189,6 +208,7 @@ jobs:
         run: |
           export NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
           ls "$NDK_HOME" > /dev/null
+          node scripts/set-version.mjs "0.1.${{ github.run_number }}"
           npx tauri android init --ci
           npx tauri icon ../../brand/tilsim-b.svg -o src-tauri/icons
           npx tauri android build --apk --target aarch64 --target armv7
@@ -209,6 +229,9 @@ jobs:
             echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
             PASS="$KEYSTORE_PASSWORD"; ALIAS="$KEY_ALIAS"
             echo "Signing with the repository key"
+            mkdir -p ../../dist-android
+            # Only APKs signed with the same key can update an installed app (android.json).
+            touch ../../dist-android/signed-with-repo-key
           else
             PASS="tilsim-test"; ALIAS="tilsim"
             keytool -genkeypair -keystore "$RUNNER_TEMP/release.jks" -storepass "$PASS" -keypass "$PASS" \
@@ -226,7 +249,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: tilsim-android-apk
-          path: dist-android/Tilsim-android.apk
+          path: dist-android/
           if-no-files-found: error
 
   publish:
@@ -246,11 +269,25 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
+          VERSION="0.1.${{ github.run_number }}"
+          BASE="https://github.com/$GH_REPO/releases/download/dev"
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          NOTES="Tilsim $VERSION (${GITHUB_SHA::7})"
           mkdir upload
           cp artifacts/tilsim-windows-installer/*.exe upload/Tilsim-windows-setup.exe
           cp artifacts/tilsim-android-apk/Tilsim-android.apk upload/Tilsim-android.apk
+          # Update descriptions (src-tauri/src/update.rs), only for builds that can update.
+          SIG=$(ls artifacts/tilsim-windows-installer/*.sig 2>/dev/null | head -1 || true)
+          if [ -n "$SIG" ]; then
+            jq -n --arg v "$VERSION" --arg n "$NOTES" --arg d "$NOW" --arg s "$(cat "$SIG")" --arg u "$BASE/Tilsim-windows-setup.exe" \
+              '{version: $v, notes: $n, pub_date: $d, platforms: {"windows-x86_64": {signature: $s, url: $u}}}' > upload/latest.json
+          fi
+          if [ -f artifacts/tilsim-android-apk/signed-with-repo-key ]; then
+            jq -n --arg v "$VERSION" --arg n "$NOTES" --arg s "$(sha256sum upload/Tilsim-android.apk | cut -d' ' -f1)" --arg u "$BASE/Tilsim-android.apk" \
+              '{version: $v, notes: $n, sha256: $s, url: $u}' > upload/android.json
+          fi
           ls -la upload
           gh release delete dev --cleanup-tag --yes || true
           gh release create dev upload/* --prerelease --target "$GITHUB_SHA" \
-            --title "Tilsim — sinov versiyasi (${GITHUB_SHA::7})" \
+            --title "Tilsim $VERSION — sinov versiyasi (${GITHUB_SHA::7})" \
             --notes "main branch'ning oxirgi muvaffaqiyatli build'i. Faqat sinov uchun: Windows o'rnatuvchisi imzolanmagan (SmartScreen ogohlantiradi), Android APK release build (arm64 + armv7)."

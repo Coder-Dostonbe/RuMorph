@@ -6,6 +6,7 @@ import { compact, platform } from "./app/platform";
 import { useI18n } from "./i18n";
 import { useAdmin } from "./stores/admin";
 import AppIcon from "./ui/AppIcon.vue";
+import UpdateBanner from "./ui/UpdateBanner.vue";
 
 const m = useI18n();
 const route = useRoute();
@@ -38,6 +39,7 @@ const onSecondary = computed(() => !primary.value.some((item) => item.to === rou
     </aside>
 
     <main class="content">
+      <UpdateBanner />
       <RouterView v-slot="{ Component }">
         <Transition name="page" mode="out-in">
           <component :is="Component" />

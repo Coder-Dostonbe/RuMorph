@@ -7,10 +7,12 @@ import { platform } from "../app/platform";
 import { SUPPORTED_PROTOCOL } from "../core/protocol";
 import { format, useI18n } from "../i18n";
 import { copyText } from "../ui/clipboard";
+import { useUpdates } from "../stores/updates";
 import { useCore } from "../stores/core";
 
 const m = useI18n();
 const core = useCore();
+const updates = useUpdates();
 const appVersion = __APP_VERSION__;
 
 const device = ref<DeviceReport | null>(null);
@@ -67,6 +69,19 @@ function forgetSnapshot(): void {
 
 <template>
   <div class="system">
+    <div class="card">
+      <h2>{{ m.update.adminTitle }}</h2>
+      <p v-if="updates.state === 'off'" class="muted small">{{ m.update.adminOff }}</p>
+      <p v-else-if="updates.state === 'checking'" class="muted small">{{ m.update.adminChecking }}</p>
+      <p v-else-if="updates.state === 'none'" class="small">{{ m.update.adminNone }}</p>
+      <p v-else-if="updates.info" class="small">{{ format(m.update.available, { version: updates.info.version }) }}</p>
+      <p v-if="updates.state === 'failed'" class="small err-text">{{ format(m.update.failedDetail, { error: updates.error }) }}</p>
+      <p v-if="updates.checkedAt" class="muted small">{{ format(m.update.adminChecked, { time: updates.checkedAt.toLocaleTimeString() }) }}</p>
+      <div class="actions">
+        <button class="btn" type="button" :disabled="updates.state === 'off' || updates.state === 'checking' || updates.state === 'installing'"
+          @click="updates.dismissed = false; updates.check()">{{ m.update.check }}</button>
+      </div>
+    </div>
     <div class="card">
       <dl>
         <dt>{{ m.about.appVersion }}</dt>

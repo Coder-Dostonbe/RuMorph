@@ -4,10 +4,12 @@
 //! domain logic runs in Pyodide inside the webview. Rust owns only what the
 //! webview must not do itself: the SQLite database (through tauri-plugin-sql,
 //! with the migrations in db/sqlite/migrations), the refresh token and the admin
-//! password hash (secret.rs), and writing the admin's translation export (export.rs).
+//! password hash (secret.rs), writing the admin's translation export (export.rs), and
+//! app updates (update.rs).
 
 mod export;
 mod secret;
+mod update;
 #[cfg(desktop)]
 mod window;
 
@@ -41,7 +43,12 @@ fn migrations() -> Vec<Migration> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    #[cfg(desktop)]
+    let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
+    #[cfg(target_os = "android")]
+    let builder = builder.plugin(tauri_plugin_tilsim_update::init());
+    builder
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations(DB_URL, migrations())
@@ -65,7 +72,9 @@ pub fn run() {
             secret::secret_get,
             secret::secret_set,
             secret::secret_delete,
-            export::export_translations
+            export::export_translations,
+            update::update_check,
+            update::update_install
         ])
         .run(tauri::generate_context!())
         .expect("error while running Tilsim");

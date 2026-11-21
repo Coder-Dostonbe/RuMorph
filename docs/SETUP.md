@@ -81,7 +81,7 @@ uv sync
 uv run pywrangler deploy
 ```
 
-4. Chiqqan manzilni (`https://tilsim-api.<akkaunt>.workers.dev`) ilovada **Sozlamalar → Server manzili** ga kiriting.
+4. Chiqqan manzilni (`https://tilsim-api.<akkaunt>.workers.dev`) ilovada admin panelga kiriting: "Ilova haqida" sahifasida versiyaga 7 marta bosing → **Admin panel → Server va hisob → Server manzili**. Ro'yxatdan o'tish o'sha yerdagi "Hisob bo'limini ochish" orqali.
 5. Ilovada **Hisob → Ro'yxatdan o'tish**. Birinchi hisob avtomatik `admin` bo'ladi.
 6. Shundan keyin ro'yxatdan o'tishni yoping: `wrangler.jsonc` da `"ALLOW_REGISTRATION": "false"` qiling va qayta deploy qiling.
 
@@ -99,6 +99,55 @@ bir marta bo'ladi. Bepul tarifda login rad etilsa, yechim — Workers Paid ($5/o
 ishlagani uchun `hashlib.pbkdf2_hmac` u yerda mavjud emas, shuning uchun Web Crypto ishlatiladi.
 
 Qaysi biri kerakligini o'lchov natijasiga qarab birga hal qilamiz.
+
+## 7. Avtomatik yangilanish (bir marta)
+
+Ikkita kalit kerak. Ikkalasini ham **zaxira qilib saqlang** (repo papkasidan tashqarida, masalan
+fleshka yoki parol menejerida): kalit yo'qolsa, o'rnatilgan ilovalar keyingi versiyalarni qabul
+qilmaydi. Kalitlar va parollar repoga ham, chatga ham yozilmaydi.
+
+GitHub'da: **repo → Settings → Secrets and variables → Actions → New repository secret**.
+
+### Windows: updater kaliti
+
+```powershell
+npx tauri signer generate -w "$HOME\.tauri\tilsim-updater.key"
+```
+
+Parol so'raydi (o'ylab toping va saqlang). Ikkita fayl chiqadi: `tilsim-updater.key` (yopiq) va
+`tilsim-updater.key.pub` (ochiq). Secrets:
+
+| Nomi | Qiymati |
+|---|---|
+| `TAURI_SIGNING_PRIVATE_KEY` | `tilsim-updater.key` faylining butun matni |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | o'sha parol |
+| `TAURI_UPDATER_PUBKEY` | `tilsim-updater.key.pub` faylining butun matni |
+
+Fayl matnini nusxalash: `Get-Content "$HOME\.tauri\tilsim-updater.key" -Raw | Set-Clipboard`.
+
+### Android: imzo kaliti (keystore)
+
+`keytool` Java bilan keladi (Android Studio'da: `C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe`).
+
+```powershell
+keytool -genkeypair -v -keystore "$HOME\tilsim-release.jks" -alias tilsim -keyalg RSA -keysize 2048 -validity 10000
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("$HOME\tilsim-release.jks")) | Set-Clipboard
+```
+
+Parol so'raydi (kalit uchun ham xuddi shu parolni ishlating). Secrets:
+
+| Nomi | Qiymati |
+|---|---|
+| `ANDROID_KEYSTORE_B64` | yuqoridagi buyruq nusxalagan matn |
+| `ANDROID_KEYSTORE_PASSWORD` | keystore paroli |
+| `ANDROID_KEY_ALIAS` | `tilsim` |
+
+### Keyin
+
+Secrets qo'yilgach, keyingi push'dan chiqqan versiyani **bir marta qo'lda** o'rnating (Android'da
+eski ilovani avval o'chirib). Undan keyingi versiyalarni ilovaning o'zi taklif qiladi:
+Windows'da yuklab olib o'rnatadi va qayta ochadi, Android'da yuklab olib o'rnatish oynasini ochadi.
+Holatini admin panelda ko'rasiz: **Ilova va qurilma → Avtomatik yangilanish**.
 
 ## Lokal ishlab chiqish (ixtiyoriy)
 
