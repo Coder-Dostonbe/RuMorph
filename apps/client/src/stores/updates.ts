@@ -15,7 +15,7 @@ export type UpdateState =
   | "none" // up to date
   | "available"
   | "installing"
-  | "permission" // Android: allow "install unknown apps" for Tilsim, then tap again
+  | "permission" // Android: allow "install unknown apps" for Zabon, then tap again
   | "installer" // Android: the system installer is open
   | "off" // this build has no update key (or runs in a browser)
   | "failed";

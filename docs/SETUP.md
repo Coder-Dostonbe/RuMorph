@@ -1,4 +1,4 @@
-# Tilsim — o'rnatish va ishga tushirish
+# Zabon — o'rnatish va ishga tushirish
 
 Bu qadamlar faqat bir marta qilinadi. Hisoblar (Neon, Cloudflare) va kalitlar sizning nomingizda bo'ladi.
 Hech qanday kalit yoki parol repoga yozilmaydi.
@@ -27,7 +27,7 @@ npm install
 ```powershell
 cd apps\client
 npx tauri dev          # ishlab chiqish rejimi
-npx tauri build        # o'rnatuvchi: src-tauri\target\release\bundle\nsis\Tilsim_0.1.0_x64-setup.exe
+npx tauri build        # o'rnatuvchi: src-tauri\target\release\bundle\nsis\Zabon_0.1.0_x64-setup.exe
 ```
 
 Server sozlanmagan bo'lsa ham ilova ishlaydi: bosh sahifada "Server: sozlanmagan" deb ko'rsatadi.
@@ -36,12 +36,12 @@ Server sozlanmagan bo'lsa ham ilova ishlaydi: bosh sahifada "Server: sozlanmagan
 **Tayyor o'rnatuvchi va APK:** har bir push'dan keyin GitHub Actions ularni o'zi yig'adi.
 <https://github.com/Coder-Dostonbe/RuMorph/releases/tag/dev> sahifasida (telefondan ham ochiladi):
 
-- `Tilsim-windows-setup.exe` — Windows o'rnatuvchisi;
-- `Tilsim-android.apk` — Android uchun APK (release build, arm64 + armv7).
+- `Zabon-windows-setup.exe` — Windows o'rnatuvchisi;
+- `Zabon-android.apk` — Android uchun APK (release build, arm64 + armv7).
 
 ## 3. Android'da sinash (1-bosqich spike)
 
-1. Telefondan <https://github.com/Coder-Dostonbe/RuMorph/releases/tag/dev> ni oching va `Tilsim-android.apk` ni yuklab oling.
+1. Telefondan <https://github.com/Coder-Dostonbe/RuMorph/releases/tag/dev> ni oching va `Zabon-android.apk` ni yuklab oling.
 2. Telefonda "Noma'lum manbalardan o'rnatish"ga ruxsat bering va o'rnating.
 3. Ilovani oching, **Ilova haqida** sahifasiga o'ting va **"Python muhitining ishga tushishi → Jami"** raqamini menga yuboring.
    Ilovani 2–3 marta yopib-ochib o'lchang: birinchi ochilish odatda sekinroq bo'ladi.

@@ -1,4 +1,4 @@
-# Tilsim (RuMorph) — AI uchun ish qoidalari
+# Zabon (RuMorph) — AI uchun ish qoidalari
 
 Bu fayl loyiha ustida ishlaydigan har qanday AI sessiyasi (Claude Code va boshqalar) uchun.
 Asosiy topshiriq: [`docs/MASTER_PROMPT.md`](docs/MASTER_PROMPT.md). Unga qo'shimcha qarorlar:

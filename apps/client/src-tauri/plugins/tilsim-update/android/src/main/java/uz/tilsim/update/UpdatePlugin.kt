@@ -94,7 +94,7 @@ class UpdatePlugin(private val activity: Activity) : Plugin(activity) {
                 val dir = File(activity.cacheDir, "updates")
                 dir.mkdirs()
                 dir.listFiles()?.forEach { it.delete() }
-                val apk = File(dir, "Tilsim-update.apk")
+                val apk = File(dir, "Zabon-update.apk")
                 val digest = MessageDigest.getInstance("SHA-256")
                 val connection = open(args.url)
                 var total = 0L
@@ -123,7 +123,7 @@ class UpdatePlugin(private val activity: Activity) : Plugin(activity) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                             !activity.packageManager.canRequestPackageInstalls()
                         ) {
-                            // The user allows "install unknown apps" for Tilsim once, then taps again.
+                            // The user allows "install unknown apps" for Zabon once, then taps again.
                             val settings = Intent(
                                 Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                                 Uri.parse("package:" + activity.packageName)

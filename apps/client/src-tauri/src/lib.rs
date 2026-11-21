@@ -1,4 +1,4 @@
-//! Tilsim app shell (Windows and Android).
+//! Zabon app shell (Windows and Android).
 //!
 //! The shell stays small: the UI and its data layer are in the webview, the
 //! domain logic runs in Pyodide inside the webview. Rust owns only what the
@@ -77,7 +77,7 @@ pub fn run() {
             update::update_install
         ])
         .run(tauri::generate_context!())
-        .expect("error while running Tilsim");
+        .expect("error while running Zabon");
 }
 
 #[cfg(test)]

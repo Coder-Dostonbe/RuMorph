@@ -2,7 +2,7 @@ import type { Messages } from "./uz";
 
 const en: Messages = {
   app: {
-    name: "Tilsim",
+    name: "Zabon",
     tagline: "Learn Russian",
   },
   nav: {
@@ -402,7 +402,7 @@ const en: Messages = {
     forgetSnapshotDone: "Snapshot deleted. Python will load from scratch at the next start.",
     coreLog: "Python messages",
     protocolMismatch: "Warning: the app expects protocol {expected}, the module uses protocol {actual}.",
-    description: "Tilsim is an app for Uzbek speakers learning Russian: dictionary, grammar, flashcards, exercises and daily reading. Everything runs on the device itself, without the internet.",
+    description: "Zabon is an app for Uzbek speakers learning Russian: dictionary, grammar, flashcards, exercises and daily reading. Everything runs on the device itself, without the internet.",
     version: "Version",
   },
   admin: {
@@ -458,7 +458,7 @@ const en: Messages = {
     install: "Update",
     installingShort: "Downloading…",
     installing: "The update is downloading. When it is done the app updates itself.",
-    permission: "Allow Tilsim to install apps (in the settings that opened), then press “Update” again.",
+    permission: "Allow Zabon to install apps (in the settings that opened), then press “Update” again.",
     installer: "Press “Install” in the installer. Your data stays.",
     failed: "The update failed. Check the internet connection and try again later.",
     failedDetail: "The update failed: {error}",

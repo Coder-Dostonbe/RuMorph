@@ -1,8 +1,8 @@
-# Tilsim (RuMorph)
+# Zabon (RuMorph)
 
 O'zbek tilida so'zlashuvchilar uchun rus tilini o'rganish platformasi. Windows va Android'da ishlaydi.
 
-- **Ilova nomi:** Tilsim (vaqtinchalik; keyinroq o'zgarishi mumkin)
+- **Ilova nomi:** Zabon ("til"; ilgari Tilsim). Ichki nomlar (`uz.tilsim.app`, `tilsim_core`, `tilsim-api`) o'zgarmagan, ma'lumotlar va yangilanishlar shu nomlarga bog'liq
 - **Ichki loyiha nomi:** RuMorph / RussianMorph
 - **Repozitoriy:** `git@github.com:Coder-Dostonbe/RuMorph.git`
 - **Foydalanish:** shaxsiy sinov uchun. Ommaga chiqarilmaydi.
@@ -11,8 +11,8 @@ O'zbek tilida so'zlashuvchilar uchun rus tilini o'rganish platformasi. Windows v
 
 | Platforma | Fayl |
 | --------- | ---- |
-| Android | [**Tilsim-android.apk**](https://github.com/Coder-Dostonbe/RuMorph/releases/download/dev/Tilsim-android.apk) |
-| Windows | [**Tilsim-windows-setup.exe**](https://github.com/Coder-Dostonbe/RuMorph/releases/download/dev/Tilsim-windows-setup.exe) |
+| Android | [**Zabon-android.apk**](https://github.com/Coder-Dostonbe/RuMorph/releases/download/dev/Zabon-android.apk) |
+| Windows | [**Zabon-windows-setup.exe**](https://github.com/Coder-Dostonbe/RuMorph/releases/download/dev/Zabon-windows-setup.exe) |
 
 Havolalar har doim `main` branch'ning testlardan o'tgan oxirgi build'iga olib boradi.
 Bu sinov versiyalari: Windows o'rnatuvchisi imzolanmagan (SmartScreen chiqsa: **More info → Run anyway**),
@@ -48,7 +48,7 @@ O'rnatish va ishga tushirish: [`docs/SETUP.md`](docs/SETUP.md).
 | [`docs/SETUP.md`](docs/SETUP.md) | O'rnatish: Neon, Cloudflare, Windows va Android build |
 | [`docs/PHASE-1.md`](docs/PHASE-1.md) | 1-bosqich hisoboti |
 | [`docs/01-ARABMORPH-TAHLIL-VA-ARXITEKTURA.md`](docs/01-ARABMORPH-TAHLIL-VA-ARXITEKTURA.md) | ArabMorph tahlili, arxitektura, bazalar, AI Gateway, platformalar, roadmap, xavflar |
-| [`brand/`](brand/) | Tilsim logosi (SVG manba fayllar) |
+| [`brand/`](brand/) | Ilova logosi (SVG manba fayllar) |
 | [`CLAUDE.md`](CLAUDE.md) | Loyiha ustida ishlaydigan AI uchun ish qoidalari |
 
 ## Git qoidasi

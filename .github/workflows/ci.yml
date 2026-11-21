@@ -336,22 +336,22 @@ jobs:
           VERSION="0.1.${{ github.run_number }}"
           BASE="https://github.com/$GH_REPO/releases/download/dev"
           NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          NOTES="Tilsim $VERSION (${GITHUB_SHA::7})"
+          NOTES="Zabon $VERSION (${GITHUB_SHA::7})"
           mkdir upload
-          cp artifacts/tilsim-windows-installer/*.exe upload/Tilsim-windows-setup.exe
-          cp artifacts/tilsim-android-apk/Tilsim-android.apk upload/Tilsim-android.apk
+          cp artifacts/tilsim-windows-installer/*.exe upload/Zabon-windows-setup.exe
+          cp artifacts/tilsim-android-apk/Tilsim-android.apk upload/Zabon-android.apk
           # Update descriptions (src-tauri/src/update.rs), only for builds that can update.
           SIG=$(ls artifacts/tilsim-windows-installer/*.sig 2>/dev/null | head -1 || true)
           if [ -n "$SIG" ]; then
-            jq -n --arg v "$VERSION" --arg n "$NOTES" --arg d "$NOW" --arg s "$(cat "$SIG")" --arg u "$BASE/Tilsim-windows-setup.exe" \
+            jq -n --arg v "$VERSION" --arg n "$NOTES" --arg d "$NOW" --arg s "$(cat "$SIG")" --arg u "$BASE/Zabon-windows-setup.exe" \
               '{version: $v, notes: $n, pub_date: $d, platforms: {"windows-x86_64": {signature: $s, url: $u}}}' > upload/latest.json
           fi
           if [ -f artifacts/tilsim-android-apk/signed-with-repo-key ]; then
-            jq -n --arg v "$VERSION" --arg n "$NOTES" --arg s "$(sha256sum upload/Tilsim-android.apk | cut -d' ' -f1)" --arg u "$BASE/Tilsim-android.apk" \
+            jq -n --arg v "$VERSION" --arg n "$NOTES" --arg s "$(sha256sum upload/Zabon-android.apk | cut -d' ' -f1)" --arg u "$BASE/Zabon-android.apk" \
               '{version: $v, notes: $n, sha256: $s, url: $u}' > upload/android.json
           fi
           ls -la upload
           gh release delete dev --cleanup-tag --yes || true
           gh release create dev upload/* --prerelease --target "$GITHUB_SHA" \
-            --title "Tilsim $VERSION — sinov versiyasi (${GITHUB_SHA::7})" \
+            --title "Zabon $VERSION — sinov versiyasi (${GITHUB_SHA::7})" \
             --notes "main branch'ning oxirgi muvaffaqiyatli build'i. Faqat sinov uchun: Windows o'rnatuvchisi imzolanmagan (SmartScreen ogohlantiradi), Android APK release build (arm64 + armv7)."

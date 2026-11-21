@@ -1,7 +1,7 @@
 // Reference locale: ru.ts and en.ts must have exactly this shape (checked by vue-tsc).
 const uz = {
   app: {
-    name: "Tilsim",
+    name: "Zabon",
     tagline: "Rus tilini o'rganish",
   },
   nav: {
@@ -401,7 +401,7 @@ const uz = {
     forgetSnapshotDone: "Snapshot o'chirildi. Ilovani qayta ochganda Python noldan yuklanadi.",
     coreLog: "Python xabarlari",
     protocolMismatch: "Diqqat: ilova {expected}-protokolni kutadi, modul {actual}-protokolda.",
-    description: "Tilsim — o'zbek tilida so'zlashuvchilar uchun rus tilini o'rganish ilovasi: lug'at, grammatika, kartochkalar, mashqlar va kundalik o'qish. Hammasi qurilmaning o'zida, internetsiz ishlaydi.",
+    description: "Zabon — o'zbek tilida so'zlashuvchilar uchun rus tilini o'rganish ilovasi: lug'at, grammatika, kartochkalar, mashqlar va kundalik o'qish. Hammasi qurilmaning o'zida, internetsiz ishlaydi.",
     version: "Versiya",
   },
   admin: {
@@ -457,7 +457,7 @@ const uz = {
     install: "Yangilash",
     installingShort: "Yuklanmoqda…",
     installing: "Yangilanish yuklab olinmoqda. Tugagach ilova o'zi yangilanadi.",
-    permission: "Tilsim'ga ilova o'rnatishga ruxsat bering (ochilgan sozlamada), so'ng yana «Yangilash»ni bosing.",
+    permission: "Zabonga ilova o'rnatishga ruxsat bering (ochilgan sozlamada), so'ng yana «Yangilash»ni bosing.",
     installer: "O'rnatish oynasida «O'rnatish»ni bosing. Ma'lumotlaringiz saqlanib qoladi.",
     failed: "Yangilab bo'lmadi. Internetni tekshirib, keyinroq qayta urinib ko'ring.",
     failedDetail: "Yangilab bo'lmadi: {error}",

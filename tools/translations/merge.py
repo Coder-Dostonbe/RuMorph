@@ -1,9 +1,9 @@
 """Builds the translations file shipped with the app from the admin panel's exports.
 
-    python tools/translations/merge.py Tilsim-tarjimalar.json [more exports...]
+    python tools/translations/merge.py Zabon-tarjimalar.json [more exports...]
     python tools/translations/merge.py --check
 
-The admin enters translations on a device and exports them ("Tilsim-tarjimalar.json": every
+The admin enters translations on a device and exports them ("Zabon-tarjimalar.json": every
 translation that device knows, the shipped ones included). This merges one or more exports into
 apps/client/src/data/translations.json:
 

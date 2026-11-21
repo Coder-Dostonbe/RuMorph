@@ -31,7 +31,7 @@ function reportText(): string {
   const d = device.value;
   const t = timings.value;
   const lines = [
-    `Tilsim ${appVersion} (${platform})`,
+    `Zabon ${appVersion} (${platform})`,
     `Model: ${d?.model ?? "?"}; ${d?.osVersion ?? "?"}; ${d?.browser ?? "?"}`,
     `CPU: ${d?.cores ?? "?"} cores; RAM: ${d?.memoryGb ?? "?"} GB`,
     `Core: ${core.version?.core ?? "?"} (${info.value?.bundleHash ?? "?"}), Python ${core.version?.python ?? "?"}`,

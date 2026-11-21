@@ -137,7 +137,7 @@ export const useTranslations = defineStore("translations", () => {
     const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "Tilsim-tarjimalar.json";
+    a.download = "Zabon-tarjimalar.json";
     a.click();
     URL.revokeObjectURL(url);
     return { kind: "download" };
