@@ -49,41 +49,46 @@ Server sozlanmagan bo'lsa ham ilova ishlaydi: bosh sahifada "Server: sozlanmagan
 ## 4. PostgreSQL — Neon
 
 1. <https://neon.tech> da hisob oching va `tilsim` nomli loyiha yarating.
-2. **Connection string** ni nusxalang. Migratsiya uchun **Direct** (pooled emas) ulanish kerak.
-3. Migratsiyani qo'llang:
+2. **Connection string** ni nusxalang: **Direct** (pooled emas) ulanish kerak. Ichida parol bor:
+   uni hech qayerga yozmang, faqat quyidagi ikki joyga qo'yasiz.
 
-```powershell
-cd apps\api
-$env:DATABASE_URL = "postgresql://...neon.tech/neondb?sslmode=require"
-uv run --no-project --with asyncpg python scripts\migrate.py
-```
+Migratsiyalarni GitHub o'zi qo'llaydi (5-bo'lim).
 
-## 5. Cloudflare Worker (API)
+## 5. Cloudflare Worker (API) — GitHub orqali avtomatik
 
-```powershell
-cd apps\api
-npx wrangler login
-npx wrangler hyperdrive create tilsim-db --connection-string="<Neon connection string>"
-```
+Bir marta sozlanadi. Keyin har bir push'da, barcha testlar o'tgach, GitHub Actions o'zi:
+Neon'ga migratsiyalarni qo'llaydi, Worker'ni deploy qiladi va `/health` ni tekshiradi.
 
-1. Chiqqan `id` ni `wrangler.jsonc` dagi `REPLACE_WITH_HYPERDRIVE_ID` o'rniga yozing.
-2. JWT kalitini yarating va secret sifatida saqlang (kamida 32 belgi):
+1. **Hyperdrive** (Cloudflare dashboard): **Storage & Databases → Hyperdrive → Create configuration**.
+   Nomi `tilsim-db`, ulanish: Neon'ning Direct connection string'i. Chiqqan **ID** ni nusxalang.
+2. **API token**: o'ng yuqoridagi profil → **My Profile → API Tokens → Create Token** →
+   **Edit Cloudflare Workers** shabloni. **Permissions** ga yana bitta qator qo'shing:
+   **Account → Hyperdrive → Edit**. Yarating va tokenni nusxalang (bir marta ko'rsatiladi).
+3. **Account ID**: dashboard → **Workers & Pages**, o'ng tomonda.
+4. **JWT kaliti** (kamida 32 belgi): `python -c "import secrets; print(secrets.token_urlsafe(48))"`.
+5. GitHub: **repo → Settings → Secrets and variables → Actions → New repository secret**:
 
-```powershell
-python -c "import secrets; print(secrets.token_urlsafe(48))"
-npx wrangler secret put JWT_SECRET
-```
+| Nomi | Qiymati |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | 2-qadamdagi token |
+| `CLOUDFLARE_ACCOUNT_ID` | 3-qadamdagi ID |
+| `HYPERDRIVE_ID` | 1-qadamdagi ID |
+| `DATABASE_URL` | Neon'ning Direct connection string'i |
+| `JWT_SECRET` | 4-qadamdagi matn |
 
-3. Deploy:
+6. Cloudflare dashboard'da Worker'ning o'z GitHub ulanishi (Workers Builds) bo'lsa, uzing:
+   deploy'ni GitHub Actions qiladi.
+7. Secrets qo'yilgach, istalgan push (yoki **Actions → CI → Re-run**) deploy qiladi. Manzil
+   (`https://tilsim-api.<akkaunt>.workers.dev`) "Deploy API" job'ining logida chiqadi.
+8. Manzilni ilovada kiriting: "Ilova haqida" sahifasida versiyaga 7 marta bosing →
+   **Admin panel → Server va hisob → Server manzili**. Keyin o'sha yerdagi "Hisob bo'limini ochish"
+   → ro'yxatdan o'ting. Birinchi hisob avtomatik `admin` bo'ladi.
+9. Shundan keyin ro'yxatdan o'tishni yopamiz (`wrangler.jsonc` da `"ALLOW_REGISTRATION": "false"`):
+   menga ayting, o'zgartirib push qilaman.
 
-```powershell
-uv sync
-uv run pywrangler deploy
-```
-
-4. Chiqqan manzilni (`https://tilsim-api.<akkaunt>.workers.dev`) ilovada admin panelga kiriting: "Ilova haqida" sahifasida versiyaga 7 marta bosing → **Admin panel → Server va hisob → Server manzili**. Ro'yxatdan o'tish o'sha yerdagi "Hisob bo'limini ochish" orqali.
-5. Ilovada **Hisob → Ro'yxatdan o'tish**. Birinchi hisob avtomatik `admin` bo'ladi.
-6. Shundan keyin ro'yxatdan o'tishni yoping: `wrangler.jsonc` da `"ALLOW_REGISTRATION": "false"` qiling va qayta deploy qiling.
+Kompyuterdan qo'lda deploy ham mumkin (zarur bo'lsa): `apps\api` da `npx wrangler login`,
+`wrangler.jsonc` ga Hyperdrive ID, `npx wrangler secret put JWT_SECRET`, `uv sync`,
+`uv run pywrangler deploy`.
 
 ## 6. CPU o'lchovi (1-bosqich spike)
 
