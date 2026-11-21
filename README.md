@@ -2,7 +2,7 @@
 
 O'zbek tilida so'zlashuvchilar uchun rus tilini o'rganish platformasi. Windows va Android'da ishlaydi.
 
-- **Ilova nomi:** Zabon ("til"; ilgari Tilsim). Ichki nomlar (`uz.tilsim.app`, `tilsim_core`, `tilsim-api`) o'zgarmagan, ma'lumotlar va yangilanishlar shu nomlarga bog'liq
+- **Ilova nomi:** Zabon ("til"; ilgari Tilsim). Ichki nomlar (`uz.tilsim.app`, `tilsim_core`) o'zgarmagan, ma'lumotlar va yangilanishlar shu nomlarga bog'liq
 - **Ichki loyiha nomi:** RuMorph / RussianMorph
 - **Repozitoriy:** `git@github.com:Coder-Dostonbe/RuMorph.git`
 - **Foydalanish:** shaxsiy sinov uchun. Ommaga chiqarilmaydi.

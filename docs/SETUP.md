@@ -60,7 +60,7 @@ Bir marta sozlanadi. Keyin har bir push'da, barcha testlar o'tgach, GitHub Actio
 Neon'ga migratsiyalarni qo'llaydi, Worker'ni deploy qiladi va `/health` ni tekshiradi.
 
 1. **Hyperdrive** (Cloudflare dashboard): **Storage & Databases → Hyperdrive → Create configuration**.
-   Nomi `tilsim-db`, ulanish: Neon'ning Direct connection string'i. Chiqqan **ID** ni nusxalang.
+   Nomi `zabon-db`, ulanish: Neon'ning Direct connection string'i. Chiqqan **ID** ni nusxalang.
 2. **API token**: o'ng yuqoridagi profil → **My Profile → API Tokens → Create Token** →
    **Edit Cloudflare Workers** shabloni. **Permissions** ga yana bitta qator qo'shing:
    **Account → Hyperdrive → Edit**. Yarating va tokenni nusxalang (bir marta ko'rsatiladi).
@@ -79,7 +79,7 @@ Neon'ga migratsiyalarni qo'llaydi, Worker'ni deploy qiladi va `/health` ni teksh
 6. Cloudflare dashboard'da Worker'ning o'z GitHub ulanishi (Workers Builds) bo'lsa, uzing:
    deploy'ni GitHub Actions qiladi.
 7. Secrets qo'yilgach, istalgan push (yoki **Actions → CI → Re-run**) deploy qiladi. Manzil
-   (`https://tilsim-api.<akkaunt>.workers.dev`) "Deploy API" job'ining logida chiqadi.
+   (`https://zabon-api.<akkaunt>.workers.dev`) "Deploy API" job'ining logida chiqadi.
 8. Manzilni ilovada kiriting: "Ilova haqida" sahifasida versiyaga 7 marta bosing →
    **Admin panel → Server va hisob → Server manzili**. Keyin o'sha yerdagi "Hisob bo'limini ochish"
    → ro'yxatdan o'ting. Birinchi hisob avtomatik `admin` bo'ladi.
@@ -92,7 +92,7 @@ Kompyuterdan qo'lda deploy ham mumkin (zarur bo'lsa): `apps\api` da `npx wrangle
 
 ## 6. CPU o'lchovi (1-bosqich spike)
 
-Cloudflare dashboard → **Workers & Pages → tilsim-api → Metrics → CPU time**.
+Cloudflare dashboard → **Workers & Pages → zabon-api → Metrics → CPU time**.
 `/health`, login va refresh so'rovlaridan keyin CPU vaqti (median va P99) qancha ekanini menga yuboring.
 
 Kutilayotgan holat: oddiy so'rovlar (`/health`, refresh, `/v1/me`) bepul tarifdagi 10 ms ichida bo'ladi.

@@ -9,6 +9,6 @@ declare module "*.vue" {
 }
 
 interface ImportMetaEnv {
-  /** Base URL of the Tilsim API, e.g. https://tilsim-api.<account>.workers.dev */
+  /** Base URL of the Tilsim API, e.g. https://zabon-api.<account>.workers.dev */
   readonly VITE_API_URL?: string;
 }

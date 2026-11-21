@@ -118,7 +118,7 @@ const ru: Messages = {
     theme: "Оформление",
     themes: { light: "Светлое", dark: "Тёмное", system: "Как в системе" },
     server: "Адрес сервера",
-    serverHint: "Например: https://tilsim-api.<аккаунт>.workers.dev",
+    serverHint: "Например: https://zabon-api.<аккаунт>.workers.dev",
     checkServer: "Проверить подключение",
     storage: "Где хранятся настройки",
     storageDb: "База SQLite на устройстве",

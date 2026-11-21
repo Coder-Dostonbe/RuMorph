@@ -118,7 +118,7 @@ const en: Messages = {
     theme: "Appearance",
     themes: { light: "Light", dark: "Dark", system: "Follow system" },
     server: "Server address",
-    serverHint: "For example: https://tilsim-api.<account>.workers.dev",
+    serverHint: "For example: https://zabon-api.<account>.workers.dev",
     checkServer: "Check connection",
     storage: "Where settings are kept",
     storageDb: "SQLite database on this device",

@@ -117,7 +117,7 @@ const uz = {
     theme: "Ko'rinish",
     themes: { light: "Kunduzgi", dark: "Tungi", system: "Tizim bo'yicha" },
     server: "Server manzili",
-    serverHint: "Masalan: https://tilsim-api.<akkaunt>.workers.dev",
+    serverHint: "Masalan: https://zabon-api.<akkaunt>.workers.dev",
     checkServer: "Ulanishni tekshirish",
     storage: "Sozlamalar saqlanadigan joy",
     storageDb: "Qurilmadagi SQLite bazasi",

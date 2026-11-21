@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "tilsim-api",
+  "name": "zabon-api",
   "main": "src/entry.py",
   "compatibility_date": "2026-11-17",
   "compatibility_flags": ["python_workers"],
