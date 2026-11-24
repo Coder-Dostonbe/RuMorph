@@ -1,8 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { defineStore } from "pinia";
-import { computed, ref, watch } from "vue";
+import { computed, ref, shallowRef, watch } from "vue";
 import { inTauri, platform } from "../app/platform";
-import shipped from "../data/translations.json";
 import { keyValue } from "../data/keyValue";
 import { copyText } from "../ui/clipboard";
 import { adminTranslations, translationStore, vocabulary, type AdminTranslationRow, type Example } from "../data/userData";
@@ -94,11 +93,13 @@ export type ExportResult = { kind: "file"; path: string } | { kind: "clipboard" 
  * panel with an admin account. The file shipped with the app (from exports) is the base.
  */
 export const useTranslations = defineStore("translations", () => {
-  const bundled = (shipped as TranslationFile).translations;
+  // The shipped file (about 1 MB with the drafts) is its own chunk, loaded after the app opens.
+  const bundled = shallowRef<TranslationEntry[]>([]);
   const local = ref<AdminTranslationRow[]>([]);
   const loaded = ref(false);
 
-  const all = computed(() => mergeTranslations(bundled, local.value));
+  const all = computed(() => mergeTranslations(bundled.value, local.value));
+  const bundledCount = computed(() => bundled.value.length);
   const state = ref<TranslationSyncState>("idle");
   const pending = ref(0);
   const rejected = ref(0);
@@ -135,7 +136,9 @@ export const useTranslations = defineStore("translations", () => {
 
   async function load(): Promise<void> {
     if (loaded.value) return;
-    local.value = await adminTranslations.listAll();
+    const [file, rows] = await Promise.all([import("../data/translations.json"), adminTranslations.listAll()]);
+    bundled.value = (file.default as TranslationFile).translations;
+    local.value = rows;
     // Translations typed into the learner's own word entries before the admin mode existed
     // become admin translations, once.
     if ((await keyValue.get(MIGRATED_KEY)) === null) {
@@ -290,7 +293,7 @@ export const useTranslations = defineStore("translations", () => {
   }
 
   return {
-    all, bundledCount: bundled.length, localCount, loaded, state, pending, rejected, lastSyncAt, detail,
+    all, bundledCount, localCount, loaded, state, pending, rejected, lastSyncAt, detail,
     get, entry, approve, search, load, set, exportText, exportAll, syncNow, start,
   };
 });

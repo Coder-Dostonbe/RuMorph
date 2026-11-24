@@ -115,14 +115,25 @@ describe("translations", () => {
     await tr.load();
     expect(tr.get("книга|NOUN,inan,femn")).toBe("kitob");
 
-    const word = { id: "дом|NOUN,inan,masc", lemma: "дом" };
-    await expect(tr.set(word, "uy")).rejects.toThrow();
+    const word = { id: "нечто|TEST", lemma: "нечто" };
+    await expect(tr.set(word, "nimadir")).rejects.toThrow();
     expect(tr.get(word.id)).toBeNull();
   });
 });
 
 describe("translations (admin unlocked)", () => {
   beforeEach(() => setActivePinia(createPinia()));
+
+  it("ships checkable drafts with examples; the admin's edit is checked and keeps them", async () => {
+    expect(await useAdmin().unlock("secret-2")).toBe("ok");
+    const tr = useTranslations();
+    await tr.load();
+    const book = tr.entry("город|NOUN,inan,masc");
+    expect(book?.verified).toBe(false);
+    expect(book?.examples?.length).toBe(2);
+    await tr.approve({ id: "город|NOUN,inan,masc", lemma: "город" });
+    expect(tr.entry("город|NOUN,inan,masc")).toMatchObject({ verified: true, translation: book!.translation, examples: book!.examples });
+  });
 
   it("sets, corrects and removes a translation", async () => {
     expect(await useAdmin().unlock("secret-2")).toBe("ok");

@@ -122,8 +122,10 @@ def merge(shipped: dict[str, dict], exports: list[tuple[dict[str, dict], dict[st
 
 
 def render(entries: dict[str, dict]) -> str:
-    data = {"format": FORMAT, "version": 2, "translations": [entries[k] for k in sorted(entries)]}
-    return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+    """One translation per line: small to ship, and a change shows as one line in a diff."""
+    lines = ",\n".join(json.dumps(entries[k], ensure_ascii=False, separators=(",", ":")) for k in sorted(entries))
+    head = '{"format":"%s","version":2,"translations":[' % FORMAT
+    return head + "\n" + lines + "\n]}\n"
 
 
 def main(argv: list[str] | None = None) -> int:
