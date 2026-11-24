@@ -2,6 +2,7 @@
 // Dashboard: today's work and the learner's results, all counted from their own records by
 // tilsim_core (stats.py). The state of the engine, the account and the server is in the admin panel.
 import { computed, onMounted, ref, watch } from "vue";
+import { useSync } from "../stores/sync";
 import { grammar, type Summary } from "../core/grammar";
 import { loadRecords, utcOffsetMinutes } from "../data/records";
 import { readings, readingTexts, type ReadingTextRow } from "../data/userData";
@@ -37,6 +38,8 @@ async function load(): Promise<void> {
   }
 }
 onMounted(() => void load());
+// A sync brought changes from another device.
+watch(() => useSync().revision, () => void load());
 watch(() => core.status, () => void load());
 
 const bars = computed(() => {

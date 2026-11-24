@@ -5,9 +5,9 @@ import asyncpg
 from workers import Response as WorkerResponse
 from workers import WorkerEntrypoint
 
-from tilsim_api.app import Context, handle
+from tilsim_api.app import SYNC_BODY_BYTES, Context, handle
 from tilsim_api.config import ConfigError, Settings
-from tilsim_api.http import MAX_BODY_BYTES, Request
+from tilsim_api.http import Request
 from tilsim_api.webcrypto import derive
 
 
@@ -20,11 +20,12 @@ class Default(WorkerEntrypoint):
         headers = _headers(request)
         body = b""
         if request.method in ("POST", "PUT"):
+            # The largest body any route takes; each route checks its own limit in Request.json().
             declared = int(headers.get("content-length") or 0)
-            if declared <= MAX_BODY_BYTES:
+            if declared <= SYNC_BODY_BYTES:
                 body = (await request.text()).encode("utf-8")
             else:
-                body = b"x" * (MAX_BODY_BYTES + 1)  # rejected as too large by Request.json()
+                body = b"x" * (SYNC_BODY_BYTES + 1)  # rejected as too large by Request.json()
 
         try:
             settings, config_error = Settings.from_env(self.env), None

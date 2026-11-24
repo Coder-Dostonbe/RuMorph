@@ -115,6 +115,22 @@ jobs:
             -d '{"email":"ci@example.com","password":"wrong-password","device":{"id":"6b0f3d9e-3a8f-4f8e-9a51-0c7b2d1e4f60","platform":"browser"}}')
           test "$code" = "401"
           curl -s -i -X OPTIONS http://localhost:8787/v1/auth/login -H 'origin: http://tauri.localhost' | grep -i 'access-control-allow-origin: http://tauri.localhost'
+          # Sync in the Workers runtime: a large row (50 000 characters) goes up and comes back.
+          access=$(python3 -c "import json;print(json.load(open('refresh.json'))['access_token'])")
+          python3 - > push.json <<'PY'
+          import json, uuid
+          t = "2026-11-20T09:00:00.000Z"
+          row = {"id": str(uuid.uuid4()), "created_at": t, "updated_at": t, "deleted_at": None, "version": 1,
+                 "title": "CI", "body": "Я" * 50000, "source": ""}
+          print(json.dumps({"changes": [{"table": "reading_texts", "row": row}]}))
+          PY
+          curl -sf -X POST http://localhost:8787/v1/sync/push -H 'content-type: application/json' \
+            -H "authorization: Bearer $access" --data-binary @push.json | tee pushed.json
+          python3 -c "import json;r=json.load(open('pushed.json'));assert len(r['accepted'])==1 and not r['rejected'],r"
+          curl -sf "http://localhost:8787/v1/sync/pull?since=0" -H "authorization: Bearer $access" > pulled.json
+          python3 -c "import json;r=json.load(open('pulled.json'));assert len(r['changes'])==1 and len(r['changes'][0]['row']['body'])==50000"
+          curl -sf http://localhost:8787/v1/account -H "authorization: Bearer $access" | tee account.json
+          python3 -c "import json;r=json.load(open('account.json'));assert r['progress']['texts']==1 and r['devices'][0]['current']"
       - name: Worker log
         if: always()
         working-directory: apps/api

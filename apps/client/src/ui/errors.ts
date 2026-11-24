@@ -1,8 +1,13 @@
 import { ApiError } from "../api/http";
 import { format, type Messages } from "../i18n";
+import { useAdmin } from "../stores/admin";
 
-/** A message the user can read, in the interface language, for any error from the API. */
+/**
+ * A message the user can read, in the interface language, for any error from the API.
+ * Codes the app has no text for are shown only in the admin mode.
+ */
 export function describeError(error: unknown, m: Messages): string {
+  const admin = useAdmin().unlocked;
   if (error instanceof ApiError) {
     switch (error.code) {
       case "network":
@@ -25,7 +30,7 @@ export function describeError(error: unknown, m: Messages): string {
       case "internal":
         return m.errors.server;
     }
-    return format(m.errors.unknown, { error: `${error.code} (${error.status})` });
+    return admin ? format(m.errors.unknown, { error: `${error.code} (${error.status})` }) : m.errors.unknownUser;
   }
-  return format(m.errors.unknown, { error: error instanceof Error ? error.message : String(error) });
+  return admin ? format(m.errors.unknown, { error: error instanceof Error ? error.message : String(error) }) : m.errors.unknownUser;
 }

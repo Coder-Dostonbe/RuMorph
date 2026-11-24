@@ -1,5 +1,5 @@
 // The app's sections, in menu order. Only finished sections are listed: there are no placeholder
-// pages. The admin items (technical pages, account) are hidden until the admin mode is unlocked. On a phone the bottom bar shows the `primary` ones and a "More" page lists them all.
+// pages. The admin items (technical pages) are hidden until the admin mode is unlocked. On a phone the bottom bar shows the `primary` ones and a "More" page lists them all.
 import type { Messages } from "../i18n";
 
 export type IconName =
@@ -24,7 +24,7 @@ export const NAV: NavItem[] = [
   { to: "/spell", label: (m) => m.nav.spell, icon: "spell" },
   { to: "/calendar", label: (m) => m.nav.calendar, icon: "calendar" },
   { to: "/analyze", label: (m) => m.nav.analyze, icon: "search", primary: true },
-  { to: "/account", label: (m) => m.nav.account, icon: "user", admin: true },
+  { to: "/account", label: (m) => m.nav.account, icon: "user" },
   { to: "/settings", label: (m) => m.nav.settings, icon: "settings" },
   { to: "/about", label: (m) => m.nav.about, icon: "info" },
   { to: "/admin", label: (m) => m.nav.admin, icon: "shield", admin: true },

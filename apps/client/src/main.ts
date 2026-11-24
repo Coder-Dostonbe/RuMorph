@@ -7,6 +7,7 @@ import { router } from "./app/router";
 import { useCore } from "./stores/core";
 import { useSession } from "./stores/session";
 import { useSettings } from "./stores/settings";
+import { useSync } from "./stores/sync";
 import { useTranslations } from "./stores/translations";
 import { useUpdates } from "./stores/updates";
 import { useVocabulary } from "./stores/vocabulary";
@@ -22,6 +23,7 @@ app.mount("#app");
 // These run in the background; the UI shows their progress.
 void useCore().start();
 void useSession().restore();
+useSync().start();
 void useVocabulary().load();
 void useTranslations().load();
 useUpdates().startChecking();

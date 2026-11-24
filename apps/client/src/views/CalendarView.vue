@@ -2,6 +2,7 @@
 // Learning calendar: per local day, what was done (reviews, reading, tests, new words) and how
 // many cards fall due. Counted by tilsim_core (stats.py) from the learner's own records.
 import { computed, onMounted, ref, watch } from "vue";
+import { useSync } from "../stores/sync";
 import { grammar, type DayActivity } from "../core/grammar";
 import { loadRecords, utcOffsetMinutes, type Records } from "../data/records";
 import { dateLocale, format, useI18n } from "../i18n";
@@ -30,6 +31,8 @@ async function load(): Promise<void> {
   }
 }
 onMounted(load);
+// A sync brought changes from another device.
+watch(() => useSync().revision, () => void load());
 watch([() => core.status, year, month], load);
 
 function shift(by: number): void {

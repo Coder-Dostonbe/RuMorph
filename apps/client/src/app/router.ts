@@ -30,7 +30,7 @@ export const router = createRouter({
     { path: "/calendar", name: "calendar", component: CalendarView },
     { path: "/analyze", name: "analyze", component: AnalyzeView },
     { path: "/more", name: "more", component: MoreView },
-    { path: "/account", name: "account", component: AccountView, meta: { admin: true } },
+    { path: "/account", name: "account", component: AccountView },
     { path: "/settings", name: "settings", component: SettingsView },
     { path: "/about", name: "about", component: AboutView },
     // Reached only from "About" (the hidden entry); asks for the password itself.

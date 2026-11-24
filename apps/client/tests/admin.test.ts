@@ -72,10 +72,10 @@ describe("admin mode", () => {
     expect(await admin.unlock("secret-2")).toBe("locked_out");
   });
 
-  it("hides the admin menu items while locked", () => {
+  it("hides the admin menu items while locked; the account is for everyone", () => {
     const locked = visibleNav(false).map((i) => i.to);
     expect(locked).not.toContain("/admin");
-    expect(locked).not.toContain("/account");
+    expect(locked).toContain("/account");
     expect(visibleNav(true).map((i) => i.to)).toEqual(expect.arrayContaining(["/admin", "/account"]));
   });
 });

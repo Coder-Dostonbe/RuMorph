@@ -29,10 +29,12 @@ def user_json(row: Any) -> dict[str, Any]:
     }
 
 
-async def audit(conn, action: str, *, user_id=None, device_id=None, ip: str | None = None, **meta) -> None:
+async def audit(conn, action: str, *, user_id=None, device_id=None, ip: str | None = None,
+                at: datetime | None = None, **meta) -> None:
     await conn.execute(
-        "INSERT INTO audit_log (user_id, device_id, action, ip, meta) VALUES ($1, $2, $3, $4, $5::jsonb)",
-        user_id, device_id, action, ip, json.dumps(meta),
+        "INSERT INTO audit_log (user_id, device_id, action, ip, meta, created_at) "
+        "VALUES ($1, $2, $3, $4, $5::jsonb, coalesce($6, now()))",
+        user_id, device_id, action, ip, json.dumps(meta), at,
     )
 
 
@@ -85,6 +87,12 @@ async def register(conn, settings: Settings, *, email: str, password: str, displ
                    derive: Derive = stdlib_derive) -> dict[str, Any]:
     if not settings.allow_registration:
         raise ApiError(403, "registration_closed", "registration is closed")
+    if ip and await conn.fetchval(
+        "SELECT count(*) FROM audit_log WHERE action = 'register' AND ip = $1 AND created_at > $2",
+        ip, now - timedelta(seconds=settings.registration_window),
+    ) >= settings.max_registrations_per_ip:
+        raise ApiError(429, "too_many_attempts", "too many new accounts from this network, try again later",
+                       {"retry-after": str(settings.registration_window)})
     password_hash = await passwords.hash_password(password, settings.pbkdf2_iterations, derive)
     async with conn.transaction():
         # Serialises concurrent registrations so exactly one first account becomes admin.
@@ -102,7 +110,7 @@ async def register(conn, settings: Settings, *, email: str, password: str, displ
         )
         device_id = await _upsert_device(conn, user["id"], device, now)
         result = await _issue(conn, settings, user, device_id, now)
-        await audit(conn, "register", user_id=user["id"], device_id=device_id, ip=ip, role=role)
+        await audit(conn, "register", user_id=user["id"], device_id=device_id, ip=ip, at=now, role=role)
     return _public(result)
 
 

@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from . import SERVICE, __version__, auth, tokens, validation
+from . import SERVICE, __version__, auth, sync, tokens, validation
 from .config import ConfigError, Settings
 from .errors import ApiError, unauthorized
 from .http import Request, Response, error_response, json_response
@@ -127,6 +127,47 @@ async def me(request: Request, ctx: Context) -> Response:
     return json_response(200, {"user": user})
 
 
+# Rows of up to 100 records (a reading text alone may be 50 000 characters).
+SYNC_BODY_BYTES = 1024 * 1024
+
+
+async def sync_push(request: Request, ctx: Context) -> Response:
+    settings = _settings(ctx)
+    claims = _bearer(request, settings, ctx.now())
+    body = request.json(max_bytes=SYNC_BODY_BYTES)
+    async with _db(ctx) as conn:
+        result = await sync.push(conn, user_id=claims.user_id, device_id=claims.device_id, body=body, now=ctx.now())
+    return json_response(200, result)
+
+
+async def sync_pull(request: Request, ctx: Context) -> Response:
+    settings = _settings(ctx)
+    claims = _bearer(request, settings, ctx.now())
+    since = sync.parse_since(request.query("since"))
+    async with _db(ctx) as conn:
+        result = await sync.pull(conn, user_id=claims.user_id, device_id=claims.device_id, since=since, now=ctx.now())
+    return json_response(200, result)
+
+
+async def account(request: Request, ctx: Context) -> Response:
+    settings = _settings(ctx)
+    claims = _bearer(request, settings, ctx.now())
+    async with _db(ctx) as conn:
+        user = await auth.current_user(conn, claims.user_id)
+        overview = await sync.account(conn, user_id=claims.user_id, device_id=claims.device_id, now=ctx.now())
+    return json_response(200, {"user": user, **overview})
+
+
+async def revoke_device(request: Request, ctx: Context) -> Response:
+    settings = _settings(ctx)
+    claims = _bearer(request, settings, ctx.now())
+    target = request.json().get("device_id")
+    async with _db(ctx) as conn:
+        await sync.revoke_device(conn, user_id=claims.user_id, current_device_id=claims.device_id, target=target,
+                                 now=ctx.now(), ip=request.ip, audit=auth.audit)
+    return Response(204)
+
+
 ROUTES: dict[tuple[str, str], Handler] = {
     ("GET", "/health"): health,
     ("POST", "/v1/auth/register"): register,
@@ -134,6 +175,10 @@ ROUTES: dict[tuple[str, str], Handler] = {
     ("POST", "/v1/auth/refresh"): refresh,
     ("POST", "/v1/auth/logout"): logout,
     ("GET", "/v1/me"): me,
+    ("GET", "/v1/account"): account,
+    ("POST", "/v1/devices/revoke"): revoke_device,
+    ("POST", "/v1/sync/push"): sync_push,
+    ("GET", "/v1/sync/pull"): sync_pull,
 }
 
 

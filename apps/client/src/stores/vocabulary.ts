@@ -30,6 +30,13 @@ export const useVocabulary = defineStore("vocabulary", () => {
     }
   }
 
+  /** Reads the table again (after a sync brought changes). Does nothing if it was never read. */
+  async function reload(): Promise<void> {
+    if (!loaded.value) return;
+    loaded.value = false;
+    await load();
+  }
+
   async function save(
     word: WordRef,
     fields: { note: string; examples: Example[]; status: VocabularyRow["status"] },
@@ -65,5 +72,5 @@ export const useVocabulary = defineStore("vocabulary", () => {
     );
   }
 
-  return { rows, loaded, error, byLexeme, load, save, remove, find };
+  return { rows, loaded, error, byLexeme, load, reload, save, remove, find };
 });

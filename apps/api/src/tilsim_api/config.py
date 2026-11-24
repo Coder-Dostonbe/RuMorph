@@ -23,6 +23,8 @@ class Settings:
     pbkdf2_iterations: int = 100_000
     max_failed_logins: int = 5                 # per email, per window
     failed_login_window: int = 15 * 60         # seconds
+    max_registrations_per_ip: int = 5          # new accounts per network address, per window
+    registration_window: int = 60 * 60         # seconds
 
     @classmethod
     def from_env(cls, env: Any) -> Settings:

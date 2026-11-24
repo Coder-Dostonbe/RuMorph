@@ -8,6 +8,7 @@ import { useCore } from "../stores/core";
 import { useServer } from "../stores/server";
 import { useSession } from "../stores/session";
 import { useSettings } from "../stores/settings";
+import { useSync } from "../stores/sync";
 import StatusBadge from "../ui/StatusBadge.vue";
 
 const m = useI18n();
@@ -15,6 +16,7 @@ const core = useCore();
 const server = useServer();
 const session = useSession();
 const settings = useSettings();
+const sync = useSync();
 
 onMounted(() => {
   if (server.state === "unknown") void server.check();
@@ -56,6 +58,10 @@ async function saveApi(): Promise<void> {
       </header>
       <p v-if="session.user" class="small">{{ format(m.home.signedInAs, { email: session.user.email }) }}</p>
       <p v-else class="muted small">{{ m.home.signedOut }}</p>
+      <p v-if="session.user" class="muted small">
+        {{ m.account.sync.title }}: {{ sync.state }}, {{ format(m.account.sync.pending, { n: sync.pending }) }}
+      </p>
+      <p v-if="sync.detail" class="muted small">{{ sync.detail }}</p>
       <RouterLink to="/account" class="btn link">{{ m.admin.openAccount }}</RouterLink>
     </article>
     <article class="card">

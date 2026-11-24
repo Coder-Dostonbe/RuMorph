@@ -3,6 +3,7 @@
 // words linked to the dictionary and its difficulty measured. Tapping a word opens its card.
 // Finishing a text logs a reading session (reading_history).
 import { computed, onMounted, ref, watch } from "vue";
+import { useSync } from "../stores/sync";
 import { useRoute, useRouter } from "vue-router";
 import { grammar, type PreparedText, type ReadingToken } from "../core/grammar";
 import { readings, readingTexts, type ReadingRow, type ReadingTextRow } from "../data/userData";
@@ -41,6 +42,8 @@ function err(e: unknown): string {
 async function load(): Promise<void> {
   [texts.value, history.value] = await Promise.all([readingTexts.list(), readings.list()]);
 }
+// A sync brought changes from another device.
+watch(() => useSync().revision, () => void load());
 onMounted(async () => {
   await Promise.all([load(), vocab.load()]);
   if (openId.value) void prepare();

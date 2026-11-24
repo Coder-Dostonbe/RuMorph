@@ -33,3 +33,30 @@ export interface TokenPair {
 export interface AuthResponse extends TokenPair {
   user: User;
 }
+
+export interface AccountDevice {
+  id: string;
+  name: string;
+  platform: DeviceInfo["platform"];
+  created_at: string;
+  last_seen_at: string;
+  last_sync_at: string | null;
+  signed_in: boolean;
+  current: boolean;
+}
+
+/** GET /v1/account (sync.py, account). Counts are of live rows on the server. */
+export interface AccountOverview {
+  user: User;
+  progress: {
+    words: number;
+    known_words: number;
+    cards: number;
+    reviews: number;
+    texts: number;
+    readings: number;
+    tests: number;
+    last_change_at: string | null;
+  };
+  devices: AccountDevice[];
+}

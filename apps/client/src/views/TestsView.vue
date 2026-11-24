@@ -2,6 +2,7 @@
 // Exercises: a test of one kind of question, or the quick-answer game (60 s, mixed kinds).
 // Questions come from tilsim_core (exercises.py); results go to test_results.
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useSync } from "../stores/sync";
 import { grammar, type ExerciseKind, type Question } from "../core/grammar";
 import { testResults, type TestResultRow } from "../data/userData";
 import { dateLocale, format, useI18n } from "../i18n";
@@ -53,6 +54,8 @@ function err(e: unknown): string {
 async function loadHistory(): Promise<void> {
   history.value = (await testResults.list()).sort((a, b) => b.taken_at.localeCompare(a.taken_at));
 }
+// A sync brought changes from another device.
+watch(() => useSync().revision, () => void loadHistory());
 onMounted(() => {
   void loadHistory();
   void vocab.load();

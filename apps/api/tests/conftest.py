@@ -22,7 +22,7 @@ from tilsim_api.app import Context, handle  # noqa: E402
 from tilsim_api.config import Settings  # noqa: E402
 from tilsim_api.http import Request, Response  # noqa: E402
 
-TABLES = ["audit_log", "auth_attempts", "refresh_tokens", "user_settings", "devices", "users"]
+TABLES = ["sync_records", "audit_log", "auth_attempts", "refresh_tokens", "user_settings", "devices", "users"]
 ORIGIN = "http://tauri.localhost"
 
 

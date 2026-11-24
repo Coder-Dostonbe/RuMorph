@@ -36,6 +36,13 @@ export const useCards = defineStore("cards", () => {
     loaded.value = true;
   }
 
+  /** Reads the tables again (after a sync brought changes). Does nothing if they were never read. */
+  async function reload(): Promise<void> {
+    if (!loaded.value) return;
+    loaded.value = false;
+    await load();
+  }
+
   async function setNewPerDay(n: number): Promise<void> {
     newPerDay.value = Math.max(0, Math.min(200, Math.round(n)));
     await keyValue.set("cards.new_per_day", String(newPerDay.value));
@@ -108,5 +115,5 @@ export const useCards = defineStore("cards", () => {
     return updated;
   }
 
-  return { cards, history, newPerDay, loaded, load, setNewPerDay, find, add, remove, newSeenToday, reviewedToday, queue, preview, answer };
+  return { cards, history, newPerDay, loaded, load, reload, setNewPerDay, find, add, remove, newSeenToday, reviewedToday, queue, preview, answer };
 });

@@ -14,9 +14,15 @@ function applyTheme(theme: Theme): void {
   else root.dataset.theme = theme;
 }
 
+/**
+ * The Zabon server every build talks to unless VITE_API_URL says otherwise. It is a public
+ * address (the Worker apps/api); the admin can point a device elsewhere in the admin panel.
+ */
+export const DEFAULT_API_URL = "https://zabon-api.yusupovdostonbek21.workers.dev";
+
 export const useSettings = defineStore("settings", () => {
   const theme = ref<Theme>("system");
-  const apiUrl = ref<string>(import.meta.env.VITE_API_URL ?? "");
+  const apiUrl = ref<string>(import.meta.env.VITE_API_URL || DEFAULT_API_URL);
   const deviceId = ref<string>("");
   const loaded = ref(false);
   const storageKind = keyValue.kind;
@@ -30,7 +36,7 @@ export const useSettings = defineStore("settings", () => {
     ]);
     if (isLocale(savedLocale)) locale.value = savedLocale;
     if (isTheme(savedTheme)) theme.value = savedTheme;
-    if (savedApi !== null) apiUrl.value = savedApi;
+    if (savedApi) apiUrl.value = savedApi;
     if (savedDevice) {
       deviceId.value = savedDevice;
     } else {

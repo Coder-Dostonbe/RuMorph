@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from .errors import ApiError
 
@@ -27,8 +27,12 @@ class Request:
     def header(self, name: str) -> str | None:
         return self.headers.get(name.lower())
 
-    def json(self) -> dict[str, Any]:
-        if len(self.body) > MAX_BODY_BYTES:
+    def query(self, name: str) -> str | None:
+        values = parse_qs(urlsplit(self.url).query).get(name)
+        return values[0] if values else None
+
+    def json(self, max_bytes: int = MAX_BODY_BYTES) -> dict[str, Any]:
+        if len(self.body) > max_bytes:
             raise ApiError(413, "payload_too_large", "request body is too large")
         content_type = (self.header("content-type") or "").split(";")[0].strip().lower()
         if content_type != "application/json":
