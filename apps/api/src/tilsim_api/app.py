@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from . import SERVICE, __version__, auth, sync, tokens, validation
+from . import SERVICE, __version__, auth, sync, tokens, translations, validation
 from .config import ConfigError, Settings
 from .errors import ApiError, unauthorized
 from .http import Request, Response, error_response, json_response
@@ -168,6 +168,23 @@ async def revoke_device(request: Request, ctx: Context) -> Response:
     return Response(204)
 
 
+async def translations_pull(request: Request, ctx: Context) -> Response:
+    # Public: every app reads the translations, with or without an account.
+    since = sync.parse_since(request.query("since"))
+    async with _db(ctx) as conn:
+        result = await translations.pull(conn, since=since)
+    return json_response(200, result)
+
+
+async def translations_push(request: Request, ctx: Context) -> Response:
+    settings = _settings(ctx)
+    claims = _bearer(request, settings, ctx.now())
+    body = request.json(max_bytes=SYNC_BODY_BYTES)
+    async with _db(ctx) as conn:
+        result = await translations.push(conn, user_id=claims.user_id, body=body, now=ctx.now())
+    return json_response(200, result)
+
+
 ROUTES: dict[tuple[str, str], Handler] = {
     ("GET", "/health"): health,
     ("POST", "/v1/auth/register"): register,
@@ -179,6 +196,8 @@ ROUTES: dict[tuple[str, str], Handler] = {
     ("POST", "/v1/devices/revoke"): revoke_device,
     ("POST", "/v1/sync/push"): sync_push,
     ("GET", "/v1/sync/pull"): sync_pull,
+    ("GET", "/v1/translations"): translations_pull,
+    ("POST", "/v1/translations"): translations_push,
 }
 
 

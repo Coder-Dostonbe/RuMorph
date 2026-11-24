@@ -126,7 +126,7 @@ async function nextBatch(): Promise<Change[]> {
   const batch: Change[] = [];
   let chars = 0;
   const byTable = new Map<SyncedTable, string[]>();
-  for (const e of entries) byTable.set(e.tbl, [...(byTable.get(e.tbl) ?? []), e.id]);
+  for (const e of entries) if (isSynced(e.tbl)) byTable.set(e.tbl, [...(byTable.get(e.tbl) ?? []), e.id]);
   for (const [table, ids] of byTable) {
     const rows = new Map((await syncStore.byIds(table, ids)).map((r) => [r.id, r]));
     for (const id of ids) {

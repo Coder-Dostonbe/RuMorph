@@ -131,6 +131,12 @@ jobs:
           python3 -c "import json;r=json.load(open('pulled.json'));assert len(r['changes'])==1 and len(r['changes'][0]['row']['body'])==50000"
           curl -sf http://localhost:8787/v1/account -H "authorization: Bearer $access" | tee account.json
           python3 -c "import json;r=json.load(open('account.json'));assert r['progress']['texts']==1 and r['devices'][0]['current']"
+          # Shared translations: the first account is the admin; reading needs no account.
+          curl -sf -X POST http://localhost:8787/v1/translations -H 'content-type: application/json' \
+            -H "authorization: Bearer $access" \
+            -d '{"changes":[{"lexeme_id":"книга|NOUN,inan,femn","lemma":"книга","translation":"kitob","updated_at":"2026-11-20T09:00:00Z","deleted_at":null}]}' | tee tr.json
+          python3 -c "import json;r=json.load(open('tr.json'));assert r['accepted']==['книга|NOUN,inan,femn'],r"
+          curl -sf "http://localhost:8787/v1/translations?since=0" | grep -q 'kitob'
       - name: Worker log
         if: always()
         working-directory: apps/api

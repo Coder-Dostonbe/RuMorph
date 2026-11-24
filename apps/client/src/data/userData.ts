@@ -111,7 +111,7 @@ export type SyncedTable = (typeof SYNCED)[number];
 export const isSynced = (name: string): name is SyncedTable => (SYNCED as readonly string[]).includes(name);
 
 export interface OutboxEntry {
-  tbl: SyncedTable;
+  tbl: string;
   id: string;
   version: number;
 }
@@ -124,11 +124,11 @@ interface Backend {
   /** Deletes every row of the table for real (only when the device changes accounts). */
   clear(table: TableName): Promise<void>;
   outboxMark(entries: OutboxEntry[]): Promise<void>;
-  outboxList(limit: number): Promise<OutboxEntry[]>;
+  outboxList(limit: number, tables: readonly string[]): Promise<OutboxEntry[]>;
   /** Removes the entry if its version is at most `version` (a newer local change stays queued). */
-  outboxAck(tbl: SyncedTable, id: string, version: number): Promise<void>;
-  outboxCount(): Promise<number>;
-  outboxClear(): Promise<void>;
+  outboxAck(tbl: string, id: string, version: number): Promise<void>;
+  outboxCount(tables: readonly string[]): Promise<number>;
+  outboxClear(tables: readonly string[]): Promise<void>;
 }
 
 function decode(table: TableName, row: Record<string, unknown>): Record<string, unknown> {
@@ -173,21 +173,26 @@ class SqliteBackend implements Backend {
     }
   }
 
-  async outboxList(limit: number): Promise<OutboxEntry[]> {
-    return (await this.db).select<OutboxEntry[]>("SELECT tbl, id, version FROM sync_outbox ORDER BY tbl, id LIMIT $1", [limit]);
+  async outboxList(limit: number, tables: readonly string[]): Promise<OutboxEntry[]> {
+    const list = tables.map((_, i) => `$${i + 2}`).join(", ");
+    return (await this.db).select<OutboxEntry[]>(
+      `SELECT tbl, id, version FROM sync_outbox WHERE tbl IN (${list}) ORDER BY tbl, id LIMIT $1`, [limit, ...tables],
+    );
   }
 
-  async outboxAck(tbl: SyncedTable, id: string, version: number): Promise<void> {
+  async outboxAck(tbl: string, id: string, version: number): Promise<void> {
     await (await this.db).execute("DELETE FROM sync_outbox WHERE tbl = $1 AND id = $2 AND version <= $3", [tbl, id, version]);
   }
 
-  async outboxCount(): Promise<number> {
-    const rows = await (await this.db).select<{ n: number }[]>("SELECT count(*) AS n FROM sync_outbox");
+  async outboxCount(tables: readonly string[]): Promise<number> {
+    const list = tables.map((_, i) => `$${i + 1}`).join(", ");
+    const rows = await (await this.db).select<{ n: number }[]>(`SELECT count(*) AS n FROM sync_outbox WHERE tbl IN (${list})`, [...tables]);
     return Number(rows[0]?.n ?? 0);
   }
 
-  async outboxClear(): Promise<void> {
-    await (await this.db).execute("DELETE FROM sync_outbox");
+  async outboxClear(tables: readonly string[]): Promise<void> {
+    const list = tables.map((_, i) => `$${i + 1}`).join(", ");
+    await (await this.db).execute(`DELETE FROM sync_outbox WHERE tbl IN (${list})`, [...tables]);
   }
 
   async put(table: TableName, row: Record<string, unknown>): Promise<void> {
@@ -272,25 +277,26 @@ class BrowserBackend implements Backend {
     this.save("tilsim.sync_outbox", box);
   }
 
-  async outboxList(limit: number): Promise<OutboxEntry[]> {
-    return [...this.loadOutbox()]
+  async outboxList(limit: number, tables: readonly string[]): Promise<OutboxEntry[]> {
+    return this.loadOutbox()
+      .filter((e) => tables.includes(e.tbl))
       .sort((a, b) => (a.tbl === b.tbl ? (a.id < b.id ? -1 : 1) : a.tbl < b.tbl ? -1 : 1))
       .slice(0, limit)
       .map((e) => ({ ...e }));
   }
 
-  async outboxAck(tbl: SyncedTable, id: string, version: number): Promise<void> {
+  async outboxAck(tbl: string, id: string, version: number): Promise<void> {
     this.outbox = this.loadOutbox().filter((e) => !(e.tbl === tbl && e.id === id && e.version <= version));
     this.save("tilsim.sync_outbox", this.outbox);
   }
 
-  async outboxCount(): Promise<number> {
-    return this.loadOutbox().length;
+  async outboxCount(tables: readonly string[]): Promise<number> {
+    return this.loadOutbox().filter((e) => tables.includes(e.tbl)).length;
   }
 
-  async outboxClear(): Promise<void> {
-    this.outbox = [];
-    this.save("tilsim.sync_outbox", []);
+  async outboxClear(tables: readonly string[]): Promise<void> {
+    this.outbox = this.loadOutbox().filter((e) => !tables.includes(e.tbl));
+    this.save("tilsim.sync_outbox", this.outbox);
   }
 }
 
@@ -399,9 +405,9 @@ export const syncStore = {
   putRemote: (name: SyncedTable, row: BaseRow): Promise<void> => backend.put(name, row as unknown as Record<string, unknown>),
   /** A row this device changed while merging (a duplicate it marked deleted): goes to the outbox. */
   putLocal: (name: SyncedTable, row: BaseRow): Promise<void> => write(name, row),
-  outboxList: (limit: number) => backend.outboxList(limit),
+  outboxList: (limit: number) => backend.outboxList(limit, SYNCED),
   outboxAck: (tbl: SyncedTable, id: string, version: number) => backend.outboxAck(tbl, id, version),
-  outboxCount: () => backend.outboxCount(),
+  outboxCount: () => backend.outboxCount(SYNCED),
   /** Queues every row of the learner's tables (the first sync of this device with an account). */
   async markAll(): Promise<void> {
     for (const name of SYNCED) {
@@ -412,6 +418,22 @@ export const syncStore = {
   /** Removes the learner's data from this device (it belongs to another account). */
   async wipe(): Promise<void> {
     for (const name of SYNCED) await backend.clear(name);
-    await backend.outboxClear();
+    await backend.outboxClear(SYNCED);
   },
+};
+
+/**
+ * The device's copy of the shared translations (admin_translations): rows from the server and the
+ * admin's own edits. An edit waits in the outbox until the server has it (src/sync/translations.ts).
+ */
+export const translationStore = {
+  all: () => adminTranslations.listAll(),
+  byIds: (ids: string[]) => backend.byIds("admin_translations", ids) as unknown as Promise<AdminTranslationRow[]>,
+  /** A row as the server has it: written without an outbox entry. */
+  putRemote: (row: AdminTranslationRow) => backend.put("admin_translations", row as unknown as Record<string, unknown>),
+  mark: (rows: AdminTranslationRow[]) =>
+    backend.outboxMark(rows.map((r) => ({ tbl: "admin_translations", id: r.id, version: r.version }))),
+  pending: (limit: number) => backend.outboxList(limit, ["admin_translations"]),
+  ack: (id: string, version: number) => backend.outboxAck("admin_translations", id, version),
+  count: () => backend.outboxCount(["admin_translations"]),
 };

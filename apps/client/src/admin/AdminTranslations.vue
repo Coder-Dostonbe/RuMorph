@@ -1,10 +1,11 @@
 <script setup lang="ts">
 // Admin: word translations. Untranslated words come most frequent first, with a field to type
-// the translation; translated ones can be searched, corrected or removed. "Export" writes every
-// translation to one file, which goes into the next build (tools/translations/merge.py).
+// the translation; translated ones can be searched, corrected or removed. Edits go to the server
+// (admin account) and from there to every device. "Export" writes every translation to one file:
+// a backup, which can also go into a build (tools/translations/merge.py).
 import { computed, onMounted, ref, watch } from "vue";
 import { grammar, type WordSummary } from "../core/grammar";
-import { format, locale, useI18n } from "../i18n";
+import { dateLocale, format, locale, useI18n } from "../i18n";
 import { useCore } from "../stores/core";
 import { MAX_TRANSLATION, useTranslations } from "../stores/translations";
 import { callFailed, errorDetail } from "../ui/failure";
@@ -74,6 +75,27 @@ async function save(word: { id: string; lemma: string }, text: string): Promise<
   }
 }
 
+const serverText = computed(() => {
+  const t = m.value.admin.server;
+  const n = tr.pending;
+  switch (tr.state) {
+    case "syncing":
+      return t.syncing;
+    case "offline":
+      return t.offline;
+    case "failed":
+      return t.failed;
+    case "signed_out":
+      return format(t.signedOut, { n });
+    case "not_admin":
+      return format(t.notAdmin, { n });
+    case "ok":
+      return format(t.ok, { time: tr.lastSyncAt ? new Date(tr.lastSyncAt).toLocaleString(dateLocale()) : "" });
+    default:
+      return "";
+  }
+});
+
 async function exportAll(): Promise<void> {
   exporting.value = true;
   exportNote.value = "";
@@ -96,7 +118,12 @@ async function exportAll(): Promise<void> {
   <div class="card">
     <p class="intro">{{ m.admin.translationsIntro }}</p>
     <p class="muted small">{{ format(m.admin.counts, { total: tr.all.size, bundled: tr.bundledCount, local: tr.localCount }) }}</p>
+    <p v-if="serverText" class="small" :class="{ 'warn-text': ['signed_out', 'not_admin', 'failed'].includes(tr.state) }">{{ serverText }}</p>
+    <p v-if="tr.pending && ['ok', 'syncing'].includes(tr.state)" class="muted small">{{ format(m.admin.server.pending, { n: tr.pending }) }}</p>
+    <p v-if="tr.rejected" class="muted small">{{ format(m.admin.server.rejected, { n: tr.rejected }) }}</p>
+    <p v-if="tr.detail" class="muted small">{{ tr.detail }}</p>
     <div class="row">
+      <button class="btn" type="button" :disabled="tr.state === 'syncing'" @click="tr.syncNow()">{{ m.admin.server.now }}</button>
       <button class="btn primary" type="button" :disabled="exporting" @click="exportAll">{{ m.admin.export }}</button>
       <span v-if="exportNote" class="small ok-text">{{ exportNote }}</span>
     </div>
@@ -211,5 +238,8 @@ async function exportAll(): Promise<void> {
   .rows li {
     grid-template-columns: 1fr;
   }
+}
+.warn-text {
+  color: var(--warn);
 }
 </style>

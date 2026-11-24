@@ -25,5 +25,5 @@ void useCore().start();
 void useSession().restore();
 useSync().start();
 void useVocabulary().load();
-void useTranslations().load();
+useTranslations().start();
 useUpdates().startChecking();
