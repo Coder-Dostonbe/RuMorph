@@ -63,7 +63,7 @@ async function save(): Promise<void> {
     <div v-if="failure" class="alert err">{{ failure }}</div>
   </form>
   <p v-else-if="text" class="tr">{{ text }} <UncheckedMark v-if="unchecked" /></p>
-  <p v-else class="tr none">{{ m.common.testMode }}</p>
+  <p v-else-if="tr.loaded" class="tr none">{{ m.common.testMode }}</p>
 </template>
 
 <style scoped>

@@ -134,11 +134,27 @@ export const useTranslations = defineStore("translations", () => {
     return [...all.value.values()].filter((e) => e.translation.toLocaleLowerCase().includes(needle));
   }
 
-  async function load(): Promise<void> {
-    if (loaded.value) return;
-    const [file, rows] = await Promise.all([import("../data/translations.json"), adminTranslations.listAll()]);
-    bundled.value = (file.default as TranslationFile).translations;
-    local.value = rows;
+  let loading: Promise<void> | null = null;
+
+  /** Reads the shipped file and the device's rows once; concurrent calls share one read. */
+  function load(): Promise<void> {
+    if (loaded.value) return Promise.resolve();
+    loading ??= read().finally(() => {
+      loading = null;
+    });
+    return loading;
+  }
+
+  async function read(): Promise<void> {
+    // Each source on its own: the shipped translations still show if the device database fails.
+    const [file, rows] = await Promise.allSettled([import("../data/translations.json"), adminTranslations.listAll()]);
+    if (file.status === "fulfilled") bundled.value = (file.value.default as TranslationFile).translations;
+    else detail.value = `shipped file: ${String(file.reason)}`;
+    if (rows.status === "rejected") {
+      detail.value = `device rows: ${String(rows.reason)}`;
+      throw rows.reason;
+    }
+    local.value = rows.value;
     // Translations typed into the learner's own word entries before the admin mode existed
     // become admin translations, once.
     if ((await keyValue.get(MIGRATED_KEY)) === null) {
@@ -174,7 +190,12 @@ export const useTranslations = defineStore("translations", () => {
   }
 
   async function run(): Promise<void> {
-    await load();
+    try {
+      await load();
+    } catch {
+      state.value = "failed"; // the reason is in `detail` (admin panel)
+      return;
+    }
     if (!useSettings().apiUrl) return;
     const session = useSession();
     state.value = "syncing";
