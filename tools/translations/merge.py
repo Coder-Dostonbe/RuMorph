@@ -12,7 +12,11 @@ apps/client/src/data/translations.json:
   is dropped if the removal is newer than its entry. A word merely missing from an export (a
   device with an older build) is kept;
 - every lexeme id must exist in the app's lexicon, and every text must be non-empty and at most
-  200 characters, or nothing is written.
+  200 characters, or nothing is written;
+- an entry may carry up to 3 example sentences ({"ru", "uz"}, each 1-300 characters) and
+  "verified": false for a draft nobody has checked (the app marks it "not checked").
+
+Files of version 1 (no examples) and 2 are read; version 2 is written.
 
 --check only validates the shipped file (CI). Standard library only.
 """
@@ -27,7 +31,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SHIPPED = ROOT / "apps" / "client" / "src" / "data" / "translations.json"
 MAX_LENGTH = 200
+MAX_EXAMPLES = 3
+MAX_EXAMPLE = 300
 FORMAT = "tilsim-translations"
+VERSIONS = (1, 2)
 
 
 class MergeError(Exception):
@@ -46,8 +53,8 @@ def read(path: Path) -> dict:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as e:
         raise MergeError(f"{path}: cannot read: {e}") from e
-    if not isinstance(data, dict) or data.get("format") != FORMAT or data.get("version") != 1:
-        raise MergeError(f"{path}: not a {FORMAT} version 1 file")
+    if not isinstance(data, dict) or data.get("format") != FORMAT or data.get("version") not in VERSIONS:
+        raise MergeError(f"{path}: not a {FORMAT} file of version {' or '.join(map(str, VERSIONS))}")
     if not isinstance(data.get("translations"), list):
         raise MergeError(f"{path}: no translations list")
     return data
@@ -68,7 +75,23 @@ def validate(entries: list, known: set[str], where: str) -> dict[str, dict]:
             raise MergeError(f"{where}: translation of {lexeme_id!r} must be 1-{MAX_LENGTH} characters")
         if lexeme_id in out:
             raise MergeError(f"{where}: {lexeme_id!r} appears twice")
-        out[lexeme_id] = {"lexeme_id": lexeme_id, "lemma": lemma, "translation": text, "updated_at": at}
+        entry = {"lexeme_id": lexeme_id, "lemma": lemma, "translation": text, "updated_at": at}
+        examples = e.get("examples", [])
+        if not isinstance(examples, list) or len(examples) > MAX_EXAMPLES or not all(
+            isinstance(x, dict) and set(x) == {"ru", "uz"}
+            and all(isinstance(x[k], str) and 1 <= len(x[k].strip()) <= MAX_EXAMPLE for k in ("ru", "uz"))
+            for x in examples
+        ):
+            raise MergeError(f"{where}: examples of {lexeme_id!r} must be up to {MAX_EXAMPLES} {{ru, uz}} pairs "
+                             f"of 1-{MAX_EXAMPLE} characters")
+        if examples:
+            entry["examples"] = [{"ru": x["ru"].strip(), "uz": x["uz"].strip()} for x in examples]
+        verified = e.get("verified", True)
+        if not isinstance(verified, bool):
+            raise MergeError(f"{where}: verified of {lexeme_id!r} must be true or false")
+        if not verified:
+            entry["verified"] = False
+        out[lexeme_id] = entry
     return out
 
 
@@ -99,7 +122,7 @@ def merge(shipped: dict[str, dict], exports: list[tuple[dict[str, dict], dict[st
 
 
 def render(entries: dict[str, dict]) -> str:
-    data = {"format": FORMAT, "version": 1, "translations": [entries[k] for k in sorted(entries)]}
+    data = {"format": FORMAT, "version": 2, "translations": [entries[k] for k in sorted(entries)]}
     return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
 
 

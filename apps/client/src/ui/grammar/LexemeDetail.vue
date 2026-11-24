@@ -8,6 +8,7 @@ import { locale, useI18n } from "../../i18n";
 import FrequencyBadge from "./FrequencyBadge.vue";
 import ParadigmTable from "./ParadigmTable.vue";
 import ProfileView from "./ProfileView.vue";
+import TranslationExamples from "../TranslationExamples.vue";
 import TranslationLine from "../TranslationLine.vue";
 import { callFailed } from "../failure";
 
@@ -46,6 +47,7 @@ const selectedIndex = computed(() => (info.value?.id === props.id ? props.select
         </div>
         <button v-if="closable" type="button" class="btn" @click="emit('close')">{{ m.analyze.close }}</button>
       </header>
+      <TranslationExamples :id="info.id" />
       <slot />
       <h3>{{ m.analyze.rules }}</h3>
       <ProfileView :profile="info.profile" />

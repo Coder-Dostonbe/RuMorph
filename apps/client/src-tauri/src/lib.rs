@@ -44,6 +44,12 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../../../../db/sqlite/migrations/0004_sync_outbox.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 5,
+            description: "translation_examples",
+            sql: include_str!("../../../../db/sqlite/migrations/0005_translation_examples.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

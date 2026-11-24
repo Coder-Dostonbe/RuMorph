@@ -12,6 +12,8 @@ import { useVocabulary } from "../stores/vocabulary";
 import VocabEditor from "../ui/VocabEditor.vue";
 import FrequencyBadge from "../ui/grammar/FrequencyBadge.vue";
 import LexemeDetail from "../ui/grammar/LexemeDetail.vue";
+import UncheckedMark from "../ui/UncheckedMark.vue";
+import WordDialog from "../ui/WordDialog.vue";
 import { callFailed, coreFailed } from "../ui/failure";
 
 const PAGE = 40;
@@ -137,6 +139,7 @@ const openWord = computed(() =>
               <button type="button" class="word" :class="{ active: item.id === openId }" @click="open(item.id)">
                 <span class="lemma" lang="ru">{{ item.lemma }}</span>
                 <span v-if="tr.get(item.id)" class="tr">{{ tr.get(item.id) }}</span>
+                <UncheckedMark v-if="tr.entry(item.id)?.verified === false" />
                 <span class="muted small desc">{{ item.description }}</span>
                 <FrequencyBadge :rank="item.rank" />
               </button>
@@ -156,6 +159,7 @@ const openWord = computed(() =>
               <button type="button" class="word" :class="{ active: row.lexeme_id === openId }" @click="open(row.lexeme_id)">
                 <span class="lemma" lang="ru">{{ row.lemma }}</span>
                 <span v-if="tr.get(row.lexeme_id)" class="tr">{{ tr.get(row.lexeme_id) }}</span>
+                <UncheckedMark v-if="tr.entry(row.lexeme_id)?.verified === false" />
                 <span class="muted small">{{ m.dictionary.statuses[row.status] }}</span>
               </button>
             </li>
@@ -164,9 +168,11 @@ const openWord = computed(() =>
         </template>
       </div>
 
-      <LexemeDetail v-if="openId" :id="openId" closable @close="openId = null" @loaded="openInfo = $event">
-        <VocabEditor v-if="openWord" :word="openWord" />
-      </LexemeDetail>
+      <WordDialog v-if="openId" @close="openId = null">
+        <LexemeDetail :id="openId" closable @close="openId = null" @loaded="openInfo = $event">
+          <VocabEditor v-if="openWord" :word="openWord" />
+        </LexemeDetail>
+      </WordDialog>
     </div>
 
     <p v-if="g.lexicon" class="muted small source">
@@ -185,16 +191,12 @@ const openWord = computed(() =>
 .intro {
   max-width: 70ch;
 }
+/* A word opens in a window over the page (WordDialog), so the list takes the whole width. */
 .layout {
   display: grid;
-  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
-}
-@media (max-width: 860px) {
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 .controls {
   display: grid;
@@ -213,7 +215,8 @@ const openWord = computed(() =>
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.35rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.45rem;
 }
 .word {
   width: 100%;

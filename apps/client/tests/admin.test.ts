@@ -16,7 +16,7 @@ const { vocabulary } = await import("../src/data/userData");
 const { visibleNav } = await import("../src/app/nav");
 
 const row = (lexeme_id: string, translation: string, updated_at: string, deleted_at: string | null = null) => ({
-  id: lexeme_id, lexeme_id, lemma: lexeme_id.split("|")[0]!, translation, created_at: updated_at, updated_at, deleted_at, version: 1,
+  id: lexeme_id, lexeme_id, lemma: lexeme_id.split("|")[0]!, translation, created_at: updated_at, updated_at, deleted_at, version: 1, examples: [], verified: true,
 });
 const shipped = (lexeme_id: string, translation: string, updated_at: string) => ({ lexeme_id, lemma: lexeme_id.split("|")[0]!, translation, updated_at });
 
@@ -94,6 +94,13 @@ describe("translations", () => {
     expect(merged.get("d|X")?.translation).toBe("faqat shu yerda");
   });
 
+  it("keeps a draft's examples and its unchecked mark; a local entry is checked", () => {
+    const draft = { ...shipped("f|X", "kitob", "2026-01-01"), examples: [{ ru: "Это книга.", uz: "Bu kitob." }], verified: false };
+    expect(mergeTranslations([draft], []).get("f|X")).toMatchObject({ verified: false, examples: draft.examples });
+    const fixed = mergeTranslations([draft], [row("f|X", "kitob", "2026-02-01")]).get("f|X");
+    expect(fixed?.verified).toBe(true);
+  });
+
   it("exports every translation and the removals made on the device", () => {
     const local = [row("c|X", "", "2026-02-01", "2026-02-01"), row("e|X", "uy", "2026-02-01")];
     const file = toFile(mergeTranslations([shipped("c|X", "bor", "2026-01-01")], local).values(), local, "2026-02-02");
@@ -128,6 +135,7 @@ describe("translations (admin unlocked)", () => {
     expect(tr.get(word.id)).toBe("uy, bino");
     await tr.set(word, "");
     expect(tr.get(word.id)).toBeNull();
+    expect(tr.entry(word.id)).toBeNull();
     // Already moved over: loading again (a new start of the app) does not add the old one twice.
     setActivePinia(createPinia());
     const again = useTranslations();

@@ -5,7 +5,7 @@
 // and when the server's entry wins it comes back and is written here.
 // Pull (no account needed): entries changed since the saved cursor come down and replace older
 // local rows.
-import { translationStore, uuidv7, type AdminTranslationRow } from "../data/userData";
+import { translationStore, uuidv7, type AdminTranslationRow, type Example } from "../data/userData";
 
 export interface WireTranslation {
   lexeme_id: string;
@@ -13,6 +13,9 @@ export interface WireTranslation {
   translation: string;
   updated_at: string;
   deleted_at: string | null;
+  /** Missing from servers older than migration 0004. */
+  examples?: Example[];
+  verified?: boolean;
 }
 
 export interface TranslationPushResult {
@@ -45,6 +48,8 @@ export function toWire(row: AdminTranslationRow): WireTranslation {
     translation: row.translation.trim(),
     updated_at: iso(row.updated_at),
     deleted_at: row.deleted_at ? iso(row.deleted_at) : null,
+    examples: (row.examples ?? []).map((e) => ({ ru: e.ru.trim(), uz: e.uz.trim() })).filter((e) => e.ru && e.uz).slice(0, 3),
+    verified: row.verified ?? true,
   };
 }
 
@@ -61,6 +66,8 @@ export async function applyRemoteTranslations(entries: WireTranslation[]): Promi
       translation: e.translation,
       updated_at: iso(e.updated_at),
       deleted_at: e.deleted_at ? iso(e.deleted_at) : null,
+      examples: e.examples ?? [],
+      verified: e.verified ?? true,
     };
     const row: AdminTranslationRow = local
       ? { ...local, ...fields, version: local.version + 1 }

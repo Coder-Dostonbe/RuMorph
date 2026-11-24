@@ -62,3 +62,44 @@ def test_shipped_file_is_valid():
     data = merge.read(merge.SHIPPED)
     merge.validate(data["translations"], merge.lexeme_ids(), "shipped")
     assert json.loads(merge.SHIPPED.read_text(encoding="utf-8"))["format"] == "tilsim-translations"
+
+
+def test_examples_and_drafts_are_kept():
+    draft = {**entry("книга|NOUN,inan,femn", "kitob", "2026-01-01T00:00:00Z"),
+             "examples": [{"ru": "Это книга.", "uz": "Bu kitob."}], "verified": False}
+    out = merge.validate([draft], KNOWN, "x")
+    assert out["книга|NOUN,inan,femn"]["verified"] is False
+    assert out["книга|NOUN,inan,femn"]["examples"] == [{"ru": "Это книга.", "uz": "Bu kitob."}]
+    # A checked entry carries no "verified" key at all.
+    assert "verified" not in merge.validate([entry("дом|NOUN,inan,masc", "uy", "t")], KNOWN, "x")["дом|NOUN,inan,masc"]
+
+
+@pytest.mark.parametrize("examples", [[{"ru": "a"}], [{"ru": "a", "uz": " "}], [{"ru": "a", "uz": "b"}] * 4, "x"])
+def test_bad_examples_are_refused(examples):
+    with pytest.raises(merge.MergeError):
+        merge.validate([{**entry("дом|NOUN,inan,masc", "uy", "t"), "examples": examples}], KNOWN, "x")
+
+
+def test_drafts_never_replace_a_checked_translation(tmp_path):
+    import drafts
+
+    f = tmp_path / "d.tsv"
+    f.write_text("# comment\nкнига|NOUN,inan,femn\tkitob\tЭто книга.\tBu kitob.\tГде книга?\tKitob qayerda?\n"
+                 "дом|NOUN,inan,masc\tuy\n", encoding="utf-8")
+    parsed = drafts.parse(f)
+    assert parsed[0]["examples"][1] == {"ru": "Где книга?", "uz": "Kitob qayerda?"}
+    assert parsed[0]["verified"] is False and parsed[0]["updated_at"] == drafts.DRAFT_AT
+    checked = {"дом|NOUN,inan,masc": entry("дом|NOUN,inan,masc", "uy, bino", "2026-11-24T00:00:00Z")}
+    result, added = drafts.add_drafts(checked, merge.validate(parsed, KNOWN, "d"))
+    assert added == 1
+    assert result["дом|NOUN,inan,masc"]["translation"] == "uy, bino"
+    assert result["книга|NOUN,inan,femn"]["verified"] is False
+
+
+def test_draft_lines_need_pairs(tmp_path):
+    import drafts
+
+    f = tmp_path / "d.tsv"
+    f.write_text("книга|NOUN,inan,femn\tkitob\tЭто книга.\n", encoding="utf-8")
+    with pytest.raises(merge.MergeError):
+        drafts.parse(f)

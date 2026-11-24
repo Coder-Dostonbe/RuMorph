@@ -36,6 +36,10 @@ export interface AdminTranslationRow extends BaseRow {
   lexeme_id: string;
   lemma: string;
   translation: string;
+  /** Example sentences (0005_translation_examples.sql). */
+  examples: Example[];
+  /** false for an unchecked draft (shown with a "not checked" mark). */
+  verified: boolean;
 }
 
 export type Direction = "ru_uz" | "uz_ru";
@@ -100,7 +104,7 @@ const SPECS = {
   reading_texts: { columns: [...BASE, "title", "body", "source"], json: [] },
   reading_history: { columns: [...BASE, "text_id", "read_at", "words", "looked_up", "duration_ms"], json: [] },
   test_results: { columns: [...BASE, "kind", "taken_at", "total", "correct", "details"], json: ["details"] },
-  admin_translations: { columns: [...BASE, "lexeme_id", "lemma", "translation"], json: [] },
+  admin_translations: { columns: [...BASE, "lexeme_id", "lemma", "translation", "examples", "verified"], json: ["examples"] },
 } satisfies Record<string, TableSpec>;
 
 export type TableName = keyof typeof SPECS;
@@ -135,6 +139,8 @@ function decode(table: TableName, row: Record<string, unknown>): Record<string, 
   const spec: TableSpec = SPECS[table];
   const out = { ...row };
   for (const column of spec.json) out[column] = JSON.parse(String(row[column] ?? "[]"));
+  // SQLite keeps booleans as 0 / 1.
+  if (table === "admin_translations") out.verified = out.verified === undefined || out.verified === null ? true : Boolean(Number(out.verified));
   return out;
 }
 
@@ -197,7 +203,11 @@ class SqliteBackend implements Backend {
 
   async put(table: TableName, row: Record<string, unknown>): Promise<void> {
     const spec: TableSpec = SPECS[table];
-    const values = spec.columns.map((c) => (spec.json.includes(c) ? JSON.stringify(row[c] ?? []) : row[c] ?? null));
+    const values = spec.columns.map((c) => {
+      if (spec.json.includes(c)) return JSON.stringify(row[c] ?? []);
+      const v = row[c];
+      return typeof v === "boolean" ? (v ? 1 : 0) : v ?? null;
+    });
     const placeholders = spec.columns.map((_, i) => `$${i + 1}`).join(", ");
     const updates = spec.columns.filter((c) => c !== "id").map((c) => `${c} = excluded.${c}`).join(", ");
     await (await this.db).execute(
@@ -233,7 +243,7 @@ class BrowserBackend implements Backend {
   }
 
   async all(table: TableName): Promise<Record<string, unknown>[]> {
-    return this.load(table).map((r) => ({ ...r }));
+    return this.load(table).map((r) => (table === "admin_translations" ? { examples: [], verified: true, ...r } : { ...r }));
   }
 
   async byIds(table: TableName, ids: string[]): Promise<Record<string, unknown>[]> {

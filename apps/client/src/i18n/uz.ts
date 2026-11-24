@@ -31,6 +31,8 @@ const uz = {
     no: "Yo'q",
     ms: "ms",
     testMode: "Dastur hali test rejimida",
+    unchecked: "tekshirilmagan",
+    uncheckedHint: "Bu tarjima va misollar avtomatik tayyorlangan, hali tekshirilmagan.",
   },
   status: {
     ready: "Tayyor",
@@ -503,6 +505,7 @@ const uz = {
     saveFailed: "Saqlanmadi: {error}",
     editorLabel: "Tarjima (admin)",
     editorHint: "Bo'sh qoldirib saqlasangiz, tarjima o'chadi.",
+    approve: "Tasdiqlash (to'g'ri)",
   },
   update: {
     available: "Yangi versiya bor: {version}",

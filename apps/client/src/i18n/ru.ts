@@ -32,6 +32,8 @@ const ru: Messages = {
     no: "Нет",
     ms: "мс",
     testMode: "Приложение пока в тестовом режиме",
+    unchecked: "не проверено",
+    uncheckedHint: "Перевод и примеры подготовлены автоматически и ещё не проверены.",
   },
   status: {
     ready: "Готово",
@@ -504,6 +506,7 @@ const ru: Messages = {
     saveFailed: "Не сохранено: {error}",
     editorLabel: "Перевод (админ)",
     editorHint: "Если сохранить пустое поле, перевод удалится.",
+    approve: "Подтвердить (верно)",
   },
   update: {
     available: "Доступна новая версия: {version}",

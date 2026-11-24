@@ -84,7 +84,7 @@ describe("shared translations", () => {
 
   it("the admin's edit goes up and its queue empties", async () => {
     const server = new FakeServer();
-    const row = await adminTranslations.insert({ lexeme_id: "дом", lemma: "дом", translation: "uy" });
+    const row = await adminTranslations.insert({ lexeme_id: "дом", lemma: "дом", translation: "uy", examples: [], verified: true });
     await translationStore.mark([row]);
     const outcome = await pushTranslations(server);
     expect(outcome.pushed).toBe(1);
@@ -95,7 +95,7 @@ describe("shared translations", () => {
   it("without an admin account the edit stays queued", async () => {
     const server = new FakeServer();
     server.admin = false;
-    const row = await adminTranslations.insert({ lexeme_id: "сад", lemma: "сад", translation: "bog'" });
+    const row = await adminTranslations.insert({ lexeme_id: "сад", lemma: "сад", translation: "bog'", examples: [], verified: true });
     await translationStore.mark([row]);
     await expect(pushTranslations(server)).rejects.toMatchObject({ code: "not_admin" });
     expect(await translationStore.count()).toBe(1);
@@ -103,7 +103,7 @@ describe("shared translations", () => {
 
   it("a later server entry replaces a local one, an earlier one does not", async () => {
     const server = new FakeServer();
-    const row = await adminTranslations.insert({ lexeme_id: "кот", lemma: "кот", translation: "mushuk" });
+    const row = await adminTranslations.insert({ lexeme_id: "кот", lemma: "кот", translation: "mushuk", examples: [], verified: true });
     server.put(wire("кот", "eski", "2020-01-01T00:00:00.000Z"));
     await pullTranslations(server, cursor, save);
     expect((await adminTranslations.listAll()).find((r) => r.id === row.id)?.translation).toBe("mushuk");
@@ -118,7 +118,7 @@ describe("shared translations", () => {
   it("an older local edit is answered with the server's entry", async () => {
     const server = new FakeServer();
     server.put(wire("лес", "o'rmon", "2099-01-01T00:00:00.000Z"));
-    const row = await adminTranslations.insert({ lexeme_id: "лес", lemma: "лес", translation: "daraxtzor" });
+    const row = await adminTranslations.insert({ lexeme_id: "лес", lemma: "лес", translation: "daraxtzor", examples: [], verified: true });
     await translationStore.mark([row]);
     const outcome = await pushTranslations(server);
     expect(outcome.pushed).toBe(0);
@@ -137,7 +137,7 @@ describe("shared translations", () => {
 
   it("refused entries are counted and leave the queue", async () => {
     const server = new FakeServer();
-    const row = await adminTranslations.insert({ lexeme_id: "x", lemma: "x", translation: "" });
+    const row = await adminTranslations.insert({ lexeme_id: "x", lemma: "x", translation: "", examples: [], verified: true });
     await translationStore.mark([row]);
     const outcome = await pushTranslations(server);
     expect(outcome.rejected).toBe(1);
@@ -145,8 +145,8 @@ describe("shared translations", () => {
   });
 
   it("edits made before the server are queued once", async () => {
-    await adminTranslations.insert({ lexeme_id: "a", lemma: "a", translation: "a" });
-    await adminTranslations.insert({ lexeme_id: "b", lemma: "b", translation: "b" });
+    await adminTranslations.insert({ lexeme_id: "a", lemma: "a", translation: "a", examples: [], verified: true });
+    await adminTranslations.insert({ lexeme_id: "b", lemma: "b", translation: "b", examples: [], verified: true });
     await queueExisting();
     expect(await translationStore.count()).toBeGreaterThanOrEqual(2);
   });

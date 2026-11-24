@@ -5,7 +5,7 @@ import { inTauri, platform } from "../app/platform";
 import shipped from "../data/translations.json";
 import { keyValue } from "../data/keyValue";
 import { copyText } from "../ui/clipboard";
-import { adminTranslations, translationStore, vocabulary, type AdminTranslationRow } from "../data/userData";
+import { adminTranslations, translationStore, vocabulary, type AdminTranslationRow, type Example } from "../data/userData";
 import { ApiError, request } from "../api/http";
 import {
   pullTranslations, pushTranslations, queueExisting,
@@ -21,11 +21,15 @@ export interface TranslationEntry {
   lemma: string;
   translation: string;
   updated_at: string;
+  /** Example sentences, Russian with the Uzbek translation (file version 2). */
+  examples?: Example[];
+  /** false: a draft nobody has checked yet; the learner sees a "not checked" mark. Default true. */
+  verified?: boolean;
 }
 
 export interface TranslationFile {
   format: "tilsim-translations";
-  version: 1;
+  version: 1 | 2;
   exported_at?: string;
   translations: TranslationEntry[];
   /** Words whose translation the admin removed on the exporting device. */
@@ -58,7 +62,12 @@ export function mergeTranslations(bundled: TranslationEntry[], local: AdminTrans
     if (base && base.updated_at > row.updated_at) continue;
     const text = row.translation.trim();
     if (row.deleted_at || !text) out.delete(row.lexeme_id);
-    else out.set(row.lexeme_id, { lexeme_id: row.lexeme_id, lemma: row.lemma, translation: text, updated_at: row.updated_at });
+    else {
+      out.set(row.lexeme_id, {
+        lexeme_id: row.lexeme_id, lemma: row.lemma, translation: text, updated_at: row.updated_at,
+        examples: row.examples ?? [], verified: row.verified ?? true,
+      });
+    }
   }
   return out;
 }
@@ -73,7 +82,7 @@ export function toFile(entries: Iterable<TranslationEntry>, local: AdminTranslat
     .filter((r) => (r.deleted_at || !r.translation.trim()) && !live.has(r.lexeme_id))
     .map((r) => ({ lexeme_id: r.lexeme_id, updated_at: r.updated_at }))
     .sort(byId);
-  return { format: "tilsim-translations", version: 1, exported_at: exportedAt, translations, removed };
+  return { format: "tilsim-translations", version: 2, exported_at: exportedAt, translations, removed };
 }
 
 export type ExportResult = { kind: "file"; path: string } | { kind: "clipboard" } | { kind: "download" };
@@ -102,6 +111,17 @@ export const useTranslations = defineStore("translations", () => {
   let editTimer: ReturnType<typeof setTimeout> | null = null;
   const localCount = computed(() => local.value.filter((r) => !r.deleted_at && r.translation.trim()).length);
 
+  /** The word's full entry: translation, examples, whether it was checked. */
+  function entry(lexemeId: string): TranslationEntry | null {
+    return all.value.get(lexemeId) ?? null;
+  }
+
+  /** Marks an unchecked translation as checked, unchanged. Admin mode only. */
+  async function approve(word: { id: string; lemma: string }): Promise<void> {
+    const current = all.value.get(word.id);
+    if (current) await set(word, current.translation);
+  }
+
   function get(lexemeId: string): string | null {
     return all.value.get(lexemeId)?.translation ?? null;
   }
@@ -123,7 +143,9 @@ export const useTranslations = defineStore("translations", () => {
       for (const row of await vocabulary.list()) {
         const text = row.translation.trim();
         if (!text || have.has(row.lexeme_id)) continue;
-        local.value.push(await adminTranslations.insert({ lexeme_id: row.lexeme_id, lemma: row.lemma, translation: text.slice(0, MAX_TRANSLATION) }));
+        local.value.push(await adminTranslations.insert({
+          lexeme_id: row.lexeme_id, lemma: row.lemma, translation: text.slice(0, MAX_TRANSLATION), examples: [], verified: true,
+        }));
         have.add(row.lexeme_id);
       }
       await keyValue.set(MIGRATED_KEY, "1");
@@ -217,19 +239,23 @@ export const useTranslations = defineStore("translations", () => {
     });
   }
 
-  /** Sets (or, with an empty text, removes) a word's translation. Admin mode only. */
+  /**
+   * Sets (or, with an empty text, removes) a word's translation. Admin mode only. The admin's entry
+   * is verified; it keeps the word's example sentences.
+   */
   async function set(word: { id: string; lemma: string }, text: string): Promise<void> {
     if (!useAdmin().unlocked) throw new Error("admin mode is locked");
     await load();
     const clean = text.trim().slice(0, MAX_TRANSLATION);
+    const examples = all.value.get(word.id)?.examples ?? [];
     const existing = local.value.find((r) => r.lexeme_id === word.id);
     let row: AdminTranslationRow;
     if (existing) {
       if (!clean) row = existing.deleted_at ? existing : await adminTranslations.remove(existing);
-      else row = await adminTranslations.update(existing, { translation: clean, lemma: word.lemma });
+      else row = await adminTranslations.update(existing, { translation: clean, lemma: word.lemma, examples, verified: true });
     } else {
       if (!clean && !all.value.has(word.id)) return;
-      row = await adminTranslations.insert({ lexeme_id: word.id, lemma: word.lemma, translation: clean });
+      row = await adminTranslations.insert({ lexeme_id: word.id, lemma: word.lemma, translation: clean, examples, verified: true });
       if (!clean) row = await adminTranslations.remove(row);
     }
     local.value = [...local.value.filter((r) => r.lexeme_id !== word.id), row];
@@ -265,6 +291,6 @@ export const useTranslations = defineStore("translations", () => {
 
   return {
     all, bundledCount: bundled.length, localCount, loaded, state, pending, rejected, lastSyncAt, detail,
-    get, search, load, set, exportText, exportAll, syncNow, start,
+    get, entry, approve, search, load, set, exportText, exportAll, syncNow, start,
   };
 });

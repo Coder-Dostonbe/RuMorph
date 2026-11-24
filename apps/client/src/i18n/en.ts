@@ -32,6 +32,8 @@ const en: Messages = {
     no: "No",
     ms: "ms",
     testMode: "The app is still in test mode",
+    unchecked: "not checked",
+    uncheckedHint: "This translation and its examples were prepared automatically and are not checked yet.",
   },
   status: {
     ready: "Ready",
@@ -504,6 +506,7 @@ const en: Messages = {
     saveFailed: "Not saved: {error}",
     editorLabel: "Translation (admin)",
     editorHint: "Saving an empty field removes the translation.",
+    approve: "Approve (correct)",
   },
   update: {
     available: "A new version is available: {version}",

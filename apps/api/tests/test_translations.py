@@ -111,3 +111,32 @@ def test_pull_pages(api, admin, monkeypatch):
         seen += [e["lexeme_id"] for e in page["changes"]]
         cursor, more = page["cursor"], page["more"]
     assert sorted(seen) == [f"w{i}" for i in range(5)]
+
+
+def test_examples_and_verified_round_trip(api, admin):
+    full = {**entry(), "examples": [{"ru": "Это книга.", "uz": "Bu kitob."}], "verified": False}
+    assert push(api, admin, full).json()["accepted"]
+    (got,) = pull(api)["changes"]
+    assert got["examples"] == [{"ru": "Это книга.", "uz": "Bu kitob."}] and got["verified"] is False
+
+
+def test_older_apps_without_examples_still_write(api, admin):
+    assert push(api, admin, entry()).json()["accepted"]
+    (got,) = pull(api)["changes"]
+    assert got["examples"] == [] and got["verified"] is True
+
+
+@pytest.mark.parametrize(
+    ("change", "code"),
+    [
+        ({"examples": [{"ru": "a"}]}, "invalid_examples"),
+        ({"examples": [{"ru": "a", "uz": ""}]}, "invalid_examples"),
+        ({"examples": [{"ru": "a", "uz": "b"}] * 4}, "invalid_examples"),
+        ({"examples": "x"}, "invalid_examples"),
+        ({"verified": "yes"}, "invalid_verified"),
+        ({"extra": 1}, "invalid_fields"),
+    ],
+)
+def test_bad_examples(api, admin, change, code):
+    r = push(api, admin, {**entry(), **change}).json()
+    assert [x["code"] for x in r["rejected"]] == [code]
