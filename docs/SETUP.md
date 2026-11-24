@@ -119,6 +119,9 @@ GitHub'da: **repo → Settings → Secrets and variables → Actions → New rep
 npx tauri signer generate -w "$HOME\.tauri\tilsim-updater.key"
 ```
 
+PowerShell "running scripts is disabled" desa: `npm.cmd` / `npx.cmd` deb yozing yoki bir marta
+`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
 Parol so'raydi (o'ylab toping va saqlang). Ikkita fayl chiqadi: `tilsim-updater.key` (yopiq) va
 `tilsim-updater.key.pub` (ochiq). Secrets:
 
@@ -132,7 +135,10 @@ Fayl matnini nusxalash: `Get-Content "$HOME\.tauri\tilsim-updater.key" -Raw | Se
 
 ### Android: imzo kaliti (keystore)
 
-`keytool` Java bilan keladi (Android Studio'da: `C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe`).
+`keytool` Java bilan keladi: Android Studio'da `C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe`,
+PyCharm'da `C:\Program Files\JetBrains\PyCharm <versiya>\jbr\bin\keytool.exe`. Topish:
+`Get-ChildItem "C:\Program Files" -Recurse -Filter keytool.exe -ErrorAction SilentlyContinue`.
+Fayl nomi va alias ixtiyoriy (masalan `zabon`); `ANDROID_KEY_ALIAS` secret'i alias bilan bir xil bo'lsin.
 
 ```powershell
 keytool -genkeypair -v -keystore "$HOME\tilsim-release.jks" -alias tilsim -keyalg RSA -keysize 2048 -validity 10000
