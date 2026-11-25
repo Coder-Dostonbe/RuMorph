@@ -1,7 +1,8 @@
 <script setup lang="ts">
-// Language and theme. The server address is in the admin panel (src/admin/AdminServer.vue).
+// Language, theme and the pronunciation voice pack. The server address is in the admin panel (src/admin/AdminServer.vue).
 import { isLocale, localeNames, locales, locale, useI18n } from "../i18n";
 import { themes, useSettings, type Theme } from "../stores/settings";
+import VoicePacks from "../ui/VoicePacks.vue";
 
 const m = useI18n();
 const settings = useSettings();
@@ -35,6 +36,7 @@ function onLocale(event: Event): void {
       </fieldset>
     </div>
 
+    <VoicePacks />
   </section>
 </template>
 

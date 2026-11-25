@@ -23,6 +23,14 @@ async def fetch_bytes(url: str) -> tuple[int, str, bytes]:
     return response.status, response.headers.get("content-type", ""), await response.bytes()
 
 
+async def fetch_stream(url: str):
+    response = await worker_fetch(url, headers={"user-agent": USER_AGENT})
+    if response.status != 200:
+        return response.status, None, None
+    length = response.headers.get("content-length")
+    return response.status, int(length) if length and length.isdigit() else None, response.body
+
+
 def _headers(request) -> dict[str, str]:
     return {str(name).lower(): str(value) for name, value in request.headers.items()}
 
@@ -53,6 +61,8 @@ class Default(WorkerEntrypoint):
             Request(method=request.method, url=str(request.url), headers=headers, body=body,
                     ip=headers.get("cf-connecting-ip")),
             Context(settings=settings, connect=connect, config_error=config_error, derive=derive,
-                    fetch_bytes=fetch_bytes),
+                    fetch_bytes=fetch_bytes, fetch_stream=fetch_stream),
         )
+        if response.stream is not None:
+            return WorkerResponse(response.stream, status=response.status, headers=response.headers)
         return WorkerResponse(response.body, status=response.status, headers=response.headers)

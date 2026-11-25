@@ -148,6 +148,12 @@ jobs:
           echo "$code"; ls -la audio.bin
           case "$code" in "200 audio/"*|"200 application/ogg"*) ;; *) exit 1;; esac
           test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8787/v1/audio/a/ab/Some_photo.jpg)" = "404"
+          # Voice packs: the sample of the first listed pack streams through from the GitHub release.
+          SAMPLE=$(python3 -c "import json;p=json.load(open('../client/src/data/voicePacks.json'))['packs'][0];print(p['file'].replace('.bin','.sample.ogg'))")
+          code=$(curl -s -o sample.ogg -w '%{http_code} %{content_type}' "http://localhost:8787/v1/voice-packs/$SAMPLE")
+          echo "$code"; ls -la sample.ogg; head -c 4 sample.ogg | grep -q OggS
+          case "$code" in "200 audio/ogg"*) ;; *) exit 1;; esac
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8787/v1/voice-packs/other.bin)" = "404"
       - name: Worker log
         if: always()
         working-directory: apps/api

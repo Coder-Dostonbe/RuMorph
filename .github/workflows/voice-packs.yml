@@ -1,0 +1,64 @@
+name: Voice packs (Vosk TTS)
+
+# Builds the downloadable voice packs (tools/pronunciation/pack.py) and publishes them as
+# assets of the "voice-packs" release. The app downloads a pack through the API
+# (/v1/voice-packs/<file>); apps/client/src/data/voicePacks.json lists the files, sizes and
+# SHA-256 the app expects, so after a rebuild that file is updated from voicePacks.json here.
+# A rebuilt pack needs a new VERSION, or devices keep the old file.
+on:
+  workflow_dispatch:
+
+env:
+  VERSION: "1"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      matrix:
+        include:
+          - { speaker: 0, id: vosk-f1 }
+          - { speaker: 2, id: vosk-f2 }
+          - { speaker: 3, id: vosk-m1 }
+          - { speaker: 4, id: vosk-m2 }
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+      - run: pip install -q vosk-tts==0.3.61
+      - name: Build
+        run: |
+          python tools/pronunciation/pack.py vosk --speaker ${{ matrix.speaker }} --id ${{ matrix.id }} \
+            --out "zabon-voice-${{ matrix.id }}-$VERSION.bin"
+          python tools/pronunciation/pack.py read "zabon-voice-${{ matrix.id }}-$VERSION.bin"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pack-${{ matrix.id }}
+          path: zabon-voice-*
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: packs
+          merge-multiple: true
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ls -la packs
+          jq -s '{format: "zabon-voice-packs", version: 1, packs: .}' packs/*.json > packs/voicePacks.json
+          cat packs/voicePacks.json
+          gh release delete voice-packs --cleanup-tag --yes || true
+          gh release create voice-packs packs/*.bin packs/*.sample.ogg packs/voicePacks.json \
+            --prerelease --latest=false --target "$GITHUB_SHA" --title "Ovoz paketlari (Vosk TTS)" \
+            --notes "Ilova ovoz paketlarini shu yerdan API orqali yuklab oladi. Litsenziya: Apache-2.0 (vosk-model-tts-ru-0.9-multi)."

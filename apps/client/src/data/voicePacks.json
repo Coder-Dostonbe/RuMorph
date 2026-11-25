@@ -1,0 +1,34 @@
+{
+  "format": "zabon-voice-packs",
+  "version": 1,
+  "packs": [
+    {
+      "id": "vosk-f1",
+      "file": "zabon-voice-vosk-f1-1.bin",
+      "bytes": 9942013,
+      "words": 2916,
+      "sha256": "7b775e5ce52cd0743edd1cd3058496961e02f671ea90d1e376638b92174f59e6"
+    },
+    {
+      "id": "vosk-f2",
+      "file": "zabon-voice-vosk-f2-1.bin",
+      "bytes": 9058733,
+      "words": 2916,
+      "sha256": "0190123c40f6832887edf7c4babc5cc3390deabf69e73d5b25fcbcffec7e448e"
+    },
+    {
+      "id": "vosk-m1",
+      "file": "zabon-voice-vosk-m1-1.bin",
+      "bytes": 9001078,
+      "words": 2916,
+      "sha256": "54bd2544a7c150d04f01940fc32acc1791270630507ff9b7c43bfdc22478355b"
+    },
+    {
+      "id": "vosk-m2",
+      "file": "zabon-voice-vosk-m2-1.bin",
+      "bytes": 8512685,
+      "words": 2916,
+      "sha256": "f77f4ca786786563166add6a8dd6ebee64c5413975f08af32c85f68a86214ae7"
+    }
+  ]
+}

@@ -21,6 +21,8 @@ from .passwords import Derive, stdlib_derive
 Connect = Callable[[], Awaitable[Any]]
 # GET a URL -> (status, content type, body). The Worker passes its fetch; tests a fake.
 FetchBytes = Callable[[str], Awaitable[tuple[int, str, bytes]]]
+# GET a URL -> (status, content length or None, body stream left unread).
+FetchStream = Callable[[str], Awaitable[tuple[int, int | None, Any]]]
 
 
 @dataclass
@@ -33,6 +35,7 @@ class Context:
     # PBKDF2 implementation: hashlib on CPython, Web Crypto in the Worker (Pyodide).
     derive: Derive = stdlib_derive
     fetch_bytes: FetchBytes | None = None
+    fetch_stream: FetchStream | None = None
 
 
 Handler = Callable[[Request, Context], Awaitable[Response]]
@@ -208,6 +211,33 @@ async def audio_get(request: Request, ctx: Context) -> Response:
     return Response(200, body, {"content-type": content_type, "cache-control": "public, max-age=2592000, immutable"})
 
 
+# A pack is ~10-20 MB: it is streamed, never read into the Worker's memory.
+MAX_PACK_BYTES = 100 * 1024 * 1024
+
+
+async def voice_pack_get(request: Request, ctx: Context) -> Response:
+    target = audio.pack_target(request.path)
+    if target is None:
+        raise ApiError(404, "not_found", "no such voice pack")
+    if ctx.fetch_stream is None:
+        raise ApiError(503, "audio_unavailable", "voice packs cannot be fetched here")
+    url, content_type = target
+    try:
+        status, length, stream = await ctx.fetch_stream(url)
+    except Exception as exc:  # noqa: BLE001
+        print(f"voice pack fetch failed: {exc!r}", file=sys.stderr)
+        raise ApiError(502, "audio_unavailable", "the voice pack could not be fetched") from None
+    if status == 404:
+        raise ApiError(404, "not_found", "no such voice pack")
+    if status != 200 or (length is not None and length > MAX_PACK_BYTES):
+        print(f"voice pack rejected: {status} {length}", file=sys.stderr)
+        raise ApiError(502, "audio_unavailable", "the voice pack could not be fetched")
+    headers = {"content-type": content_type, "cache-control": "public, max-age=86400"}
+    if length is not None:
+        headers["content-length"] = str(length)
+    return Response(200, headers=headers, stream=stream)
+
+
 ROUTES: dict[tuple[str, str], Handler] = {
     ("GET", "/health"): health,
     ("POST", "/v1/auth/register"): register,
@@ -248,6 +278,8 @@ async def handle(request: Request, ctx: Context) -> Response:
     handler = ROUTES.get((request.method, path))
     if handler is None and request.method == "GET" and path.startswith(audio.PREFIX):
         handler = audio_get
+    if handler is None and request.method == "GET" and path.startswith(audio.PACK_PREFIX):
+        handler = voice_pack_get
     try:
         if handler is None:
             if any(p == path for (_, p) in ROUTES):

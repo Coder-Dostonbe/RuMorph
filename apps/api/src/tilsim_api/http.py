@@ -51,6 +51,8 @@ class Response:
     status: int
     body: str | bytes = ""
     headers: dict[str, str] = field(default_factory=dict)
+    # A body passed through without reading it (the Worker's upstream stream), for large files.
+    stream: Any = None
 
     def json(self) -> Any:
         return json.loads(self.body) if self.body else None

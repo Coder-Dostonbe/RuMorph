@@ -1,4 +1,8 @@
-"""Pronunciation recordings: the app asks the API, the API fetches them from Wikimedia Commons.
+"""Pronunciation audio for the app.
+
+Single recordings: the app asks the API, the API fetches them from Wikimedia Commons.
+Voice packs (every word in one file, tools/pronunciation/pack.py): the API streams them from
+the project's "voice-packs" GitHub release; only pack file names are accepted.
 
 The app's list (apps/client/src/data/pronunciations.json, made by tools/pronunciation/build.py)
 names each recording by its path under upload.wikimedia.org/wikipedia/commons/. Only Russian
@@ -37,6 +41,22 @@ def target(request_path: str) -> str | None:
     if not match or not _russian_pronunciation(match.group("name")):
         return None
     return UPLOAD + quote(path, safe="/()_-.,~!*'")
+
+
+PACK_PREFIX = "/v1/voice-packs/"
+PACK_RELEASE = "https://github.com/Coder-Dostonbe/RuMorph/releases/download/voice-packs/"
+_PACK = re.compile(r"^zabon-voice-[a-z0-9-]{1,40}-[0-9]{1,4}\.(?P<kind>bin|sample\.ogg)$")
+
+
+def pack_target(request_path: str) -> tuple[str, str] | None:
+    """'/v1/voice-packs/zabon-voice-vosk-f1-1.bin' -> (release URL, content type)."""
+    if not request_path.startswith(PACK_PREFIX):
+        return None
+    match = _PACK.match(request_path[len(PACK_PREFIX):])
+    if not match:
+        return None
+    content_type = "application/octet-stream" if match.group("kind") == "bin" else "audio/ogg"
+    return PACK_RELEASE + match.group(0), content_type
 
 
 def acceptable(content_type: str) -> bool:

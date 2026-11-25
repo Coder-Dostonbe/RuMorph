@@ -83,3 +83,48 @@ def test_without_a_fetcher_it_says_so():
     request = Request(method="GET", url="https://api.test/v1/audio/" + quote(ORIGINAL), headers={})
     response = asyncio.run(handle(request, ctx))
     assert response.status == 503
+
+
+# --- voice packs ---------------------------------------------------------------------------------
+
+PACK = "/v1/voice-packs/zabon-voice-vosk-f1-1.bin"
+
+
+def call_pack(path, result=(200, 1234, "STREAM"), fetcher=True):
+    seen = []
+
+    async def fake_stream(url):
+        seen.append(url)
+        if isinstance(result, Exception):
+            raise result
+        return result
+
+    ctx = Context(settings=make_settings(), connect=no_database, fetch_stream=fake_stream if fetcher else None)
+    request = Request(method="GET", url="https://api.test" + path, headers={"origin": ORIGIN})
+    return asyncio.run(handle(request, ctx)), seen
+
+
+def test_pack_names():
+    assert audio.pack_target(PACK) == (audio.PACK_RELEASE + "zabon-voice-vosk-f1-1.bin", "application/octet-stream")
+    assert audio.pack_target("/v1/voice-packs/zabon-voice-vosk-f1-1.sample.ogg")[1] == "audio/ogg"
+    for bad in ("zabon-voice-vosk-f1.bin", "../x.bin", "zabon-voice-Vosk-1.bin", "other-1.bin",
+                "zabon-voice-vosk-f1-1.bin/x", "zabon-voice-vosk-f1-1.exe"):
+        assert audio.pack_target("/v1/voice-packs/" + bad) is None, bad
+
+
+def test_pack_is_streamed_with_cors():
+    response, seen = call_pack(PACK)
+    assert response.status == 200 and response.stream == "STREAM"
+    assert response.headers["content-length"] == "1234"
+    assert response.headers["content-type"] == "application/octet-stream"
+    assert response.headers["access-control-allow-origin"] == ORIGIN
+    assert seen == [audio.PACK_RELEASE + "zabon-voice-vosk-f1-1.bin"]
+
+
+def test_pack_failures():
+    assert call_pack("/v1/voice-packs/evil.bin")[0].status == 404
+    assert call_pack(PACK, result=(404, None, None))[0].status == 404
+    assert call_pack(PACK, result=(500, None, None))[0].status == 502
+    assert call_pack(PACK, result=OSError("net"))[0].status == 502
+    assert call_pack(PACK, result=(200, 10**9, "S"))[0].status == 502
+    assert call_pack(PACK, fetcher=False)[0].status == 503
