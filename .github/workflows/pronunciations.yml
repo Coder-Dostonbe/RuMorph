@@ -1,0 +1,36 @@
+name: Pronunciations (Wikimedia Commons)
+
+# Finds a recording on Wikimedia Commons for every word of the lexicon
+# (tools/pronunciation/build.py) and publishes the result as the asset of the
+# "pronunciations-data" pre-release. A maintainer reviews it and commits it to
+# apps/client/src/data/pronunciations.json; the app never reads this release.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["tools/pronunciation/**", ".github/workflows/pronunciations.yml"]
+
+concurrency:
+  group: pronunciations
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+      - name: Query Commons
+        run: uv run --python 3.14 --no-project python tools/pronunciation/build.py --out pronunciations.json 2>&1 | tee build.log
+      - name: Publish the result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release delete pronunciations-data --cleanup-tag --yes || true
+          gh release create pronunciations-data pronunciations.json build.log --prerelease --latest=false \
+            --target "$GITHUB_SHA" --title "Talaffuz ma'lumoti (${GITHUB_SHA::7})" \
+            --notes "tools/pronunciation/build.py natijasi. Ilova bu release'ni o'qimaydi."
