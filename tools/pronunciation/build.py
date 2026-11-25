@@ -80,7 +80,8 @@ def index(words: set[str]) -> dict[str, str]:
 def parse_ll(name: str, keys: dict[str, str]) -> tuple[str, str] | None:
     """'LL-Q7737 (rus)-Infovarius-кто-то.wav' -> ('Infovarius', 'кто-то') when the word is ours.
     Speaker names and words may both contain '-', so every split point is tried, the
-    shortest speaker name first."""
+    shortest speaker name first. A longer "speaker" with Cyrillic in it is a compound word
+    ('Cinemantique-ковид-тест' is not 'тест')."""
     if not name.startswith(LL_PREFIX):
         return None
     stem, dot, ext = name[len(LL_PREFIX):].rpartition(".")
@@ -88,6 +89,8 @@ def parse_ll(name: str, keys: dict[str, str]) -> tuple[str, str] | None:
         return None
     for position, char in enumerate(stem):
         if char == "-" and position > 0:
+            if "-" in stem[:position] and re.search(r"[\u0400-\u04ff]", stem[:position]):
+                break
             word = keys.get(normalize(stem[position + 1:]))
             if word:
                 return stem[:position], word
@@ -140,6 +143,8 @@ def credit(speaker: str, meta: dict) -> str:
         return speaker
     for key in ("Attribution", "Artist", "Credit"):
         text = plain_text(meta.get(key, {}).get("value", ""))
+        # "Audio sample provided by The Shtooka Project." -> "The Shtooka Project"
+        text = re.sub(r"^(audio sample )?provided by\s+", "", text, flags=re.I).rstrip(". ")
         if text:
             return text
     return ""
@@ -290,7 +295,6 @@ def build(words_list: list[str]) -> dict:
     entries: dict[str, dict] = {}
     rejected: dict[str, int] = {}
     pending = dict(candidates)
-    credits: list[str] = []
     # Try the preferred speaker first; when that file is not usable, the next one.
     while pending:
         chosen = choose(pending)
@@ -302,21 +306,18 @@ def build(words_list: list[str]) -> dict:
             license = license_code(meta.get("LicenseShortName", {}).get("value", ""))
             author = credit(speaker, meta)
             path = best_path(item) if item else None
-            if item and title.startswith("File:Ru-") and len(credits) < 12:
-                credits.append(f"  credit sample {title}: {author!r} | {license!r} | raw={meta.get('LicenseShortName', {}).get('value')!r}")
             if item and license and author and path:
                 entries[word] = {"file": title[len("File:"):], "path": path, "author": author[:300], "license": license}
                 continue
             reason = "no_info" if not item else "license" if not license else "author" if not author else "format"
             rejected[reason] = rejected.get(reason, 0) + 1
-            if rejected[reason] <= 10 and item:
-                print(f"  rejected ({reason}) {title}: {json.dumps(meta, ensure_ascii=False)[:600]}", file=sys.stderr)
+            if rejected[reason] <= 5:
+                print(f"  rejected ({reason}): {title}", file=sys.stderr)
             rest = [o for o in pending[word] if o[1] != title]
             if rest:
                 retry[word] = rest
         pending = retry
 
-    print("\n".join(credits), file=sys.stderr)
     print(f"usable recordings: {len(entries)} of {len(words_list)} words; rejected files: {rejected}", file=sys.stderr)
     return {
         "format": FORMAT,
