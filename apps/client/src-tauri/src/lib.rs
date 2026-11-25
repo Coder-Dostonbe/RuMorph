@@ -5,10 +5,11 @@
 //! webview must not do itself: the SQLite database (through tauri-plugin-sql,
 //! with the migrations in db/sqlite/migrations), the refresh token and the admin
 //! password hash (secret.rs), writing the admin's translation export (export.rs), and
-//! app updates (update.rs).
+//! app updates (update.rs), and the phone's text-to-speech on Android (tts.rs).
 
 mod export;
 mod secret;
+mod tts;
 mod update;
 #[cfg(desktop)]
 mod window;
@@ -60,6 +61,8 @@ pub fn run() {
     let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
     #[cfg(target_os = "android")]
     let builder = builder.plugin(tauri_plugin_tilsim_update::init());
+    #[cfg(target_os = "android")]
+    let builder = builder.plugin(tauri_plugin_tilsim_tts::init());
     builder
         .plugin(
             tauri_plugin_sql::Builder::default()
@@ -86,7 +89,9 @@ pub fn run() {
             secret::secret_delete,
             export::export_translations,
             update::update_check,
-            update::update_install
+            update::update_install,
+            tts::tts_status,
+            tts::tts_speak
         ])
         .run(tauri::generate_context!())
         .expect("error while running Zabon");
