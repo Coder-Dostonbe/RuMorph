@@ -81,7 +81,8 @@ def parse_ll(name: str, keys: dict[str, str]) -> tuple[str, str] | None:
     """'LL-Q7737 (rus)-Infovarius-кто-то.wav' -> ('Infovarius', 'кто-то') when the word is ours.
     Speaker names and words may both contain '-', so every split point is tried, the
     shortest speaker name first. A longer "speaker" with Cyrillic in it is a compound word
-    ('Cinemantique-ковид-тест' is not 'тест')."""
+    ('Cinemantique-ковид-тест' is not 'тест'), and a word written with a leading hyphen is a
+    suffix ('-либо'), not the word."""
     if not name.startswith(LL_PREFIX):
         return None
     stem, dot, ext = name[len(LL_PREFIX):].rpartition(".")
@@ -91,6 +92,8 @@ def parse_ll(name: str, keys: dict[str, str]) -> tuple[str, str] | None:
         if char == "-" and position > 0:
             if "-" in stem[:position] and re.search(r"[\u0400-\u04ff]", stem[:position]):
                 break
+            if stem[position - 1] == "-":
+                continue  # 'Lvova--либо': the word is the suffix '-либо'
             word = keys.get(normalize(stem[position + 1:]))
             if word:
                 return stem[:position], word

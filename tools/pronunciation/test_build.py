@@ -22,6 +22,7 @@ def test_lingua_libre_names():
     assert build.parse_ll("LL-Q7737 (rus)-X-стол.wav", KEYS) is None
     # A compound word is not one of its parts.
     assert build.parse_ll("LL-Q7737 (rus)-Cinemantique-ковид-дом.wav", KEYS) is None
+    assert build.parse_ll("LL-Q7737 (rus)-Lvova--дом.wav", KEYS) is None
     assert build.parse_ll("LL-Q7737 (rus)-X-книга.txt", KEYS) is None
     assert build.parse_ll("LL-Q150 (fra)-X-книга.wav", KEYS) is None
 
