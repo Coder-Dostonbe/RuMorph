@@ -9,7 +9,9 @@ import json
 import subprocess
 import sys
 import urllib.parse
+import urllib.error
 import urllib.request
+import time
 from pathlib import Path
 
 WORDS = ["книга", "молоко", "хорошо", "говорить", "девушка", "магазин", "звонить", "позвонить",
@@ -69,7 +71,15 @@ def commons() -> None:
         request = urllib.request.Request(url, headers={"User-Agent": AGENT})
         target = OUT / "commons-hozirgi" / f"{n:02d}-{word} ({entry['author'][:30]}).mp3"
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(urllib.request.urlopen(request, timeout=60).read())
+        for attempt in range(6):
+            try:
+                target.write_bytes(urllib.request.urlopen(request, timeout=60).read())
+                break
+            except urllib.error.HTTPError as exc:
+                if exc.code != 429:
+                    raise
+                time.sleep(20 * (attempt + 1))
+        time.sleep(3)
     print("commons: ok")
 
 

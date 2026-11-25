@@ -17,6 +17,7 @@ jobs:
           python-version: "3.11"
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg zip > /dev/null
       - name: Commons (current)
+        continue-on-error: true
         run: python tools/pronunciation/samples.py commons
       - name: Vosk TTS
         continue-on-error: true
@@ -34,7 +35,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          find samples -type f | sort
+          mkdir -p samples; find samples -type f | sort
           zip -qr ovoz-namunalari.zip samples
           gh release delete voice-samples --cleanup-tag --yes || true
           gh release create voice-samples ovoz-namunalari.zip --prerelease --latest=false --target "$GITHUB_SHA" \
