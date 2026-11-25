@@ -123,6 +123,18 @@ def plain_text(value: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def credit(speaker: str, meta: dict) -> str:
+    """Who to credit. Lingua Libre: the speaker in the file name (its "Artist" field reads
+    "Speaker: X Recorder: X"). Other files: their attribution line, else the author."""
+    if speaker != "Ru":
+        return speaker
+    for key in ("Attribution", "Artist"):
+        text = plain_text(meta.get(key, {}).get("value", ""))
+        if text:
+            return text
+    return ""
+
+
 def upload_path(url: str) -> str | None:
     if not url.startswith(UPLOAD):
         return None
@@ -234,8 +246,8 @@ def file_info(titles: list[str]) -> dict[str, dict]:
     for start in range(0, len(titles), 50):
         data = api({
             "action": "query", "titles": "|".join(titles[start:start + 50]), "prop": "videoinfo",
-            "viprop": "url|mime|extmetadata|derivatives",
-            "viextmetadatafilter": "Artist|LicenseShortName",
+            "viprop": "url|mime|user|extmetadata|derivatives",
+            "viextmetadatafilter": "Artist|Attribution|Credit|LicenseShortName",
         })
         for page in data.get("query", {}).get("pages", []):
             items = page.get("videoinfo") or []
@@ -277,13 +289,16 @@ def build(words_list: list[str]) -> dict:
             item = info.get(title)
             meta = (item or {}).get("extmetadata", {})
             license = license_code(meta.get("LicenseShortName", {}).get("value", ""))
-            author = plain_text(meta.get("Artist", {}).get("value", "")) or (speaker if speaker != "Ru" else "")
+            author = credit(speaker, meta)
             path = best_path(item) if item else None
             if item and license and author and path:
                 entries[word] = {"file": title[len("File:"):], "path": path, "author": author[:300], "license": license}
                 continue
             reason = "no_info" if not item else "license" if not license else "author" if not author else "format"
             rejected[reason] = rejected.get(reason, 0) + 1
+            if rejected[reason] <= 15 and item:
+                print(f"  rejected ({reason}) {title}: user={item.get('user')!r} {json.dumps(meta, ensure_ascii=False)[:600]}",
+                      file=sys.stderr)
             rest = [o for o in pending[word] if o[1] != title]
             if rest:
                 retry[word] = rest
