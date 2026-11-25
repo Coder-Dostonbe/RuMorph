@@ -1,11 +1,12 @@
 <script setup lang="ts">
-// One word from the lexicon: its translation, what it is, how frequent, the rules that explain it
+// One word from the lexicon: its pronunciation, its translation, what it is, how frequent, the rules that explain it
 // and every form.
 // Used by the analysis page and the dictionary.
 import { computed, ref, watch } from "vue";
 import { grammar, type LexemeInfo } from "../../core/grammar";
 import { locale, useI18n } from "../../i18n";
 import FrequencyBadge from "./FrequencyBadge.vue";
+import PronounceButton from "../PronounceButton.vue";
 import ParadigmTable from "./ParadigmTable.vue";
 import ProfileView from "./ProfileView.vue";
 import TranslationExamples from "../TranslationExamples.vue";
@@ -41,6 +42,7 @@ const selectedIndex = computed(() => (info.value?.id === props.id ? props.select
       <header class="head">
         <div>
           <h2 lang="ru">{{ info.lemma }}</h2>
+          <PronounceButton :lemma="info.lemma" />
           <TranslationLine :word="{ id: info.id, lemma: info.lemma }" />
           <p class="muted small">{{ info.description }}</p>
           <FrequencyBadge :rank="info.rank" :frequency="info.frequency" />

@@ -49,7 +49,7 @@ class Request:
 @dataclass
 class Response:
     status: int
-    body: str = ""
+    body: str | bytes = ""
     headers: dict[str, str] = field(default_factory=dict)
 
     def json(self) -> Any:

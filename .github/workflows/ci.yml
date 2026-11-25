@@ -25,7 +25,9 @@ jobs:
           uv run --python 3.14 --no-project --with pytest python -m pytest -q tools/translations
           uv run --python 3.14 --no-project python tools/translations/merge.py --check
       - name: pronunciation tool
-        run: uv run --python 3.14 --no-project --with pytest python -m pytest -q tools/pronunciation
+        run: |
+          uv run --python 3.14 --no-project --with pytest python -m pytest -q tools/pronunciation
+          uv run --python 3.14 --no-project python tools/pronunciation/build.py --check
       - name: lexicon matches its OpenCorpora export
         run: >
           uv run --python 3.14 --no-project
@@ -139,6 +141,13 @@ jobs:
             -d '{"changes":[{"lexeme_id":"книга|NOUN,inan,femn","lemma":"книга","translation":"kitob","updated_at":"2026-11-20T09:00:00Z","deleted_at":null}]}' | tee tr.json
           python3 -c "import json;r=json.load(open('tr.json'));assert r['accepted']==['книга|NOUN,inan,femn'],r"
           curl -sf "http://localhost:8787/v1/translations?since=0" | grep -q 'kitob'
+          # Pronunciations: a recording from the shipped list comes through from Wikimedia Commons;
+          # a file that is not a Russian pronunciation is refused without being fetched.
+          AUDIO=$(python3 -c "import json,urllib.parse as u;d=json.load(open('../client/src/data/pronunciations.json'))['words'];print('/'.join(u.quote(p) for p in d['книга']['path'].split('/')))")
+          code=$(curl -s -o audio.bin -w '%{http_code} %{content_type}' "http://localhost:8787/v1/audio/$AUDIO" -H 'origin: http://tauri.localhost')
+          echo "$code"; ls -la audio.bin
+          case "$code" in "200 audio/"*|"200 application/ogg"*) ;; *) exit 1;; esac
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8787/v1/audio/a/ab/Some_photo.jpg)" = "404"
       - name: Worker log
         if: always()
         working-directory: apps/api

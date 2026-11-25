@@ -12,13 +12,15 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from . import SERVICE, __version__, auth, sync, tokens, translations, validation
+from . import SERVICE, __version__, audio, auth, sync, tokens, translations, validation
 from .config import ConfigError, Settings
 from .errors import ApiError, unauthorized
 from .http import Request, Response, error_response, json_response
 from .passwords import Derive, stdlib_derive
 
 Connect = Callable[[], Awaitable[Any]]
+# GET a URL -> (status, content type, body). The Worker passes its fetch; tests a fake.
+FetchBytes = Callable[[str], Awaitable[tuple[int, str, bytes]]]
 
 
 @dataclass
@@ -30,6 +32,7 @@ class Context:
     config_error: str | None = None
     # PBKDF2 implementation: hashlib on CPython, Web Crypto in the Worker (Pyodide).
     derive: Derive = stdlib_derive
+    fetch_bytes: FetchBytes | None = None
 
 
 Handler = Callable[[Request, Context], Awaitable[Response]]
@@ -185,6 +188,26 @@ async def translations_push(request: Request, ctx: Context) -> Response:
     return json_response(200, result)
 
 
+async def audio_get(request: Request, ctx: Context) -> Response:
+    # Public, like the translations. The app keeps every recording it has played.
+    url = audio.target(request.path)
+    if url is None:
+        raise ApiError(404, "not_found", "no such recording")
+    if ctx.fetch_bytes is None:
+        raise ApiError(503, "audio_unavailable", "recordings cannot be fetched here")
+    try:
+        status, content_type, body = await ctx.fetch_bytes(url)
+    except Exception as exc:  # noqa: BLE001
+        print(f"audio fetch failed: {exc!r}", file=sys.stderr)
+        raise ApiError(502, "audio_unavailable", "the recording could not be fetched") from None
+    if status == 404:
+        raise ApiError(404, "not_found", "no such recording")
+    if status != 200 or not audio.acceptable(content_type) or not body or len(body) > audio.MAX_BYTES:
+        print(f"audio rejected: {status} {content_type!r} {len(body or b'')} bytes", file=sys.stderr)
+        raise ApiError(502, "audio_unavailable", "the recording could not be fetched")
+    return Response(200, body, {"content-type": content_type, "cache-control": "public, max-age=2592000, immutable"})
+
+
 ROUTES: dict[tuple[str, str], Handler] = {
     ("GET", "/health"): health,
     ("POST", "/v1/auth/register"): register,
@@ -223,6 +246,8 @@ async def handle(request: Request, ctx: Context) -> Response:
         return Response(204, headers=cors)
     path = request.path.rstrip("/") or "/"
     handler = ROUTES.get((request.method, path))
+    if handler is None and request.method == "GET" and path.startswith(audio.PREFIX):
+        handler = audio_get
     try:
         if handler is None:
             if any(p == path for (_, p) in ROUTES):

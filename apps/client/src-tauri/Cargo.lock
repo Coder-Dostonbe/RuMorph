@@ -4507,6 +4507,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-tilsim-tts"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "tauri",
+ "tauri-plugin",
+]
+
+[[package]]
 name = "tauri-plugin-tilsim-update"
 version = "0.1.0"
 dependencies = [
@@ -4720,6 +4729,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-sql",
+ "tauri-plugin-tilsim-tts",
  "tauri-plugin-tilsim-update",
  "tauri-plugin-updater",
 ]

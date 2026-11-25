@@ -55,6 +55,7 @@ function tapVersion(): void {
     <div v-if="lexiconSource" class="card">
       <h2>{{ m.about.lexicon }}</h2>
       <p>{{ lexiconSource }}</p>
+      <p>{{ m.about.pronunciationSource }}</p>
     </div>
   </section>
 </template>
