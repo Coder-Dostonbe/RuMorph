@@ -80,7 +80,9 @@ def index(words: set[str]) -> dict[str, str]:
 def parse_ll(name: str, keys: dict[str, str]) -> tuple[str, str] | None:
     """'LL-Q7737 (rus)-Infovarius-кто-то.wav' -> ('Infovarius', 'кто-то') when the word is ours.
     Speaker names and words may both contain '-', so every split point is tried, the
-    shortest speaker name first."""
+    shortest speaker name first. A longer "speaker" with Cyrillic in it is a compound word
+    ('Cinemantique-ковид-тест' is not 'тест'), and a word written with a leading hyphen is a
+    suffix ('-либо'), not the word."""
     if not name.startswith(LL_PREFIX):
         return None
     stem, dot, ext = name[len(LL_PREFIX):].rpartition(".")
@@ -88,6 +90,10 @@ def parse_ll(name: str, keys: dict[str, str]) -> tuple[str, str] | None:
         return None
     for position, char in enumerate(stem):
         if char == "-" and position > 0:
+            if "-" in stem[:position] and re.search(r"[\u0400-\u04ff]", stem[:position]):
+                break
+            if stem[position - 1] == "-":
+                continue  # 'Lvova--либо': the word is the suffix '-либо'
             word = keys.get(normalize(stem[position + 1:]))
             if word:
                 return stem[:position], word
@@ -111,16 +117,40 @@ def license_code(short_name: str) -> str | None:
         return "CC0"
     if upper.startswith("PUBLIC DOMAIN") or upper == "PD":
         return "Public domain"
-    m = re.match(r"^CC (BY SA|BY) (\d\.\d)", upper)
+    m = re.match(r"^CC (BY SA|BY) (\d\.\d)(?: ([A-Z]{2}))?$", upper)
     if not m:
         return None
     code = f"CC {m.group(1).replace(' ', '-')} {m.group(2)}"
-    return code if code in LICENSES else None
+    if code not in LICENSES:
+        return None
+    # A ported license ("CC BY 2.0 FR") keeps its jurisdiction in the credit.
+    return f"{code} {m.group(3)}" if m.group(3) else code
+
+
+def license_base(code: object) -> str | None:
+    """'CC BY 2.0 FR' -> 'CC BY 2.0'."""
+    if not isinstance(code, str):
+        return None
+    return re.sub(r" [A-Z]{2}$", "", code) if code.startswith("CC ") else code
 
 
 def plain_text(value: str) -> str:
     text = re.sub(r"<[^>]+>", "", html.unescape(value or ""))
     return re.sub(r"\s+", " ", text).strip()
+
+
+def credit(speaker: str, meta: dict) -> str:
+    """Who to credit. Lingua Libre: the speaker in the file name (its "Artist" field reads
+    "Speaker: X Recorder: X"). Other files: their attribution line, else the author."""
+    if speaker != "Ru":
+        return speaker
+    for key in ("Attribution", "Artist", "Credit"):
+        text = plain_text(meta.get(key, {}).get("value", ""))
+        # "Audio sample provided by The Shtooka Project." -> "The Shtooka Project"
+        text = re.sub(r"^(audio sample )?provided by\s+", "", text, flags=re.I).rstrip(". ")
+        if text:
+            return text
+    return ""
 
 
 def upload_path(url: str) -> str | None:
@@ -160,7 +190,7 @@ def validate(data: dict, words: set[str]) -> None:
         path = entry.get("path")
         if not isinstance(path, str) or not PATH_RE.match(path):
             raise BuildError(f"{where}: bad path")
-        if entry.get("license") not in LICENSES:
+        if license_base(entry.get("license")) not in LICENSES:
             raise BuildError(f"{where}: license not allowed")
         for key in ("file", "author"):
             value = entry.get(key)
@@ -234,8 +264,8 @@ def file_info(titles: list[str]) -> dict[str, dict]:
     for start in range(0, len(titles), 50):
         data = api({
             "action": "query", "titles": "|".join(titles[start:start + 50]), "prop": "videoinfo",
-            "viprop": "url|mime|extmetadata|derivatives",
-            "viextmetadatafilter": "Artist|LicenseShortName",
+            "viprop": "url|mime|user|extmetadata|derivatives",
+            "viextmetadatafilter": "Artist|Attribution|Credit|LicenseShortName",
         })
         for page in data.get("query", {}).get("pages", []):
             items = page.get("videoinfo") or []
@@ -277,13 +307,15 @@ def build(words_list: list[str]) -> dict:
             item = info.get(title)
             meta = (item or {}).get("extmetadata", {})
             license = license_code(meta.get("LicenseShortName", {}).get("value", ""))
-            author = plain_text(meta.get("Artist", {}).get("value", "")) or (speaker if speaker != "Ru" else "")
+            author = credit(speaker, meta)
             path = best_path(item) if item else None
             if item and license and author and path:
                 entries[word] = {"file": title[len("File:"):], "path": path, "author": author[:300], "license": license}
                 continue
             reason = "no_info" if not item else "license" if not license else "author" if not author else "format"
             rejected[reason] = rejected.get(reason, 0) + 1
+            if rejected[reason] <= 5:
+                print(f"  rejected ({reason}): {title}", file=sys.stderr)
             rest = [o for o in pending[word] if o[1] != title]
             if rest:
                 retry[word] = rest

@@ -20,6 +20,9 @@ def test_lingua_libre_names():
     # A file without ё stands for the word with ё.
     assert build.parse_ll("LL-Q7737 (rus)-X-еж.wav", KEYS) == ("X", "ёж")
     assert build.parse_ll("LL-Q7737 (rus)-X-стол.wav", KEYS) is None
+    # A compound word is not one of its parts.
+    assert build.parse_ll("LL-Q7737 (rus)-Cinemantique-ковид-дом.wav", KEYS) is None
+    assert build.parse_ll("LL-Q7737 (rus)-Lvova--дом.wav", KEYS) is None
     assert build.parse_ll("LL-Q7737 (rus)-X-книга.txt", KEYS) is None
     assert build.parse_ll("LL-Q150 (fra)-X-книга.wav", KEYS) is None
 
@@ -34,11 +37,21 @@ def test_licenses():
     assert build.license_code("CC BY-SA 4.0") == "CC BY-SA 4.0"
     assert build.license_code("CC-BY-SA-3.0") == "CC BY-SA 3.0"
     assert build.license_code("CC BY 2.5") == "CC BY 2.5"
+    assert build.license_code("CC BY 2.0 fr") == "CC BY 2.0 FR"
+    assert build.license_base("CC BY 2.0 FR") == "CC BY 2.0"
     assert build.license_code("CC0") == "CC0"
     assert build.license_code("Public domain") == "Public domain"
     assert build.license_code("CC BY-NC-SA 3.0") is None
     assert build.license_code("GFDL") is None
     assert build.license_code("") is None
+
+
+def test_credit():
+    assert build.credit("Tatiana Kerbush", {"Artist": {"value": "Speaker: Tatiana Kerbush Recorder: Tatiana Kerbush"}}) == "Tatiana Kerbush"
+    shtooka = {"Credit": {"value": "Audio sample provided by The Shtooka Project."}}
+    assert build.credit("Ru", shtooka) == "The Shtooka Project"
+    assert build.credit("Ru", {"Artist": {"value": "<a href='x'>1640max</a>"}, **shtooka}) == "1640max"
+    assert build.credit("Ru", {}) == ""
 
 
 def test_author_html_is_stripped():
