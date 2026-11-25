@@ -111,11 +111,21 @@ def license_code(short_name: str) -> str | None:
         return "CC0"
     if upper.startswith("PUBLIC DOMAIN") or upper == "PD":
         return "Public domain"
-    m = re.match(r"^CC (BY SA|BY) (\d\.\d)", upper)
+    m = re.match(r"^CC (BY SA|BY) (\d\.\d)(?: ([A-Z]{2}))?$", upper)
     if not m:
         return None
     code = f"CC {m.group(1).replace(' ', '-')} {m.group(2)}"
-    return code if code in LICENSES else None
+    if code not in LICENSES:
+        return None
+    # A ported license ("CC BY 2.0 FR") keeps its jurisdiction in the credit.
+    return f"{code} {m.group(3)}" if m.group(3) else code
+
+
+def license_base(code: object) -> str | None:
+    """'CC BY 2.0 FR' -> 'CC BY 2.0'."""
+    if not isinstance(code, str):
+        return None
+    return re.sub(r" [A-Z]{2}$", "", code) if code.startswith("CC ") else code
 
 
 def plain_text(value: str) -> str:
@@ -128,7 +138,7 @@ def credit(speaker: str, meta: dict) -> str:
     "Speaker: X Recorder: X"). Other files: their attribution line, else the author."""
     if speaker != "Ru":
         return speaker
-    for key in ("Attribution", "Artist"):
+    for key in ("Attribution", "Artist", "Credit"):
         text = plain_text(meta.get(key, {}).get("value", ""))
         if text:
             return text
@@ -172,7 +182,7 @@ def validate(data: dict, words: set[str]) -> None:
         path = entry.get("path")
         if not isinstance(path, str) or not PATH_RE.match(path):
             raise BuildError(f"{where}: bad path")
-        if entry.get("license") not in LICENSES:
+        if license_base(entry.get("license")) not in LICENSES:
             raise BuildError(f"{where}: license not allowed")
         for key in ("file", "author"):
             value = entry.get(key)
@@ -280,6 +290,7 @@ def build(words_list: list[str]) -> dict:
     entries: dict[str, dict] = {}
     rejected: dict[str, int] = {}
     pending = dict(candidates)
+    credits: list[str] = []
     # Try the preferred speaker first; when that file is not usable, the next one.
     while pending:
         chosen = choose(pending)
@@ -291,19 +302,21 @@ def build(words_list: list[str]) -> dict:
             license = license_code(meta.get("LicenseShortName", {}).get("value", ""))
             author = credit(speaker, meta)
             path = best_path(item) if item else None
+            if item and title.startswith("File:Ru-") and len(credits) < 12:
+                credits.append(f"  credit sample {title}: {author!r} | {license!r} | raw={meta.get('LicenseShortName', {}).get('value')!r}")
             if item and license and author and path:
                 entries[word] = {"file": title[len("File:"):], "path": path, "author": author[:300], "license": license}
                 continue
             reason = "no_info" if not item else "license" if not license else "author" if not author else "format"
             rejected[reason] = rejected.get(reason, 0) + 1
-            if rejected[reason] <= 15 and item:
-                print(f"  rejected ({reason}) {title}: user={item.get('user')!r} {json.dumps(meta, ensure_ascii=False)[:600]}",
-                      file=sys.stderr)
+            if rejected[reason] <= 10 and item:
+                print(f"  rejected ({reason}) {title}: {json.dumps(meta, ensure_ascii=False)[:600]}", file=sys.stderr)
             rest = [o for o in pending[word] if o[1] != title]
             if rest:
                 retry[word] = rest
         pending = retry
 
+    print("\n".join(credits), file=sys.stderr)
     print(f"usable recordings: {len(entries)} of {len(words_list)} words; rejected files: {rejected}", file=sys.stderr)
     return {
         "format": FORMAT,

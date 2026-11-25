@@ -34,6 +34,8 @@ def test_licenses():
     assert build.license_code("CC BY-SA 4.0") == "CC BY-SA 4.0"
     assert build.license_code("CC-BY-SA-3.0") == "CC BY-SA 3.0"
     assert build.license_code("CC BY 2.5") == "CC BY 2.5"
+    assert build.license_code("CC BY 2.0 fr") == "CC BY 2.0 FR"
+    assert build.license_base("CC BY 2.0 FR") == "CC BY 2.0"
     assert build.license_code("CC0") == "CC0"
     assert build.license_code("Public domain") == "Public domain"
     assert build.license_code("CC BY-NC-SA 3.0") is None
