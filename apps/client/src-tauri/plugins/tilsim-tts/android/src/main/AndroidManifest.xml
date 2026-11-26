@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The learner records their own pronunciation in the word window (getUserMedia). The
+         webview asks for the microphone at the first recording (wry's RustWebChromeClient);
+         Android can only ask for permissions the app declares. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <!-- Android 11+ shows an app only the text-to-speech engines it declares it looks for. -->
     <queries>
         <intent>

@@ -13,6 +13,8 @@ import java.util.Locale
 @InvokeArg
 class SpeakArgs {
     lateinit var text: String
+    /** 1.0 is the engine's normal speed; the app sends 0.25 to 1.0. */
+    var rate: Float = 0.85f
 }
 
 /**
@@ -87,7 +89,7 @@ class TtsPlugin(private val activity: Activity) : Plugin(activity) {
                 invoke.reject(state)
                 return@whenReady
             }
-            engine.setSpeechRate(0.85f)
+            engine.setSpeechRate(args.rate.coerceIn(0.25f, 1.0f))
             val code = engine.speak(args.text.take(200), TextToSpeech.QUEUE_FLUSH, null, "zabon-word")
             if (code == TextToSpeech.SUCCESS) {
                 val result = JSObject()

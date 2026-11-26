@@ -44,9 +44,13 @@ export async function voiceState(): Promise<VoiceState> {
   return russianVoice(await voices(s)) ? "ready" : "no_russian";
 }
 
-export async function speak(text: string): Promise<void> {
+/** Normal device speed is a little slow already (0.85); `speed` slows it further. */
+export const DEVICE_RATE = 0.85;
+
+export async function speak(text: string, speed: number = 1): Promise<void> {
+  const rate = Math.min(1, Math.max(0.25, DEVICE_RATE * speed));
   if (useShell) {
-    await invoke("tts_speak", { text });
+    await invoke("tts_speak", { text, rate });
     return;
   }
   const s = synth();
@@ -56,6 +60,6 @@ export async function speak(text: string): Promise<void> {
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.voice = voice;
   utterance.lang = voice.lang;
-  utterance.rate = 0.85;
+  utterance.rate = rate;
   s.speak(utterance);
 }

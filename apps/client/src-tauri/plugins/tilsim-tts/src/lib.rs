@@ -23,6 +23,7 @@ struct NoArgs {}
 #[derive(Serialize)]
 struct SpeakArgs<'a> {
     text: &'a str,
+    rate: f32,
 }
 
 /// "ready", "no_engine" or "no_russian".
@@ -39,9 +40,9 @@ impl<R: Runtime> AndroidTts<R> {
             .map_err(|e| e.to_string())
     }
 
-    pub async fn speak(&self, text: &str) -> Result<TtsState, String> {
+    pub async fn speak(&self, text: &str, rate: f32) -> Result<TtsState, String> {
         self.0
-            .run_mobile_plugin_async::<TtsState>("speak", SpeakArgs { text })
+            .run_mobile_plugin_async::<TtsState>("speak", SpeakArgs { text, rate })
             .await
             .map_err(|e| e.to_string())
     }

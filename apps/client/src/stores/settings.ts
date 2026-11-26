@@ -3,6 +3,7 @@ import { ref, watch } from "vue";
 import { normaliseBaseUrl } from "../api/http";
 import { keyValue } from "../data/keyValue";
 import { isLocale, locale, type Locale } from "../i18n";
+import { isSpeed, type Speed } from "../pronunciation/player";
 
 export type Theme = "light" | "dark" | "system";
 export const themes: Theme[] = ["light", "dark", "system"];
@@ -24,19 +25,24 @@ export const useSettings = defineStore("settings", () => {
   const theme = ref<Theme>("system");
   const apiUrl = ref<string>(import.meta.env.VITE_API_URL || DEFAULT_API_URL);
   const deviceId = ref<string>("");
+  /** Pronunciation speed: 1, 0.75 or 0.5. */
+  const speechSpeed = ref<Speed>(1);
   const loaded = ref(false);
   const storageKind = keyValue.kind;
 
   async function load(): Promise<void> {
-    const [savedLocale, savedTheme, savedApi, savedDevice] = await Promise.all([
+    const [savedLocale, savedTheme, savedApi, savedDevice, savedSpeed] = await Promise.all([
       keyValue.get("locale"),
       keyValue.get("theme"),
       keyValue.get("api_url"),
       keyValue.get("device_id"),
+      keyValue.get("speech_speed"),
     ]);
     if (isLocale(savedLocale)) locale.value = savedLocale;
     if (isTheme(savedTheme)) theme.value = savedTheme;
     if (savedApi) apiUrl.value = savedApi;
+    const speed = Number(savedSpeed);
+    if (isSpeed(speed)) speechSpeed.value = speed;
     if (savedDevice) {
       deviceId.value = savedDevice;
     } else {
@@ -62,8 +68,15 @@ export const useSettings = defineStore("settings", () => {
     await keyValue.set("api_url", apiUrl.value);
   }
 
+  async function setSpeechSpeed(value: Speed): Promise<void> {
+    speechSpeed.value = value;
+    await keyValue.set("speech_speed", String(value));
+  }
+
   watch(theme, applyTheme);
   watch(locale, (value) => (document.documentElement.lang = value), { immediate: true });
 
-  return { theme, apiUrl, deviceId, loaded, storageKind, load, setLocale, setTheme, setApiUrl };
+  return {
+    theme, apiUrl, deviceId, speechSpeed, loaded, storageKind, load, setLocale, setTheme, setApiUrl, setSpeechSpeed,
+  };
 });

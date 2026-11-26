@@ -4,14 +4,18 @@
 // the first time it needs the internet, then it is kept on the device. Other words are read by
 // the device's own voice, marked as synthetic. A stress homograph (замок) gets no button:
 // neither a recording nor a synthetic voice can know which word is meant.
+// The speed (1, 0.75, 0.5) applies to every voice and is remembered; below it the learner can
+// record the word and listen back (RecordVoice).
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { platform } from "../app/platform";
-import { format, useI18n } from "../i18n";
+import { dateLocale, format, useI18n } from "../i18n";
 import { cached, keep } from "../pronunciation/audioCache";
 import { speak, voiceState } from "../pronunciation/deviceVoice";
+import { playBlob, speeds, stopAudio, type Speed } from "../pronunciation/player";
 import { audioUrl, loadManifest, lookup, type Lookup } from "../pronunciation/source";
 import { useSettings } from "../stores/settings";
 import { useVoicePack } from "../stores/voicePack";
+import RecordVoice from "./RecordVoice.vue";
 
 const props = defineProps<{ lemma: string }>();
 const m = useI18n();
@@ -22,8 +26,6 @@ void voice.load();
 const found = ref<Lookup | null>(null);
 const busy = ref(false);
 const notice = ref("");
-let player: HTMLAudioElement | null = null;
-let objectUrl = "";
 
 watch(() => props.lemma, async (lemma) => {
   found.value = null;
@@ -41,13 +43,12 @@ const packName = computed(() => (voice.current ? m.value.settings.voice.names[vo
 const recording = computed(() => (found.value?.kind === "recording" ? found.value.recording : null));
 const visible = computed(() => found.value !== null && found.value.kind !== "homograph");
 
-function release(): void {
-  player?.pause();
-  player = null;
-  if (objectUrl) URL.revokeObjectURL(objectUrl);
-  objectUrl = "";
+onBeforeUnmount(stopAudio);
+
+const number = computed(() => new Intl.NumberFormat(dateLocale()));
+function speedLabel(s: Speed): string {
+  return `${number.value.format(s)}×`;
 }
-onBeforeUnmount(release);
 
 async function fetchRecording(url: string): Promise<Blob> {
   const hit = await cached(url);
@@ -66,10 +67,7 @@ async function fetchRecording(url: string): Promise<Blob> {
 }
 
 function play(blob: Blob): Promise<void> {
-  release();
-  objectUrl = URL.createObjectURL(blob);
-  player = new Audio(objectUrl);
-  return player.play();
+  return playBlob(blob, settings.speechSpeed);
 }
 
 async function playRecording(): Promise<void> {
@@ -91,7 +89,7 @@ async function playDevice(): Promise<void> {
       : m.value.pronounce.noVoice;
     return;
   }
-  await speak(props.lemma);
+  await speak(props.lemma, settings.speechSpeed);
 }
 
 async function listen(): Promise<void> {
@@ -124,12 +122,19 @@ async function listen(): Promise<void> {
       </svg>
       <span>{{ busy ? m.pronounce.loading : m.pronounce.listen }}</span>
     </button>
+    <div class="segmented speed" role="radiogroup" :aria-label="m.pronounce.speed">
+      <button v-for="s in speeds" :key="s" type="button" class="seg" role="radio" :class="{ active: settings.speechSpeed === s }"
+        :aria-checked="settings.speechSpeed === s" @click="settings.setSpeechSpeed(s)">
+        {{ speedLabel(s) }}
+      </button>
+    </div>
     <span v-if="fromPack" class="muted small credit">{{ format(m.pronounce.packCredit, { voice: packName }) }}</span>
     <span v-else-if="recording" class="muted small credit">
       {{ format(m.pronounce.credit, { author: recording.author, license: recording.license }) }}
     </span>
     <span v-else class="muted small credit">{{ m.pronounce.synthetic }}</span>
     <p v-if="notice" class="small notice" role="status">{{ notice }}</p>
+    <RecordVoice class="mine" :lemma="lemma" />
   </div>
 </template>
 
@@ -153,6 +158,14 @@ async function listen(): Promise<void> {
 }
 .credit {
   min-width: 0;
+}
+.speed .seg {
+  min-height: 2rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.85rem;
+}
+.mine {
+  flex-basis: 100%;
 }
 .notice {
   flex-basis: 100%;
