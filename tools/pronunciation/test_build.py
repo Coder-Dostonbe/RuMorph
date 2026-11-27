@@ -52,6 +52,8 @@ def test_credit():
     assert build.credit("Ru", shtooka) == "The Shtooka Project"
     assert build.credit("Ru", {"Artist": {"value": "<a href='x'>1640max</a>"}, **shtooka}) == "1640max"
     assert build.credit("Ru", {}) == ""
+    # A footnote marker is not an author: fall through to the next field.
+    assert build.credit("Ru", {"Attribution": {"value": "<a href='#cite'>[1]</a>"}, **shtooka}) == "The Shtooka Project"
 
 
 def test_author_html_is_stripped():

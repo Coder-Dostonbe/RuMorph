@@ -148,6 +148,8 @@ def credit(speaker: str, meta: dict) -> str:
         text = plain_text(meta.get(key, {}).get("value", ""))
         # "Audio sample provided by The Shtooka Project." -> "The Shtooka Project"
         text = re.sub(r"^(audio sample )?provided by\s+", "", text, flags=re.I).rstrip(". ")
+        # A bare footnote marker ("[1]") left from a wiki link is not a name.
+        text = re.sub(r"\[\d+\]", "", text).strip()
         if text:
             return text
     return ""
