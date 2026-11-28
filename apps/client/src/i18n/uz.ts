@@ -44,8 +44,6 @@ const uz = {
     noRussianWindows: "Kompyuterda ruscha ovoz o'rnatilmagan. Windows sozlamalarida: Vaqt va til → Til → rus tilini qo'shib, \"Nutq\" (Speech) qismini o'rnating.",
     noRussianAndroid: "Telefonda ruscha ovoz yo'q. Sozlamalar → Matnni nutqqa aylantirish (TTS) bo'limida rus tilini o'rnating.",
     noVoice: "Bu so'zning yozilgan talaffuzi yo'q, qurilmada ham ovoz chiqarish imkoni yo'q.",
-    speed: "Tezlik: {speed}",
-    slowerHint: "Qayta bossangiz sekinroq: 0,75×, keyin 0,5×. 5 soniya bosilmasa, yana normal tezlik.",
   },
   status: {
     ready: "Tayyor",

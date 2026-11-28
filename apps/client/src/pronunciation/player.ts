@@ -11,10 +11,12 @@ export interface LastPress {
   at: number;
 }
 
-/** Listen pressed again soon: 1x, then 0.75x, then 0.5x (and it stays at 0.5x). */
+/** Listen pressed again soon: 1x, then 0.75x, then 0.5x, then 1x again. */
 export function nextSpeed(last: LastPress | null, now: number): Speed {
   if (!last || now - last.at > SLOWER_WITHIN_MS || now < last.at) return 1;
-  return last.speed === 1 ? 0.75 : 0.5;
+  if (last.speed === 1) return 0.75;
+  if (last.speed === 0.75) return 0.5;
+  return 1;
 }
 
 let player: HTMLAudioElement | null = null;

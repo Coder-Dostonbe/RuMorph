@@ -45,8 +45,6 @@ const en: Messages = {
     noRussianWindows: "No Russian voice is installed on this computer. In Windows Settings: Time & language → Language → add Russian and install \"Speech\".",
     noRussianAndroid: "The phone has no Russian voice. Install Russian in Settings → Text-to-speech (TTS).",
     noVoice: "This word has no recorded pronunciation and the device cannot read it aloud.",
-    speed: "Speed: {speed}",
-    slowerHint: "Press again for slower: 0.75×, then 0.5×. After 5 seconds it is back to normal speed.",
   },
   status: {
     ready: "Ready",

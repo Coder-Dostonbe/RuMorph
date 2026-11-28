@@ -4,11 +4,12 @@
 // the first time it needs the internet, then it is kept on the device. Other words are read by
 // the device's own voice, marked as synthetic. A stress homograph (замок) gets no button:
 // neither a recording nor a synthetic voice can know which word is meant.
-// Pressing again within 5 seconds slows the word down: 1x, 0.75x, then 0.5x; a longer pause
-// starts at 1x again. Who made the voices is credited on the About page, not here.
+// Pressing again within 5 seconds slows the word down: 1x, 0.75x, 0.5x, then 1x again; a
+// longer pause starts at 1x. The button itself shows no speed. Who made the voices is credited
+// on the About page, not here.
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { platform } from "../app/platform";
-import { dateLocale, format, useI18n } from "../i18n";
+import { format, useI18n } from "../i18n";
 import { cached, keep } from "../pronunciation/audioCache";
 import { speak, voiceState } from "../pronunciation/deviceVoice";
 import { nextSpeed, playBlob, stopAudio, type LastPress, type Speed } from "../pronunciation/player";
@@ -45,9 +46,6 @@ const recording = computed(() => (found.value?.kind === "recording" ? found.valu
 const visible = computed(() => found.value !== null && found.value.kind !== "homograph");
 
 onBeforeUnmount(stopAudio);
-
-const number = computed(() => new Intl.NumberFormat(dateLocale()));
-const speedLabel = computed(() => `${number.value.format(speed.value)}×`);
 
 async function fetchRecording(url: string): Promise<Blob> {
   const hit = await cached(url);
@@ -114,16 +112,14 @@ async function listen(): Promise<void> {
 <template>
   <div v-if="visible" class="pronounce">
     <button type="button" class="btn listen" :disabled="busy" :aria-label="format(m.pronounce.listenTo, { word: lemma })"
-      :title="m.pronounce.slowerHint" @click="listen">
+      @click="listen">
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"
         stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
         <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" />
       </svg>
       <span>{{ busy ? m.pronounce.loading : m.pronounce.listen }}</span>
-      <span v-if="speed !== 1" class="rate">{{ speedLabel }}</span>
     </button>
-    <span class="sr-only" aria-live="polite">{{ speed !== 1 ? format(m.pronounce.speed, { speed: speedLabel }) : "" }}</span>
     <p v-if="notice" class="small notice" role="status">{{ notice }}</p>
   </div>
 </template>
@@ -145,23 +141,6 @@ async function listen(): Promise<void> {
 .listen svg {
   width: 1.1rem;
   height: 1.1rem;
-}
-.rate {
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 0 0.35rem;
-  border-radius: 0.6rem;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-variant-numeric: tabular-nums;
-}
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
 }
 .notice {
   flex-basis: 100%;

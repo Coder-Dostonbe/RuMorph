@@ -5,12 +5,12 @@ import { nextSpeed, SLOWER_WITHIN_MS } from "../src/pronunciation/player";
 import type { Manifest } from "../src/pronunciation/source";
 
 describe("listen pressed again", () => {
-  it("goes 1x, 0.75x, 0.5x and stays at 0.5x", () => {
+  it("goes 1x, 0.75x, 0.5x and back to 1x", () => {
     const a = nextSpeed(null, 0);
     const b = nextSpeed({ speed: a, at: 0 }, 1000);
     const c = nextSpeed({ speed: b, at: 1000 }, 2000);
     const d = nextSpeed({ speed: c, at: 2000 }, 3000);
-    expect([a, b, c, d]).toEqual([1, 0.75, 0.5, 0.5]);
+    expect([a, b, c, d]).toEqual([1, 0.75, 0.5, 1]);
   });
 
   it("starts at normal speed again after a pause longer than 5 seconds", () => {
