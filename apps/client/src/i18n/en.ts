@@ -332,7 +332,7 @@ const en: Messages = {
     prepositions: "Prepositions",
     filter: "Search the rules",
     building: "Preparing the rule catalog…",
-    groups: { noun: "Noun", adj: "Adjective", pron: "Pronoun", num: "Numeral", verb: "Verb", spelling: "Spelling" },
+    groups: { noun: "Noun", adj: "Adjective", pron: "Pronoun", num: "Numeral", verb: "Verb", adv: "Adverb", prep: "Preposition", conj: "Conjunction", prcl: "Particle", intj: "Interjection", spelling: "Spelling" },
     kinds: { declension: "declension type", conjugation: "conjugation type", class: "kind", exception: "exception", spelling: "spelling rule", note: "note" },
     words: "{n} words in the dictionary",
     reference: "Source",

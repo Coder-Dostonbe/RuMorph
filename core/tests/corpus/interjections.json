@@ -1,0 +1,20 @@
+{
+ "description": "Hand-checked interjections.",
+ "entries": [
+  {
+   "lemma": "ой",
+   "category": "intj.class",
+   "findings": []
+  },
+  {
+   "lemma": "ах",
+   "category": "intj.class",
+   "findings": []
+  },
+  {
+   "lemma": "пожалуйста",
+   "category": "intj.class",
+   "findings": []
+  }
+ ]
+}

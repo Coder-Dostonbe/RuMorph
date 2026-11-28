@@ -22,6 +22,12 @@ CORPORA = {
     "pronouns": "pronoun",
     "verbs": "verb",
     "numerals": "numeral",
+    "adverbs": "adverb",
+    "predicatives": "predicative",
+    "prepositions": "preposition",
+    "conjunctions": "conjunction",
+    "particles": "particle",
+    "interjections": "interjection",
 }
 ENTRIES = [(name, entry) for name in CORPORA
            for entry in json.loads((CORPUS_DIR / f"{name}.json").read_text(encoding="utf-8"))["entries"]]
@@ -64,10 +70,17 @@ def test_every_rule_has_three_languages_and_an_example():
         assert rule.review_status == "pending_specialist_review", rule.id
 
 
-def test_every_inflected_word_in_the_lexicon_gets_a_class():
-    # A class the engine cannot tell is None; for the bundled lexicon every inflected word must have one
-    # (a closed-class list that misses a pronoun or numeral would show up here).
+def test_every_word_in_the_lexicon_gets_a_class():
+    # A class the engine cannot tell is None; for the bundled lexicon every word must have one, so the
+    # dictionary never shows "no rules yet" (a closed-class list that misses a pronoun would show up here).
     for lexeme in default_lexicon().lexemes.values():
-        if lexeme.pos in ("NOUN", "NPRO", "ADJF", "ADJS", "NUMR", "INFN"):
-            profile = classify(lexeme)
-            assert profile is not None and profile.category is not None, lexeme.lemma
+        profile = classify(lexeme)
+        assert profile is not None and profile.category is not None, (lexeme.lemma, lexeme.pos)
+
+
+def test_a_preposition_explains_each_case_in_the_readers_language():
+    [lexeme] = [lx for lx in default_lexicon().by_lemma("в") if lx.pos == "PREP"]
+    findings = classify(lexeme).to_dict("uz")["findings"]
+    assert findings[0] == {"rule": "prep.accs", "detail": "в школу, в среду",
+                           "note": "qayerga? (ichiga); qachon? (kun, soat)"}
+    assert "note" not in classify(lexeme).to_dict()["findings"][0]

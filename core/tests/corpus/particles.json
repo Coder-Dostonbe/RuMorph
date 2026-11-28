@@ -1,0 +1,145 @@
+{
+ "description": "Hand-checked particles: формообразующие (бы, пусть), отрицательные (не, ни), модальные; parts of foreign names.",
+ "entries": [
+  {
+   "lemma": "бы",
+   "category": "prcl.formative",
+   "findings": [
+    {
+     "rule": "prcl.subjunctive",
+     "detail": "я бы пошёл, она бы пошла, они бы пошли"
+    }
+   ]
+  },
+  {
+   "lemma": "б",
+   "category": "prcl.formative",
+   "findings": [
+    {
+     "rule": "prcl.subjunctive",
+     "detail": "я б пошёл, она б пошла"
+    }
+   ]
+  },
+  {
+   "lemma": "пусть",
+   "category": "prcl.formative",
+   "findings": [
+    {
+     "rule": "prcl.imperative_3",
+     "detail": "пусть он придёт, пусть они знают"
+    }
+   ]
+  },
+  {
+   "lemma": "не",
+   "category": "prcl.negative",
+   "findings": [
+    {
+     "rule": "prcl.ne_separate",
+     "detail": "не знаю, не был, не читай"
+    }
+   ]
+  },
+  {
+   "lemma": "ни",
+   "category": "prcl.negative",
+   "findings": [
+    {
+     "rule": "prcl.ni",
+     "detail": "ни слова, ни разу, ни один"
+    }
+   ]
+  },
+  {
+   "lemma": "вот",
+   "category": "prcl.modal",
+   "findings": []
+  },
+  {
+   "lemma": "даже",
+   "category": "prcl.modal",
+   "findings": []
+  },
+  {
+   "lemma": "тоже",
+   "category": "prcl.modal",
+   "findings": [
+    {
+     "rule": "spelling.tozhe_takzhe",
+     "detail": "Я тоже пойду. — Я сделаю то же самое."
+    }
+   ]
+  },
+  {
+   "lemma": "также",
+   "category": "prcl.modal",
+   "findings": [
+    {
+     "rule": "spelling.tozhe_takzhe",
+     "detail": "Он также знает. — Сделай так же, как я."
+    }
+   ]
+  },
+  {
+   "lemma": "ли",
+   "category": "prcl.modal",
+   "findings": [
+    {
+     "rule": "prcl.question",
+     "detail": "Знаешь ли ты?"
+    }
+   ]
+  },
+  {
+   "lemma": "разве",
+   "category": "prcl.modal",
+   "findings": [
+    {
+     "rule": "prcl.question",
+     "detail": "Разве ты не знаешь?"
+    }
+   ]
+  },
+  {
+   "lemma": "неужели",
+   "category": "prcl.modal",
+   "findings": [
+    {
+     "rule": "prcl.question",
+     "detail": "Неужели это правда?"
+    }
+   ]
+  },
+  {
+   "lemma": "ка",
+   "category": "prcl.modal",
+   "findings": [
+    {
+     "rule": "prcl.hyphen",
+     "detail": "дай-ка, ну-ка, посмотри-ка"
+    }
+   ]
+  },
+  {
+   "lemma": "таки",
+   "category": "prcl.modal",
+   "findings": [
+    {
+     "rule": "prcl.hyphen",
+     "detail": "всё-таки, пришёл-таки"
+    }
+   ]
+  },
+  {
+   "lemma": "ван",
+   "category": "prcl.name_part",
+   "findings": []
+  },
+  {
+   "lemma": "де",
+   "category": "prcl.class",
+   "findings": []
+  }
+ ]
+}

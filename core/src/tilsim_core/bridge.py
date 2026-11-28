@@ -102,7 +102,7 @@ def _op_lexeme(args: dict[str, Any]) -> dict[str, Any]:
     lexeme = lexicon.lexemes.get(_string(args, "id"))
     if lexeme is None:
         raise BridgeError("not_found", "no lexeme with this id")
-    profile = classify(lexeme)
+    profile = classify(lexeme, lexicon)
     return {
         "id": lexeme.id,
         "lemma": lexeme.headword,
@@ -112,7 +112,7 @@ def _op_lexeme(args: dict[str, Any]) -> dict[str, Any]:
         "source": lexeme.source,
         "frequency": lexeme.freq,
         "rank": ranks(lexicon).get(lexeme.id),
-        "profile": profile.to_dict() if profile else None,
+        "profile": profile.to_dict(lang) if profile else None,
         "table": _describe_extra(paradigm_table(lexeme, lexicon), lang),
     }
 

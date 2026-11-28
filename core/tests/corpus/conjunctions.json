@@ -1,0 +1,100 @@
+{
+ "description": "Hand-checked conjunctions: сочинительные, подчинительные, вводные слова (Prnt), the rest the general rule. Comma rules from Rosental.",
+ "entries": [
+  {
+   "lemma": "и",
+   "category": "conj.coordinating",
+   "findings": []
+  },
+  {
+   "lemma": "а",
+   "category": "conj.coordinating",
+   "findings": [
+    {
+     "rule": "conj.comma_before",
+     "detail": "Он работает, а я отдыхаю."
+    }
+   ]
+  },
+  {
+   "lemma": "но",
+   "category": "conj.coordinating",
+   "findings": [
+    {
+     "rule": "conj.comma_before",
+     "detail": "Дорого, но красиво."
+    }
+   ]
+  },
+  {
+   "lemma": "или",
+   "category": "conj.coordinating",
+   "findings": [
+    {
+     "rule": "conj.paired",
+     "detail": "или чай, или кофе"
+    }
+   ]
+  },
+  {
+   "lemma": "ни",
+   "category": "conj.coordinating",
+   "findings": [
+    {
+     "rule": "conj.paired",
+     "detail": "ни чай, ни кофе"
+    }
+   ]
+  },
+  {
+   "lemma": "зато",
+   "category": "conj.coordinating",
+   "findings": [
+    {
+     "rule": "conj.comma_before",
+     "detail": "Дорого, зато удобно."
+    }
+   ]
+  },
+  {
+   "lemma": "что",
+   "category": "conj.subordinating",
+   "findings": []
+  },
+  {
+   "lemma": "если",
+   "category": "conj.subordinating",
+   "findings": []
+  },
+  {
+   "lemma": "чтобы",
+   "category": "conj.subordinating",
+   "findings": []
+  },
+  {
+   "lemma": "ли",
+   "category": "conj.subordinating",
+   "findings": []
+  },
+  {
+   "lemma": "конечно",
+   "category": "conj.parenthetical",
+   "findings": []
+  },
+  {
+   "lemma": "например",
+   "category": "conj.parenthetical",
+   "findings": []
+  },
+  {
+   "lemma": "то",
+   "category": "conj.class",
+   "findings": []
+  },
+  {
+   "lemma": "тем",
+   "category": "conj.class",
+   "findings": []
+  }
+ ]
+}

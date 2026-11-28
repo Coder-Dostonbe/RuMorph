@@ -132,9 +132,14 @@ def test_lexeme_op_for_a_verb():
     assert result["table"]["future_compound"][0]["cells"][0][0]["form"] == "буду писать"
 
 
-def test_lexeme_op_without_a_profile():
+def test_lexeme_op_for_a_word_that_does_not_inflect():
     reading = ok("analyze", word="очень")["readings"][0]
-    assert ok("lexeme", id=reading["lexeme"])["profile"] is None
+    assert ok("lexeme", id=reading["lexeme"])["profile"] == {"kind": "adverb", "category": "adv.class",
+                                                             "findings": []}
+    # A preposition's cases come with their meaning in the reader's language.
+    reading = next(r for r in ok("analyze", word="к")["readings"] if r["tag"]["pos"] == "PREP")
+    finding = ok("lexeme", id=reading["lexeme"], lang="en")["profile"]["findings"][0]
+    assert finding == {"rule": "prep.datv", "detail": "к другу, к дому", "note": "towards whom? towards what?"}
 
 
 def test_phrase_op():

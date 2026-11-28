@@ -331,7 +331,7 @@ const uz = {
     prepositions: "Predloglar",
     filter: "Qoidalardan qidirish",
     building: "Qoidalar katalogi tayyorlanmoqda…",
-    groups: { noun: "Ot", adj: "Sifat", pron: "Olmosh", num: "Son", verb: "Fe'l", spelling: "Imlo" },
+    groups: { noun: "Ot", adj: "Sifat", pron: "Olmosh", num: "Son", verb: "Fe'l", adv: "Ravish", prep: "Predlog", conj: "Bog'lovchi", prcl: "Yuklama", intj: "Undov", spelling: "Imlo" },
     kinds: { declension: "turlanish turi", conjugation: "tuslanish turi", class: "turi", exception: "istisno", spelling: "imlo qoidasi", note: "eslatma" },
     words: "lug'atda {n} ta so'z",
     reference: "Manba",

@@ -13,7 +13,7 @@ from .lexicon import Lexeme, Lexicon, default_lexicon
 from .search import ranks
 
 # Display order of the rule groups (by rule id prefix).
-GROUPS = ("noun", "adj", "pron", "num", "verb", "spelling")
+GROUPS = ("noun", "adj", "pron", "num", "verb", "adv", "prep", "conj", "prcl", "intj", "spelling")
 
 
 def rule_index(lexicon: Lexicon | None = None) -> dict[str, list[tuple[Lexeme, str]]]:
@@ -26,7 +26,7 @@ def rule_index(lexicon: Lexicon | None = None) -> dict[str, list[tuple[Lexeme, s
     index: dict[str, list[tuple[Lexeme, str]]] = {}
     for lexeme in lexicon.lexemes.values():
         had_forms = "forms" in lexeme.__dict__
-        profile = classify(lexeme)
+        profile = classify(lexeme, lexicon)
         if not had_forms:
             # Classifying built every form of every word; let them go again (they are rebuilt on use).
             lexeme.__dict__.pop("forms", None)

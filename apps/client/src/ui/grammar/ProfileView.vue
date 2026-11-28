@@ -33,6 +33,7 @@ const pending = computed(
       <div v-for="f in findings" :key="f.id + f.detail" class="rule">
         <div class="rule-name">{{ f.rule?.name ?? f.id }}</div>
         <p class="detail" lang="ru">{{ f.detail }}</p>
+        <p v-if="f.note" class="note">{{ f.note }}</p>
         <p v-if="f.rule" class="muted small">{{ f.rule.explanation }}</p>
       </div>
       <p v-if="pending" class="muted small">{{ m.analyze.reviewPending }}</p>
@@ -61,6 +62,9 @@ const pending = computed(
 .detail {
   font-weight: 600;
   color: var(--accent);
+}
+.note {
+  font-weight: 550;
 }
 .example {
   color: var(--muted);

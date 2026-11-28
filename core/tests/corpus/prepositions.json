@@ -1,0 +1,181 @@
+{
+ "description": "Hand-checked prepositions: the cases each one takes come from prepositions.py (rare readings left out); vowel variants from the dictionary's Vpre forms.",
+ "entries": [
+  {
+   "lemma": "в",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.accs",
+     "detail": "в школу, в среду"
+    },
+    {
+     "rule": "prep.loct",
+     "detail": "в школе, в мае"
+    },
+    {
+     "rule": "prep.vowel_variant",
+     "detail": "в → во"
+    }
+   ]
+  },
+  {
+   "lemma": "на",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.accs",
+     "detail": "на стол, на работу"
+    },
+    {
+     "rule": "prep.loct",
+     "detail": "на столе, на работе"
+    }
+   ]
+  },
+  {
+   "lemma": "с",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.gent",
+     "detail": "с работы, с утра"
+    },
+    {
+     "rule": "prep.ablt",
+     "detail": "с другом, с молоком"
+    },
+    {
+     "rule": "prep.vowel_variant",
+     "detail": "с → со"
+    }
+   ]
+  },
+  {
+   "lemma": "о",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.loct",
+     "detail": "о книге, о нём"
+    },
+    {
+     "rule": "prep.vowel_variant",
+     "detail": "о → об, обо"
+    }
+   ]
+  },
+  {
+   "lemma": "к",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.datv",
+     "detail": "к другу, к дому"
+    },
+    {
+     "rule": "prep.vowel_variant",
+     "detail": "к → ко"
+    }
+   ]
+  },
+  {
+   "lemma": "по",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.datv",
+     "detail": "по улице, по телефону, по математике"
+    }
+   ]
+  },
+  {
+   "lemma": "из",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.gent",
+     "detail": "из школы, из Ташкента"
+    },
+    {
+     "rule": "prep.vowel_variant",
+     "detail": "из → изо"
+    }
+   ]
+  },
+  {
+   "lemma": "без",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.gent",
+     "detail": "без сахара, без друга"
+    },
+    {
+     "rule": "prep.vowel_variant",
+     "detail": "без → безо"
+    }
+   ]
+  },
+  {
+   "lemma": "для",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.gent",
+     "detail": "для друга, для работы"
+    }
+   ]
+  },
+  {
+   "lemma": "между",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.ablt",
+     "detail": "между домами, между нами"
+    }
+   ]
+  },
+  {
+   "lemma": "через",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.accs",
+     "detail": "через улицу, через час"
+    }
+   ]
+  },
+  {
+   "lemma": "около",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.gent",
+     "detail": "около дома, около часа"
+    }
+   ]
+  },
+  {
+   "lemma": "благодаря",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.datv",
+     "detail": "благодаря другу, благодаря помощи"
+    }
+   ]
+  },
+  {
+   "lemma": "несмотря",
+   "category": "prep.class",
+   "findings": [
+    {
+     "rule": "prep.accs",
+     "detail": "несмотря на дождь"
+    }
+   ]
+  }
+ ]
+}

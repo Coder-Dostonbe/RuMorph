@@ -1,0 +1,241 @@
+{
+ "description": "Hand-checked adverb classifications. Kinds: so'roq (Ques), ko'rsatish (Dmns and a short list), inkor (ни-), otherwise the general adverb rule. An adverb is said to come from an adjective only when it is that adjective's short neuter form; only irregular comparatives are reported.",
+ "entries": [
+  {
+   "lemma": "где",
+   "category": "adv.interrogative",
+   "findings": []
+  },
+  {
+   "lemma": "сколько",
+   "category": "adv.interrogative",
+   "findings": [
+    {
+     "rule": "adv.quantity_gen",
+     "detail": "сколько книг, сколько воды"
+    }
+   ]
+  },
+  {
+   "lemma": "так",
+   "category": "adv.demonstrative",
+   "findings": []
+  },
+  {
+   "lemma": "здесь",
+   "category": "adv.demonstrative",
+   "findings": []
+  },
+  {
+   "lemma": "столько",
+   "category": "adv.demonstrative",
+   "findings": [
+    {
+     "rule": "adv.quantity_gen",
+     "detail": "столько книг, столько воды"
+    }
+   ]
+  },
+  {
+   "lemma": "никогда",
+   "category": "adv.negative",
+   "findings": [
+    {
+     "rule": "adv.double_negation",
+     "detail": "Я никогда не был там."
+    }
+   ]
+  },
+  {
+   "lemma": "никак",
+   "category": "adv.negative",
+   "findings": [
+    {
+     "rule": "adv.double_negation",
+     "detail": "Никак не могу понять."
+    }
+   ]
+  },
+  {
+   "lemma": "очень",
+   "category": "adv.class",
+   "findings": []
+  },
+  {
+   "lemma": "сегодня",
+   "category": "adv.class",
+   "findings": []
+  },
+  {
+   "lemma": "много",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "adv.quantity_gen",
+     "detail": "много книг, много воды"
+    }
+   ]
+  },
+  {
+   "lemma": "несколько",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "adv.quantity_gen",
+     "detail": "несколько книг, несколько дней"
+    }
+   ]
+  },
+  {
+   "lemma": "более",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "adv.analytic_degree",
+     "detail": "более интересный"
+    }
+   ]
+  },
+  {
+   "lemma": "наиболее",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "adv.analytic_degree",
+     "detail": "наиболее интересный"
+    }
+   ]
+  },
+  {
+   "lemma": "утром",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "adv.from_noun",
+     "detail": "утро → утром"
+    }
+   ]
+  },
+  {
+   "lemma": "зимой",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "adv.from_noun",
+     "detail": "зима → зимой"
+    }
+   ]
+  },
+  {
+   "lemma": "быстро",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "adv.from_adjective",
+     "detail": "быстрый → быстро"
+    }
+   ]
+  },
+  {
+   "lemma": "часто",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "adv.from_adjective",
+     "detail": "частый → часто"
+    },
+    {
+     "rule": "adv.comparative",
+     "detail": "часто → чаще"
+    }
+   ]
+  },
+  {
+   "lemma": "хорошо",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "adv.from_adjective",
+     "detail": "хороший → хорошо"
+    },
+    {
+     "rule": "adv.comparative",
+     "detail": "хорошо → лучше"
+    },
+    {
+     "rule": "spelling.adv_hushing_o",
+     "detail": "хорошо"
+    }
+   ]
+  },
+  {
+   "lemma": "далеко",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "adv.from_adjective",
+     "detail": "далёкий → далеко"
+    },
+    {
+     "rule": "adv.comparative",
+     "detail": "далеко → дальше"
+    }
+   ]
+  },
+  {
+   "lemma": "социально",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "adv.from_adjective",
+     "detail": "социальный → социально"
+    }
+   ]
+  },
+  {
+   "lemma": "снова",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "spelling.adv_prefix_a_o",
+     "detail": "новый → снова"
+    }
+   ]
+  },
+  {
+   "lemma": "слегка",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "spelling.adv_prefix_a_o",
+     "detail": "лёгкий → слегка"
+    }
+   ]
+  },
+  {
+   "lemma": "уж",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "spelling.adv_soft_sign",
+     "detail": "уж"
+    }
+   ]
+  },
+  {
+   "lemma": "замуж",
+   "category": "adv.class",
+   "findings": [
+    {
+     "rule": "spelling.adv_soft_sign",
+     "detail": "замуж"
+    }
+   ]
+  },
+  {
+   "lemma": "потом",
+   "category": "adv.class",
+   "findings": []
+  }
+ ]
+}

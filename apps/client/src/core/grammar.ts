@@ -125,6 +125,8 @@ export type Table = GridTable | AdjectiveTable | VerbTable | ListTable;
 export interface Finding {
   rule: string;
   detail: string;
+  /** What the finding means for this word, in the reader's language (a preposition's meaning with one case). */
+  note?: string;
 }
 
 export interface Profile {
@@ -169,7 +171,7 @@ export interface CatalogRule extends Rule {
 }
 
 export interface Catalog {
-  groups: { id: "noun" | "adj" | "pron" | "num" | "verb" | "spelling"; rules: CatalogRule[] }[];
+  groups: { id: "noun" | "adj" | "pron" | "num" | "verb" | "adv" | "prep" | "conj" | "prcl" | "intj" | "spelling"; rules: CatalogRule[] }[];
 }
 
 export interface RuleExamples {

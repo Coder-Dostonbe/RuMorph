@@ -7,7 +7,8 @@ to find what a learner needs to be told: a fleeting vowel, a plural on another
 stem, a spelling rule. Each finding names a rule from rules.py and gives the
 concrete example from this word. A check that cannot decide says nothing
 rather than guess; a lexeme the engine has no classification for gets
-category None.
+category None. Words that do not inflect (adverbs, prepositions, conjunctions,
+particles, interjections) are classified in invariable.py.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from .grammemes import NOT_MAIN
-from .lexicon import Lexeme
+from .lexicon import Lexeme, Lexicon, default_lexicon
 
 VOWELS = "аеёиоуыэюя"
 HUSHING_GKH = "гкхжшщч"
@@ -27,19 +28,26 @@ FLEETING = "оеё"
 class Finding:
     rule_id: str
     detail: str            # this word's own example, e.g. "день → дня"
+    # What the finding means for this word, in uz / ru / en (a preposition's meaning with one case).
+    note: tuple[str, str, str] | None = field(default=None, compare=False)
 
-    def to_dict(self) -> dict:
-        return {"rule": self.rule_id, "detail": self.detail}
+    def to_dict(self, lang: str | None = None) -> dict:
+        data = {"rule": self.rule_id, "detail": self.detail}
+        if self.note and lang in ("uz", "ru", "en"):
+            data["note"] = self.note[("uz", "ru", "en").index(lang)]
+        return data
 
 
 @dataclass
 class Profile:
-    kind: str                              # "noun" | "adjective" | "pronoun" | "verb" | "numeral"
+    # "noun" | "adjective" | "pronoun" | "verb" | "numeral" | "adverb" | "predicative" | "preposition"
+    # | "conjunction" | "particle" | "interjection"
+    kind: str
     category: str | None                   # rule id of the class, None if the engine cannot tell
     findings: list[Finding] = field(default_factory=list)
 
-    def to_dict(self) -> dict:
-        return {"kind": self.kind, "category": self.category, "findings": [f.to_dict() for f in self.findings]}
+    def to_dict(self, lang: str | None = None) -> dict:
+        return {"kind": self.kind, "category": self.category, "findings": [f.to_dict(lang) for f in self.findings]}
 
 
 def _main(lexeme: Lexeme, *grammemes: str, exclude: tuple[str, ...] = ()) -> list[str]:
@@ -473,8 +481,11 @@ def classify_numeral(lexeme: Lexeme) -> Profile:
     return profile
 
 
-def classify(lexeme: Lexeme) -> Profile | None:
-    """The profile for any lexeme the engine can classify; None for other parts of speech."""
+def classify(lexeme: Lexeme, lexicon: Lexicon | None = None) -> Profile | None:
+    """The profile for any lexeme the engine can classify; None for other parts of speech.
+
+    `lexicon` is where an adverb's source adjective is looked up (the bundled one by default).
+    """
     if lexeme.pos == "NOUN":
         return classify_noun(lexeme)
     if lexeme.pos == "NUMR" or (lexeme.pos == "ADJF" and lexeme.lemma == "один"):
@@ -485,4 +496,6 @@ def classify(lexeme: Lexeme) -> Profile | None:
         return classify_adjective(lexeme)
     if lexeme.pos == "INFN":
         return classify_verb(lexeme)
-    return None
+    from .invariable import classify_invariable
+
+    return classify_invariable(lexeme, lexicon or default_lexicon())

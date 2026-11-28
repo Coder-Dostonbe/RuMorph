@@ -1,0 +1,108 @@
+{
+ "description": "Hand-checked predicatives (категория состояния): the person in the dative, tense with было / будет; нет takes the genitive.",
+ "entries": [
+  {
+   "lemma": "нет",
+   "category": "adv.predicative",
+   "findings": [
+    {
+     "rule": "adv.net_genitive",
+     "detail": "нет времени — не было времени — не будет времени"
+    }
+   ]
+  },
+  {
+   "lemma": "можно",
+   "category": "adv.predicative",
+   "findings": [
+    {
+     "rule": "adv.with_infinitive",
+     "detail": "мне можно идти"
+    },
+    {
+     "rule": "adv.state_tense",
+     "detail": "можно — было можно — будет можно"
+    }
+   ]
+  },
+  {
+   "lemma": "надо",
+   "category": "adv.predicative",
+   "findings": [
+    {
+     "rule": "adv.with_infinitive",
+     "detail": "мне надо идти"
+    },
+    {
+     "rule": "adv.state_tense",
+     "detail": "надо — было надо — будет надо"
+    }
+   ]
+  },
+  {
+   "lemma": "нужно",
+   "category": "adv.predicative",
+   "findings": [
+    {
+     "rule": "adv.with_infinitive",
+     "detail": "мне нужно идти"
+    },
+    {
+     "rule": "adv.state_tense",
+     "detail": "нужно — было нужно — будет нужно"
+    },
+    {
+     "rule": "adv.from_adjective",
+     "detail": "нужный → нужно"
+    }
+   ]
+  },
+  {
+   "lemma": "пора",
+   "category": "adv.predicative",
+   "findings": [
+    {
+     "rule": "adv.with_infinitive",
+     "detail": "мне пора идти"
+    },
+    {
+     "rule": "adv.state_tense",
+     "detail": "пора — было пора — будет пора"
+    }
+   ]
+  },
+  {
+   "lemma": "жаль",
+   "category": "adv.predicative",
+   "findings": [
+    {
+     "rule": "adv.state_tense",
+     "detail": "жаль — было жаль — будет жаль"
+    }
+   ]
+  },
+  {
+   "lemma": "хорошо",
+   "category": "adv.predicative",
+   "findings": [
+    {
+     "rule": "adv.state_tense",
+     "detail": "хорошо — было хорошо — будет хорошо"
+    },
+    {
+     "rule": "adv.from_adjective",
+     "detail": "хороший → хорошо"
+    },
+    {
+     "rule": "spelling.adv_hushing_o",
+     "detail": "хорошо"
+    }
+   ]
+  },
+  {
+   "lemma": "должно",
+   "category": "adv.predicative",
+   "findings": []
+  }
+ ]
+}
